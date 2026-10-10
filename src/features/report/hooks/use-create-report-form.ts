@@ -1,6 +1,10 @@
 import { useCallback, useState } from 'react';
+import { toUserMessage } from '@/services/api';
+import { uploadReportImage } from '@/services/upload';
 import type { ReportFormErrors, ReportFormValues } from '../types';
 import { hasErrors, validateReportForm } from '../utils/validation';
+
+export type SubmitResult = { ok: true } | { ok: false; message: string };
 
 const createInitialValues = (): ReportFormValues => ({
   photo: null,
@@ -19,7 +23,7 @@ export type UseCreateReportForm = {
   setField: <K extends keyof ReportFormValues>(key: K, value: ReportFormValues[K]) => void;
   requestSubmit: () => void;
   cancelSubmit: () => void;
-  confirmSubmit: () => Promise<boolean>;
+  confirmSubmit: () => Promise<SubmitResult>;
   reset: () => void;
 };
 
@@ -54,17 +58,20 @@ export function useCreateReportForm(): UseCreateReportForm {
 
   const cancelSubmit = useCallback(() => setConfirmVisible(false), []);
 
-  const confirmSubmit = useCallback(async () => {
+  const confirmSubmit = useCallback(async (): Promise<SubmitResult> => {
     setSubmitting(true);
     try {
-      // TODO: call the create-report API with `values`.
-      await new Promise<void>(resolve => setTimeout(resolve, 800));
+      if (values.photo) {
+        await uploadReportImage(values.photo);
+      }
       setConfirmVisible(false);
-      return true;
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, message: toUserMessage(error) };
     } finally {
       setSubmitting(false);
     }
-  }, []);
+  }, [values]);
 
   const reset = useCallback(() => {
     setValues(createInitialValues());
