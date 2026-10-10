@@ -9,14 +9,46 @@ export function setAccessTokenProvider(fn: TokenProvider): void {
   tokenProvider = fn;
 }
 
+type UnauthorizedHandler = () => Promise<boolean>;
+
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+let inFlightRefresh: Promise<boolean> | null = null;
+
+export function setUnauthorizedHandler(fn: UnauthorizedHandler | null): void {
+  unauthorizedHandler = fn;
+}
+
+function refreshOnce(): Promise<boolean> {
+  if (!unauthorizedHandler) {
+    return Promise.resolve(false);
+  }
+  if (!inFlightRefresh) {
+    inFlightRefresh = unauthorizedHandler()
+      .catch(() => false)
+      .finally(() => {
+        inFlightRefresh = null;
+      });
+  }
+  return inFlightRefresh;
+}
+
 export type RequestOptions = Omit<RequestInit, 'body'> & {
   json?: unknown;
   timeoutMs?: number;
   skipAuth?: boolean;
 };
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { json, timeoutMs = Env.apiTimeoutMs, skipAuth, headers, ...rest } = options;
+type InternalOptions = RequestOptions & { _retried?: boolean };
+
+async function request<T>(path: string, options: InternalOptions = {}): Promise<T> {
+  const {
+    json,
+    timeoutMs = Env.apiTimeoutMs,
+    skipAuth,
+    headers,
+    _retried,
+    ...rest
+  } = options;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -58,10 +90,28 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const parsed: unknown = raw ? safeJsonParse(raw) : null;
 
   if (!response.ok) {
+    if (response.status === 401 && !skipAuth && !_retried) {
+      const refreshed = await refreshOnce();
+      if (refreshed) {
+        return request<T>(path, { ...options, _retried: true });
+      }
+    }
     throw new ApiError(response.status, parsed);
   }
 
-  return parsed as T;
+  return unwrapEnvelope(parsed) as T;
+}
+
+function unwrapEnvelope(parsed: unknown): unknown {
+  if (
+    parsed !== null &&
+    typeof parsed === 'object' &&
+    'success' in parsed &&
+    'data' in parsed
+  ) {
+    return (parsed as { data: unknown }).data;
+  }
+  return parsed;
 }
 
 function safeJsonParse(raw: string): unknown {

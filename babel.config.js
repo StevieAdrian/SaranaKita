@@ -6,8 +6,8 @@ module.exports = {
       {
         root: ['./'],
         alias: {
-          '@': './src',
-          '@/assets': './assets',
+          '^@/assets/(.+)': './assets/\\1',
+          '^@/(.+)': './src/\\1',
         },
         extensions: [
           '.ios.ts',
