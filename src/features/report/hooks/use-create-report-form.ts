@@ -11,7 +11,7 @@ const createInitialValues = (): ReportFormValues => ({
   title: '',
   description: '',
   categoryId: null,
-  locationId: null,
+  location: '',
   incidentDate: new Date(),
 });
 

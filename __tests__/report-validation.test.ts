@@ -8,7 +8,7 @@ const validValues: ReportFormValues = {
   title: 'Proyektor Ruang 12B Rusak',
   description: 'Proyektor tidak menyala sejak pagi.',
   categoryId: 'electronics',
-  locationId: 'room-12b',
+  location: 'Ruang 12B',
   incidentDate: new Date('2025-09-14T10:00:00Z'),
 };
 
@@ -19,11 +19,11 @@ describe('validateReportForm', () => {
 
   it('requires title, description, category and location', () => {
     const errors = validateReportForm(
-      { ...validValues, title: '  ', description: '', categoryId: null, locationId: null },
+      { ...validValues, title: '  ', description: '', categoryId: null, location: '  ' },
       NOW,
     );
     expect(Object.keys(errors).sort()).toEqual(
-      ['categoryId', 'description', 'locationId', 'title'].sort(),
+      ['categoryId', 'description', 'location', 'title'].sort(),
     );
   });
 

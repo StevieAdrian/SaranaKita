@@ -23,8 +23,8 @@ export function validateReportForm(
     errors.categoryId = 'Pilih kategori.';
   }
 
-  if (!values.locationId) {
-    errors.locationId = 'Pilih kelas atau lokasi.';
+  if (!values.location.trim()) {
+    errors.location = 'Kelas atau lokasi wajib diisi.';
   }
 
   if (values.incidentDate.getTime() > now.getTime()) {
