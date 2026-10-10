@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { authClient } from '@/services/auth';
-import { toUserMessage } from '@/services/api';
+import { ApiError, toUserMessage } from '@/services/api';
 import type { LoginFormErrors } from '../types';
 import { hasErrors, validateLoginForm } from '../utils/validation';
 
@@ -31,7 +31,11 @@ export function useLoginForm(): UseLoginForm {
     try {
       await authClient.signIn({ email, password });
     } catch (error) {
-      setErrors({ form: toUserMessage(error) });
+      const message =
+        error instanceof ApiError && error.status === 401
+          ? 'Incorrect email or password.'
+          : toUserMessage(error);
+      setErrors({ form: message });
     } finally {
       setSubmitting(false);
     }
