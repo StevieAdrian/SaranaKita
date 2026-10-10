@@ -10,6 +10,8 @@ export const palette = {
   brand: '#2563EB',
   link: '#1D6FE0',
   primaryDark: '#1B4FD1',
+  navy: '#102A6B',
+  tabInactive: '#CBD5E1',
   danger: '#E5484D',
   success: '#2BA471',
 } as const;

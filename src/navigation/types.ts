@@ -10,6 +10,9 @@ export type OnboardingStackParamList = {
 
 export type TabParamList = {
   Home: undefined;
+  Statistic: undefined;
+  CreateReport: undefined;
+  ReportHistory: undefined;
   Profile: undefined;
 };
 
