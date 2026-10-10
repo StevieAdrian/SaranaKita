@@ -12,11 +12,13 @@ import historyIcon from '../../assets/images/history-logo.png';
 import userIcon from '../../assets/images/user-logo.png';
 import { HomeScreen, ProfileScreen } from '@/features/home';
 import { StatisticScreen } from '@/features/statistic';
-import { CreateReportScreen, ReportHistoryScreen } from '@/features/report';
+import { ReportHistoryScreen } from '@/features/report';
 import { BottomTabBar } from './components/bottom-tab-bar';
 import type { TabParamList } from './types';
 
 const Tab = createBottomTabNavigator<TabParamList>();
+
+const EmptyScreen = () => null;
 
 function tintedIcon(
   source: ImageSourcePropType,
@@ -50,9 +52,15 @@ export function TabNavigator(): React.JSX.Element {
         options={{ title: 'Statistik', tabBarIcon: tintedIcon(statisticIcon) }}
       />
       <Tab.Screen
-        name="CreateReport"
-        component={CreateReportScreen}
+        name="CreateReportTab"
+        component={EmptyScreen}
         options={{ title: 'Buat Laporan', tabBarIcon: createTabIcon }}
+        listeners={({ navigation }) => ({
+          tabPress: event => {
+            event.preventDefault();
+            navigation.getParent()?.navigate('CreateReport');
+          },
+        })}
       />
       <Tab.Screen
         name="ReportHistory"

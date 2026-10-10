@@ -11,7 +11,7 @@ export type OnboardingStackParamList = {
 export type TabParamList = {
   Home: undefined;
   Statistic: undefined;
-  CreateReport: undefined;
+  CreateReportTab: undefined;
   ReportHistory: undefined;
   Profile: undefined;
 };
@@ -20,6 +20,7 @@ export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Onboarding: NavigatorScreenParams<OnboardingStackParamList>;
   Main: NavigatorScreenParams<TabParamList>;
+  CreateReport: undefined;
 };
 
 declare global {
