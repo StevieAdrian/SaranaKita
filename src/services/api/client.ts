@@ -34,6 +34,7 @@ function refreshOnce(): Promise<boolean> {
 
 export type RequestOptions = Omit<RequestInit, 'body'> & {
   json?: unknown;
+  formData?: FormData;
   timeoutMs?: number;
   skipAuth?: boolean;
 };
@@ -43,6 +44,7 @@ type InternalOptions = RequestOptions & { _retried?: boolean };
 async function request<T>(path: string, options: InternalOptions = {}): Promise<T> {
   const {
     json,
+    formData,
     timeoutMs = Env.apiTimeoutMs,
     skipAuth,
     headers,
@@ -75,7 +77,7 @@ async function request<T>(path: string, options: InternalOptions = {}): Promise<
       ...rest,
       headers: finalHeaders,
       signal: controller.signal,
-      body: json !== undefined ? JSON.stringify(json) : undefined,
+      body: formData ?? (json !== undefined ? JSON.stringify(json) : undefined),
     });
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
@@ -131,4 +133,6 @@ export const apiClient = {
     request<T>(path, { ...options, method: 'PUT', json }),
   delete: <T>(path: string, options?: RequestOptions) =>
     request<T>(path, { ...options, method: 'DELETE' }),
+  upload: <T>(path: string, formData: FormData, options?: RequestOptions) =>
+    request<T>(path, { timeoutMs: 60_000, ...options, method: 'POST', formData }),
 };

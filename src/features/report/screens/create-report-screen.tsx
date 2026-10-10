@@ -46,13 +46,15 @@ export function CreateReportScreen(): React.JSX.Element {
   const categories = useCategories();
 
   const handleConfirm = async () => {
-    const ok = await confirmSubmit();
-    if (ok) {
-      reset();
-      Alert.alert('Laporan terkirim', 'Terima kasih, laporan kamu sudah kami terima.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+    const result = await confirmSubmit();
+    if (!result.ok) {
+      Alert.alert('Gagal mengirim laporan', result.message);
+      return;
     }
+    reset();
+    Alert.alert('Laporan terkirim', 'Terima kasih, laporan kamu sudah kami terima.', [
+      { text: 'OK', onPress: () => navigation.goBack() },
+    ]);
   };
 
   return (
