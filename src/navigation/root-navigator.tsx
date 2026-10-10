@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSession } from '@/features/auth';
 import { useOnboarding } from '@/features/onboarding';
+import { CreateReportScreen } from '@/features/report';
 import { AuthNavigator } from './auth-navigator';
 import { OnboardingNavigator } from './onboarding-navigator';
 import { TabNavigator } from './tab-navigator';
@@ -34,7 +35,10 @@ export function RootNavigator(): React.JSX.Element {
         ) : needsOnboarding ? (
           <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
         ) : (
-          <Stack.Screen name="Main" component={TabNavigator} />
+          <Stack.Group>
+            <Stack.Screen name="Main" component={TabNavigator} />
+            <Stack.Screen name="CreateReport" component={CreateReportScreen} />
+          </Stack.Group>
         )}
       </Stack.Navigator>
     </NavigationContainer>
