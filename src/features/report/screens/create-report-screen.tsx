@@ -14,8 +14,8 @@ import {
 } from '@/shared/components/ui';
 import { palette } from '@/shared/theme';
 import {
+  CLASS_OPTIONS,
   DESCRIPTION_MAX_LENGTH,
-  LOCATION_MAX_LENGTH,
   TITLE_MAX_LENGTH,
 } from '../constants';
 import { useCategories } from '../hooks/use-categories';
@@ -123,12 +123,12 @@ export function CreateReportScreen(): React.JSX.Element {
             </FormField>
 
             <FormField label="Kelas / Lokasi" required error={errors.location}>
-              <Input
-                value={values.location}
-                onChangeText={text => setField('location', text)}
-                placeholder="Contoh: Ruang 12B"
-                maxLength={LOCATION_MAX_LENGTH}
-                returnKeyType="done"
+              <Select
+                value={values.location || null}
+                options={CLASS_OPTIONS}
+                onChange={value => setField('location', value)}
+                placeholder="Pilih Kelas"
+                sheetTitle="Pilih Kelas"
                 accessibilityLabel="Kelas atau Lokasi, wajib"
                 hasError={Boolean(errors.location)}
               />
@@ -161,8 +161,7 @@ export function CreateReportScreen(): React.JSX.Element {
         message={
           <>
             Laporan akan{' '}
-            <Text className="font-semibold text-navy">langsung terverifikasi</Text> dan
-            diteruskan ke pihak terkait.
+            <Text className="font-semibold text-navy">langsung terverifikasi untuk diproses</Text>.
           </>
         }
         confirmLabel="Ya, Buat Laporan"
