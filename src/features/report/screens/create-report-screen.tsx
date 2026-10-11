@@ -1,5 +1,12 @@
 import React from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -52,9 +59,11 @@ export function CreateReportScreen(): React.JSX.Element {
       return;
     }
     reset();
-    Alert.alert('Laporan terkirim', 'Terima kasih, laporan kamu sudah kami terima.', [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ]);
+    Alert.alert(
+      'Laporan terkirim',
+      'Terima kasih, laporan kamu sudah kami terima.',
+      [{ text: 'OK', onPress: () => navigation.goBack() }],
+    );
   };
 
   return (
@@ -149,7 +158,11 @@ export function CreateReportScreen(): React.JSX.Element {
             </FormField>
 
             <View className="mt-4">
-              <Button title="Kirim Laporan" onPress={requestSubmit} style={SUBMIT_BUTTON} />
+              <Button
+                title="Kirim Laporan"
+                onPress={requestSubmit}
+                style={SUBMIT_BUTTON}
+              />
             </View>
           </View>
         </ScrollView>
@@ -161,7 +174,10 @@ export function CreateReportScreen(): React.JSX.Element {
         message={
           <>
             Laporan akan{' '}
-            <Text className="font-semibold text-navy">langsung terverifikasi untuk diproses</Text>.
+            <Text className="font-semibold text-navy">
+              langsung terverifikasi untuk diproses
+            </Text>
+            .
           </>
         }
         confirmLabel="Ya, Buat Laporan"

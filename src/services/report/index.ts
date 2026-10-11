@@ -16,3 +16,9 @@ export {
   type ReportStatus,
   type VoteResult,
 } from './feed.api';
+
+export {
+  getReportDetail,
+  type ReportDetail,
+  type ReportTimelineEvent,
+} from './detail.api';

@@ -32,7 +32,11 @@ export function useCategories(): UseCategories {
   }, [reload]);
 
   const options = useMemo(
-    () => categories.map(category => ({ value: category.id, label: category.name })),
+    () =>
+      categories.map(category => ({
+        value: category.id,
+        label: category.name,
+      })),
     [categories],
   );
 

@@ -9,7 +9,11 @@ import { hasErrors, validateReportForm } from '../utils/validation';
 export type SubmitResult = { ok: true } | { ok: false; message: string };
 
 function getServerMessage(error: unknown): string | null {
-  if (!(error instanceof ApiError) || error.status === 401 || error.status >= 500) {
+  if (
+    !(error instanceof ApiError) ||
+    error.status === 401 ||
+    error.status >= 500
+  ) {
     return null;
   }
   const body = error.body as { error?: unknown } | null;
@@ -37,7 +41,10 @@ export type UseCreateReportForm = {
   readonly errors: ReportFormErrors;
   readonly confirmVisible: boolean;
   readonly submitting: boolean;
-  setField: <K extends keyof ReportFormValues>(key: K, value: ReportFormValues[K]) => void;
+  setField: <K extends keyof ReportFormValues>(
+    key: K,
+    value: ReportFormValues[K],
+  ) => void;
   requestSubmit: () => void;
   cancelSubmit: () => void;
   confirmSubmit: () => Promise<SubmitResult>;
@@ -94,7 +101,10 @@ export function useCreateReportForm(): UseCreateReportForm {
       setConfirmVisible(false);
       return { ok: true };
     } catch (error) {
-      return { ok: false, message: getServerMessage(error) ?? toUserMessage(error) };
+      return {
+        ok: false,
+        message: getServerMessage(error) ?? toUserMessage(error),
+      };
     } finally {
       setSubmitting(false);
     }

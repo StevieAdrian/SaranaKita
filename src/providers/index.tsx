@@ -3,7 +3,6 @@ import { StatusBar, StyleSheet, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { authClient } from '@/services/auth';
-import { OnboardingProvider } from '@/features/onboarding';
 import { AccessibilityProvider } from '@/shared/accessibility/accessibility-context';
 
 export function AppProviders({ children }: PropsWithChildren): React.JSX.Element {
@@ -17,9 +16,7 @@ export function AppProviders({ children }: PropsWithChildren): React.JSX.Element
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-        <AccessibilityProvider>
-          <OnboardingProvider>{children}</OnboardingProvider>
-        </AccessibilityProvider>
+        <AccessibilityProvider>{children}</AccessibilityProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
