@@ -5,6 +5,7 @@ import {
   setUnauthorizedHandler,
 } from '@/services/api';
 import { clearTokens, loadTokens, saveTokens } from './storage';
+import { toAuthUser, type ApiUser } from './map-user';
 import type {
   AuthListener,
   AuthState,
@@ -29,13 +30,15 @@ function setState(next: AuthState): void {
 
 type SessionResponse = {
   readonly tokens: AuthTokens;
-  readonly user: AuthUser;
+  readonly user: ApiUser;
 };
 
-async function applySession(response: SessionResponse): Promise<void> {
+async function applySession(response: SessionResponse): Promise<AuthUser> {
   tokens = response.tokens;
   await saveTokens(response.tokens);
-  setState({ status: 'authenticated', user: response.user });
+  const user = toAuthUser(response.user);
+  setState({ status: 'authenticated', user });
+  return user;
 }
 
 async function signIn(credentials: SignInCredentials): Promise<AuthUser> {
@@ -44,8 +47,7 @@ async function signIn(credentials: SignInCredentials): Promise<AuthUser> {
     credentials,
     { skipAuth: true },
   );
-  await applySession(response);
-  return response.user;
+  return applySession(response);
 }
 
 async function signOut(): Promise<void> {
@@ -75,7 +77,7 @@ async function refresh(): Promise<boolean> {
   }
 }
 
-type MeResponse = { readonly user: AuthUser };
+type MeResponse = { readonly user: ApiUser };
 
 async function restore(): Promise<void> {
   const stored = await loadTokens();
@@ -86,7 +88,7 @@ async function restore(): Promise<void> {
   tokens = stored;
   try {
     const response = await apiClient.get<MeResponse>('/auth/me');
-    setState({ status: 'authenticated', user: response.user });
+    setState({ status: 'authenticated', user: toAuthUser(response.user) });
   } catch {
     tokens = null;
     await clearTokens();

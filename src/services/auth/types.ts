@@ -3,10 +3,15 @@ export type AuthTokens = {
   readonly refreshToken: string;
 };
 
+export const USER_ROLES = ['siswa', 'guru', 'staff', 'administrator'] as const;
+
+export type UserRole = (typeof USER_ROLES)[number];
+
 export type AuthUser = {
   readonly id: string;
   readonly email: string;
   readonly displayName: string;
+  readonly role: UserRole | null;
 };
 
 export type AuthStatus = 'unknown' | 'authenticated' | 'unauthenticated';

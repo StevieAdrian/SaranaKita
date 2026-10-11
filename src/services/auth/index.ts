@@ -1,4 +1,5 @@
 export { authClient } from './client';
+export { USER_ROLES } from './types';
 export type {
   AuthListener,
   AuthState,
@@ -6,4 +7,5 @@ export type {
   AuthTokens,
   AuthUser,
   SignInCredentials,
+  UserRole,
 } from './types';
