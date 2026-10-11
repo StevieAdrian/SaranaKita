@@ -15,7 +15,7 @@ import {
 import { palette } from '@/shared/theme';
 import {
   DESCRIPTION_MAX_LENGTH,
-  REPORT_LOCATIONS,
+  LOCATION_MAX_LENGTH,
   TITLE_MAX_LENGTH,
 } from '../constants';
 import { useCategories } from '../hooks/use-categories';
@@ -122,15 +122,15 @@ export function CreateReportScreen(): React.JSX.Element {
               />
             </FormField>
 
-            <FormField label="Kelas / Lokasi" required error={errors.locationId}>
-              <Select
-                value={values.locationId}
-                options={REPORT_LOCATIONS}
-                onChange={value => setField('locationId', value)}
-                placeholder="Pilih kelas atau lokasi"
-                sheetTitle="Pilih Kelas / Lokasi"
+            <FormField label="Kelas / Lokasi" required error={errors.location}>
+              <Input
+                value={values.location}
+                onChangeText={text => setField('location', text)}
+                placeholder="Contoh: Ruang 12B"
+                maxLength={LOCATION_MAX_LENGTH}
+                returnKeyType="done"
                 accessibilityLabel="Kelas atau Lokasi, wajib"
-                hasError={Boolean(errors.locationId)}
+                hasError={Boolean(errors.location)}
               />
             </FormField>
 

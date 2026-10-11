@@ -5,7 +5,7 @@ export type ReportFormValues = {
   readonly title: string;
   readonly description: string;
   readonly categoryId: string | null;
-  readonly locationId: string | null;
+  readonly location: string;
   readonly incidentDate: Date;
 };
 

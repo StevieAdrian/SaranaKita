@@ -1,17 +1,34 @@
 import { useCallback, useState } from 'react';
-import { toUserMessage } from '@/services/api';
+import { ApiError, toUserMessage } from '@/services/api';
+import { createReport } from '@/services/report';
 import { uploadReportImage } from '@/services/upload';
+import { toIsoDate } from '@/shared/utils/date';
 import type { ReportFormErrors, ReportFormValues } from '../types';
 import { hasErrors, validateReportForm } from '../utils/validation';
 
 export type SubmitResult = { ok: true } | { ok: false; message: string };
+
+function getServerMessage(error: unknown): string | null {
+  if (!(error instanceof ApiError) || error.status === 401 || error.status >= 500) {
+    return null;
+  }
+  const body = error.body as { error?: unknown } | null;
+  if (typeof body?.error === 'string') {
+    return body.error;
+  }
+  const nested = (body?.error as { message?: unknown } | undefined)?.message;
+  if (typeof nested === 'string') {
+    return nested;
+  }
+  return null;
+}
 
 const createInitialValues = (): ReportFormValues => ({
   photo: null,
   title: '',
   description: '',
   categoryId: null,
-  locationId: null,
+  location: '',
   incidentDate: new Date(),
 });
 
@@ -59,15 +76,25 @@ export function useCreateReportForm(): UseCreateReportForm {
   const cancelSubmit = useCallback(() => setConfirmVisible(false), []);
 
   const confirmSubmit = useCallback(async (): Promise<SubmitResult> => {
+    if (!values.categoryId) {
+      return { ok: false, message: 'Pilih kategori.' };
+    }
     setSubmitting(true);
     try {
-      if (values.photo) {
-        await uploadReportImage(values.photo);
-      }
+      const image = values.photo ? await uploadReportImage(values.photo) : null;
+      await createReport({
+        title: values.title.trim(),
+        description: values.description.trim(),
+        location: values.location.trim(),
+        categoryId: values.categoryId,
+        brokenDate: toIsoDate(values.incidentDate),
+        imageUrl: image?.url,
+        imagePublicId: image?.publicId,
+      });
       setConfirmVisible(false);
       return { ok: true };
     } catch (error) {
-      return { ok: false, message: toUserMessage(error) };
+      return { ok: false, message: getServerMessage(error) ?? toUserMessage(error) };
     } finally {
       setSubmitting(false);
     }
