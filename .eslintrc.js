@@ -50,11 +50,6 @@ module.exports = {
             except: ['./auth'],
           },
           {
-            target: './src/features/onboarding',
-            from: './src/features',
-            except: ['./onboarding'],
-          },
-          {
             target: './src/features/home',
             from: './src/features',
             except: ['./home'],

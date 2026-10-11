@@ -3,10 +3,8 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSession } from '@/features/auth';
-import { useOnboarding } from '@/features/onboarding';
 import { CreateReportScreen } from '@/features/report';
 import { AuthNavigator } from './auth-navigator';
-import { OnboardingNavigator } from './onboarding-navigator';
 import { TabNavigator } from './tab-navigator';
 import type { RootStackParamList } from './types';
 
@@ -14,7 +12,6 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator(): React.JSX.Element {
   const session = useSession();
-  const { completed } = useOnboarding();
 
   if (session.status === 'unknown') {
     return (
@@ -25,15 +22,12 @@ export function RootNavigator(): React.JSX.Element {
   }
 
   const needsAuth = session.status !== 'authenticated';
-  const needsOnboarding = !needsAuth && !completed;
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {needsAuth ? (
           <Stack.Screen name="Auth" component={AuthNavigator} />
-        ) : needsOnboarding ? (
-          <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
         ) : (
           <Stack.Group>
             <Stack.Screen name="Main" component={TabNavigator} />

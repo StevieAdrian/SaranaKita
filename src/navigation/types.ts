@@ -4,10 +4,6 @@ export type AuthStackParamList = {
   Login: undefined;
 };
 
-export type OnboardingStackParamList = {
-  Welcome: undefined;
-};
-
 export type TabParamList = {
   Home: undefined;
   Statistic: undefined;
@@ -18,7 +14,6 @@ export type TabParamList = {
 
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
-  Onboarding: NavigatorScreenParams<OnboardingStackParamList>;
   Main: NavigatorScreenParams<TabParamList>;
   CreateReport: undefined;
 };
