@@ -32,7 +32,11 @@ export function ProfileScreen(): React.JSX.Element {
         </View>
       ) : null}
 
-      <Button title="Sign out" variant="secondary" onPress={authClient.signOut} />
+      <Button
+        title="Sign out"
+        variant="secondary"
+        onPress={authClient.signOut}
+      />
     </ThemedView>
   );
 }
