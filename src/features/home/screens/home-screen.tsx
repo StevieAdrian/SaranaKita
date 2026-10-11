@@ -10,6 +10,7 @@ import {
   type ListRenderItem,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import type { FeedReport } from '@/services/report';
 import { PopularReportCard, ReportListCard } from '@/shared/components/report';
 import { ChipTabs, SearchBar, SectionHeader } from '@/shared/components/ui';
@@ -33,6 +34,12 @@ export function HomeScreen(): React.JSX.Element {
   const feed = useHomeFeed();
   const { vote } = feed;
   const [filterOpen, setFilterOpen] = useState(false);
+  const navigation = useNavigation();
+
+  const openDetail = useCallback(
+    (reportId: string) => navigation.navigate('ReportDetail', { reportId }),
+    [navigation],
+  );
 
   const handleVote = useCallback(
     async (id: string) => {
@@ -53,9 +60,10 @@ export function HomeScreen(): React.JSX.Element {
         status={item.status}
         votes={item.votes}
         imageUrl={item.imageUrl}
+        onPress={() => openDetail(item.id)}
       />
     ),
-    [],
+    [openDetail],
   );
 
   const renderReport: ListRenderItem<FeedReport> = useCallback(
@@ -72,6 +80,7 @@ export function HomeScreen(): React.JSX.Element {
           date={toDisplayDate(item.createdAt)}
           votes={item.votes}
           comments={item.comments}
+          onPress={() => openDetail(item.id)}
           action={{
             label: item.votedByMe ? 'Voted' : 'Vote',
             variant: item.votedByMe ? 'muted' : 'solid',
@@ -85,7 +94,7 @@ export function HomeScreen(): React.JSX.Element {
         />
       </View>
     ),
-    [handleVote],
+    [handleVote, openDetail],
   );
 
   const header = (

@@ -65,7 +65,10 @@ export function TabNavigator(): React.JSX.Element {
       <Tab.Screen
         name="ReportHistory"
         component={ReportHistoryScreen}
-        options={{ title: 'Riwayat Laporan', tabBarIcon: tintedIcon(historyIcon) }}
+        options={{
+          title: 'Riwayat Laporan',
+          tabBarIcon: tintedIcon(historyIcon),
+        }}
       />
       <Tab.Screen
         name="Profile"

@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSession } from '@/features/auth';
-import { CreateReportScreen } from '@/features/report';
+import { CreateReportScreen, ReportDetailScreen } from '@/features/report';
 import { AuthNavigator } from './auth-navigator';
 import { TabNavigator } from './tab-navigator';
 import type { RootStackParamList } from './types';
@@ -32,6 +32,7 @@ export function RootNavigator(): React.JSX.Element {
           <Stack.Group>
             <Stack.Screen name="Main" component={TabNavigator} />
             <Stack.Screen name="CreateReport" component={CreateReportScreen} />
+            <Stack.Screen name="ReportDetail" component={ReportDetailScreen} />
           </Stack.Group>
         )}
       </Stack.Navigator>

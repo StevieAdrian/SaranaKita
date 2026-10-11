@@ -16,6 +16,7 @@ export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Main: NavigatorScreenParams<TabParamList>;
   CreateReport: undefined;
+  ReportDetail: { reportId: string };
 };
 
 declare global {
