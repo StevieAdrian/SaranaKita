@@ -7,6 +7,7 @@ export const palette = {
   gray700: '#4A4E57',
   gray900: '#1C1E24',
   primary: '#2F6BFF',
+  infoBackground: '#DBEAFE',
   brand: '#2563EB',
   link: '#1D6FE0',
   primaryDark: '#1B4FD1',
