@@ -19,6 +19,9 @@ export {
 
 export {
   getReportDetail,
+  getReportComments,
+  createReportComment,
+  type ReportComment,
   type ReportDetail,
   type ReportTimelineEvent,
 } from './detail.api';

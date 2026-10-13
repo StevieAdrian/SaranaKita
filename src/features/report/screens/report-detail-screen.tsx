@@ -37,10 +37,30 @@ export function ReportDetailScreen(): React.JSX.Element {
   const { params } = useRoute<DetailRoute>();
   const insets = useSafeAreaInsets();
   const user = useCurrentUser();
-  const { report, loading, error, voting, reload, toggleVote } =
-    useReportDetail(params.reportId);
+  const {
+    report,
+    loading,
+    error,
+    voting,
+    comments,
+    commentsError,
+    submittingComment,
+    reload,
+    toggleVote,
+    submitComment,
+  } = useReportDetail(params.reportId);
 
   const canVote = user?.role === 'siswa';
+  const canComment = canVote;
+
+  const handleCommentSubmit = async (text: string): Promise<boolean> => {
+    const message = await submitComment(text);
+    if (message) {
+      Alert.alert('Gagal mengirim komentar', message);
+      return false;
+    }
+    return true;
+  };
 
   const handleVote = async () => {
     const message = await toggleVote();
@@ -92,7 +112,10 @@ export function ReportDetailScreen(): React.JSX.Element {
                 {report.title}
               </Text>
               {report.location ? (
-                <View className="mt-1 rounded-md bg-[#DBEAFE] px-2 py-0.5">
+                <View
+                  className="mt-1 rounded-md px-2 py-0.5"
+                  style={{ backgroundColor: palette.infoBackground }}
+                >
                   <Text className="text-xs font-semibold text-navy">
                     {report.location}
                   </Text>
@@ -133,7 +156,10 @@ export function ReportDetailScreen(): React.JSX.Element {
               >
                 Progres Laporan
               </Text>
-              <View className="rounded-full bg-[#DBEAFE] px-3 py-0.5">
+              <View
+                className="rounded-full px-3 py-0.5"
+                style={{ backgroundColor: palette.infoBackground }}
+              >
                 <Text className="text-xs font-semibold text-primary">
                   {progress.percent}%
                 </Text>
@@ -146,6 +172,12 @@ export function ReportDetailScreen(): React.JSX.Element {
           <CommentSection
             count={report.comments}
             userName={user?.displayName ?? ''}
+            comments={comments}
+            error={commentsError}
+            canComment={canComment}
+            submitting={submittingComment}
+            onSubmit={handleCommentSubmit}
+            onRetry={reload}
           />
         </View>
       </ScrollView>
