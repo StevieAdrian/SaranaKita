@@ -24,7 +24,9 @@ export {
   getReportDetail,
   getReportComments,
   createReportComment,
+  rejectReport,
   type ReportComment,
   type ReportDetail,
+  type RejectReportResult,
   type ReportTimelineEvent,
 } from './detail.api';

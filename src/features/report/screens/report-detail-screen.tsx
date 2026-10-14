@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Pressable,
   ScrollView,
   Text,
   View,
 } from 'react-native';
+import checkIcon from '@/assets/images/check.png';
 import {
   useNavigation,
   useRoute,
@@ -14,7 +16,7 @@ import {
 } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { REPORT_PROGRESS, ReportProgress } from '@/shared/components/report';
-import { ScreenHeader } from '@/shared/components/ui';
+import { RecommendationSheet, ScreenHeader } from '@/shared/components/ui';
 import { palette } from '@/shared/theme';
 import { ReportGallery } from '../components/report-gallery';
 import {
@@ -26,7 +28,6 @@ import {
 import { useCurrentUser } from '../hooks/use-current-user';
 import { useReportDetail } from '../hooks/use-report-detail';
 import { formatIsoDate, formatReporterRole } from '../utils/detail-format';
-
 type DetailRoute = RouteProp<
   { ReportDetail: { reportId: string } },
   'ReportDetail'
@@ -42,14 +43,19 @@ export function ReportDetailScreen(): React.JSX.Element {
     loading,
     error,
     voting,
+    recommending,
+    rejecting,
     comments,
     commentsError,
     submittingComment,
     reload,
     toggleVote,
+    toggleRecommendation,
+    submitReject,
     submitComment,
   } = useReportDetail(params.reportId);
 
+  const isTeacher = user?.role === 'guru';
   const canVote = user?.role === 'siswa';
   const canComment = canVote;
 
@@ -67,6 +73,38 @@ export function ReportDetailScreen(): React.JSX.Element {
     if (message) {
       Alert.alert('Gagal menyimpan dukungan', message);
     }
+  };
+
+  const [showRecommendSheet, setShowRecommendSheet] = useState(false);
+
+  const handleRecommendation = async (reason: string) => {
+    const message = await toggleRecommendation(reason);
+    if (message) {
+      Alert.alert('Gagal menyimpan rekomendasi', message);
+    } else {
+      setShowRecommendSheet(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!report) return;
+    Alert.alert(
+      'Tolak Laporan',
+      'Apakah kamu yakin ingin menolak laporan ini?',
+      [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Tolak',
+          style: 'destructive',
+          onPress: async () => {
+            const message = await submitReject();
+            if (message) {
+              Alert.alert('Gagal menolak laporan', message);
+            }
+          },
+        },
+      ],
+    );
   };
 
   const renderBody = () => {
@@ -95,8 +133,9 @@ export function ReportDetailScreen(): React.JSX.Element {
     }
 
     const progress = REPORT_PROGRESS[report.status];
+    const hasTeacherBar = isTeacher && report.status !== 'rejected';
     const scrollContent = {
-      paddingBottom: canVote ? 24 : insets.bottom + 24,
+      paddingBottom: canVote || hasTeacherBar ? 24 : insets.bottom + 24,
     };
 
     return (
@@ -220,6 +259,78 @@ export function ReportDetailScreen(): React.JSX.Element {
           </Pressable>
         </View>
       ) : null}
+      {report && isTeacher && report.status !== 'rejected' ? (
+        <View
+          className="flex-row gap-3 px-5 pt-4"
+          style={{
+            backgroundColor: palette.teacherPrimary,
+            paddingBottom: insets.bottom + 16,
+          }}
+        >
+          {/* Tombol Tolak */}
+          <Pressable
+            onPress={() => {
+              handleReject().catch(() => {});
+            }}
+            disabled={rejecting || recommending}
+            accessibilityRole="button"
+            accessibilityLabel="Tolak laporan"
+            accessibilityState={{ busy: rejecting }}
+            className="min-h-[52px] flex-1 flex-row items-center justify-center gap-2 rounded-xl border-2 border-white bg-transparent active:opacity-70"
+          >
+            {rejecting ? (
+              <ActivityIndicator color={palette.white} />
+            ) : (
+              <>
+                <Text className="text-base font-bold text-white">✕</Text>
+                <Text className="text-base font-semibold text-white">Tolak</Text>
+              </>
+            )}
+          </Pressable>
+          {/* Tombol Rekomendasi */}
+          <Pressable
+            onPress={() => {
+              setShowRecommendSheet(true);
+            }}
+            disabled={recommending || rejecting}
+            accessibilityRole="button"
+            accessibilityLabel={
+              report.recommendedByMe
+                ? 'Batalkan rekomendasi'
+                : 'Rekomendasikan laporan'
+            }
+            accessibilityState={{ busy: recommending, selected: report.recommendedByMe }}
+            className="min-h-[52px] flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-white active:opacity-80"
+          >
+            {recommending ? (
+              <ActivityIndicator color={palette.teacherPrimary} />
+            ) : (
+              <>
+                <Image
+                  source={checkIcon}
+                  resizeMode="contain"
+                  className="h-4 w-4"
+                  style={{ tintColor: palette.teacherText }}
+                />
+                <Text
+                  className="text-base font-semibold"
+                  style={{ color: palette.teacherText }}
+                >
+                  {report.recommendedByMe ? 'Direkomendasikan' : 'Rekomendasi'}
+                </Text>
+              </>
+            )}
+          </Pressable>
+        </View>
+      ) : null}
+      <RecommendationSheet
+        visible={showRecommendSheet}
+        loading={recommending}
+        onSubmit={(reason) => {
+          handleRecommendation(reason).catch(() => {});
+        }}
+        onCancel={() => setShowRecommendSheet(false)}
+      />
     </View>
   );
 }

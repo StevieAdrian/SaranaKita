@@ -108,9 +108,13 @@ export function unvoteReport(id: string): Promise<VoteResult> {
   );
 }
 
-export function recommendReport(id: string): Promise<RecommendationResult> {
+export function recommendReport(
+  id: string,
+  reason: string,
+): Promise<RecommendationResult> {
   return apiClient.post<RecommendationResult>(
     `/reports/${encodeURIComponent(id)}/recommendations`,
+    { reason },
   );
 }
 

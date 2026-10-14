@@ -49,7 +49,7 @@ export type UseHomeFeed = {
   readonly refresh: () => void;
   readonly loadMore: () => void;
   readonly vote: (id: string) => Promise<string | null>;
-  readonly recommend: (id: string) => Promise<string | null>;
+  readonly recommend: (id: string, reason?: string) => Promise<string | null>;
 };
 
 export function useHomeFeed(): UseHomeFeed {
@@ -194,12 +194,24 @@ export function useHomeFeed(): UseHomeFeed {
   );
 
   const recommend = useCallback(
-    async (id: string): Promise<string | null> => {
+    async (id: string, reason?: string): Promise<string | null> => {
       const target =
         reports.find(report => report.id === id) ??
         popular.find(report => report.id === id);
-      if (!target || pendingRecommendations.current.has(id)) {
-        return null;
+      if (!target) {
+        return 'Laporan tidak ditemukan. Muat ulang daftar lalu coba lagi.';
+      }
+      if (pendingRecommendations.current.has(id)) {
+        return 'Rekomendasi sedang diproses. Coba lagi sebentar.';
+      }
+      const normalizedReason = reason?.trim() ?? '';
+      if (!target.recommendedByMe) {
+        if (normalizedReason.length < 10) {
+          return 'Alasan rekomendasi minimal 10 karakter.';
+        }
+        if (normalizedReason.length > 300) {
+          return 'Alasan rekomendasi maksimal 300 karakter.';
+        }
       }
       pendingRecommendations.current.add(id);
       setReports(current => toggleRecommendation(current, id));
@@ -208,7 +220,7 @@ export function useHomeFeed(): UseHomeFeed {
       try {
         const result = target.recommendedByMe
           ? await removeRecommendation(id)
-          : await recommendReport(id);
+          : await recommendReport(id, normalizedReason);
         setReports(current => applyRecommendationResult(current, result));
         setPopular(current => applyRecommendationResult(current, result));
         return null;
