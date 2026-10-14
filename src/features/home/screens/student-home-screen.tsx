@@ -13,7 +13,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { FeedReport } from '@/services/report';
 import { PopularReportCard, ReportListCard } from '@/shared/components/report';
-import { ChipTabs, SearchBar, SectionHeader } from '@/shared/components/ui';
+import {
+  ChipTabs,
+  RecommendationSheet,
+  SearchBar,
+  SectionHeader,
+} from '@/shared/components/ui';
 import { palette } from '@/shared/theme';
 import { HomeHeader } from '../components/home-header';
 import { ReportFilterSheet } from '../components/report-filter-sheet';
@@ -37,6 +42,11 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
   const { vote, recommend } = feed;
   const isTeacher = role === 'guru';
   const [filterOpen, setFilterOpen] = useState(false);
+  const [recommendationReportId, setRecommendationReportId] = useState<
+    string | null
+  >(null);
+  const [recommendationSubmitting, setRecommendationSubmitting] =
+    useState(false);
   const navigation = useNavigation();
 
   const openDetail = useCallback(
@@ -55,11 +65,35 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
   );
 
   const handleRecommendation = useCallback(
-    async (id: string) => {
+    async (id: string, recommendedByMe: boolean) => {
+      if (!recommendedByMe) {
+        setRecommendationReportId(id);
+        return;
+      }
       const message = await recommend(id);
       if (message) Alert.alert('Gagal menyimpan rekomendasi', message);
     },
     [recommend],
+  );
+
+  const handleRecommendationSubmit = useCallback(
+    async (reason: string) => {
+      if (!recommendationReportId || recommendationSubmitting) {
+        return;
+      }
+      setRecommendationSubmitting(true);
+      try {
+        const message = await recommend(recommendationReportId, reason);
+        if (message) {
+          Alert.alert('Gagal menyimpan rekomendasi', message);
+          return;
+        }
+        setRecommendationReportId(null);
+      } finally {
+        setRecommendationSubmitting(false);
+      }
+    },
+    [recommend, recommendationReportId, recommendationSubmitting],
   );
 
   const renderPopular: ListRenderItem<FeedReport> = useCallback(
@@ -104,9 +138,11 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
                   accessibilityLabel: item.recommendedByMe
                     ? `Batalkan rekomendasi untuk ${item.title}`
                     : `Beri rekomendasi untuk ${item.title}`,
-                  onPress: () => {
-                    handleRecommendation(item.id).catch(() => {});
-                  },
+                  onPress: () =>
+                    handleRecommendation(
+                      item.id,
+                      item.recommendedByMe,
+                    ).catch(() => {}),
                 }
               : {
                   label: item.votedByMe ? 'Voted' : 'Vote',
@@ -246,6 +282,14 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
           feed.setFilters(filters);
           setFilterOpen(false);
         }}
+      />
+      <RecommendationSheet
+        visible={recommendationReportId !== null}
+        loading={recommendationSubmitting}
+        onSubmit={reason => {
+          handleRecommendationSubmit(reason).catch(() => {});
+        }}
+        onCancel={() => setRecommendationReportId(null)}
       />
     </View>
   );
