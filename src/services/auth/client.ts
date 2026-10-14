@@ -44,7 +44,7 @@ async function applySession(response: SessionResponse): Promise<AuthUser> {
 async function signIn(credentials: SignInCredentials): Promise<AuthUser> {
   const response = await apiClient.post<SessionResponse>(
     '/auth/sign-in',
-    credentials,
+    credentials,  
     { skipAuth: true },
   );
   return applySession(response);

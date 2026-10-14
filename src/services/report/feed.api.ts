@@ -9,6 +9,7 @@ export type ReportStatus =
 
 export type FeedReport = {
   readonly id: string;
+  readonly reporter_id: string;
   readonly title: string;
   readonly description: string;
   readonly location: string;

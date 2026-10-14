@@ -24,6 +24,8 @@ export type ReportListCardProps = {
   comments: number;
   action?: ReportListCardAction;
   onPress?: () => void;
+  canEdit?: boolean;
+  onEditPress?: () => void;
 };
 
 export function ReportListCard({
@@ -39,6 +41,8 @@ export function ReportListCard({
   comments,
   action,
   onPress,
+  canEdit = false,
+  onEditPress,
 }: ReportListCardProps): React.JSX.Element {
   const isMuted = action?.variant === 'muted';
   const reporter = reporterClass
@@ -93,24 +97,36 @@ export function ReportListCard({
           <Text className="font-bold text-gray-900">{votes}</Text> Votes{'   '}
           <Text className="font-bold text-gray-900">{comments}</Text> Komentar
         </Text>
-        {action ? (
+        {canEdit && onEditPress ? (
+          <Pressable
+            onPress={onEditPress}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit laporan ${title}`}
+            className="min-h-[44px] justify-center rounded-lg border border-primary bg-white px-4 active:opacity-70"
+          >
+            <Text className="font-semibold text-primary">Edit Laporan</Text>
+          </Pressable>
+        ) : action ? (
           <Pressable
             onPress={action.onPress}
             accessibilityRole="button"
             accessibilityLabel={action.accessibilityLabel ?? action.label}
             className={`min-h-[44px] justify-center rounded-lg px-6 active:opacity-70 ${
-              isMuted ? 'border border-primary bg-white' : 'bg-primary'
+              action.variant === 'muted'
+                ? 'border border-primary bg-white'
+                : 'bg-primary'
             }`}
           >
             <Text
               className={`font-semibold ${
-                isMuted ? 'text-primary' : 'text-white'
+                action.variant === 'muted' ? 'text-primary' : 'text-white'
               }`}
             >
               {action.label}
             </Text>
           </Pressable>
         ) : null}
+        ```
       </View>
     </View>
   );
