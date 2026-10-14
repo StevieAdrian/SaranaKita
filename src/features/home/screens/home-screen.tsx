@@ -3,7 +3,7 @@ import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HomeHeader } from '../components/home-header';
 import { useCurrentUser } from '../hooks/use-current-user';
-import { StudentHomeScreen } from './student-home-screen';
+import { StudentHomeScreen, TeacherHomeScreen } from './student-home-screen';
 
 function ComingSoonHome(): React.JSX.Element {
   const insets = useSafeAreaInsets();
@@ -38,6 +38,9 @@ export function HomeScreen(): React.JSX.Element {
 
   if (user?.role === 'siswa') {
     return <StudentHomeScreen />;
+  }
+  if (user?.role === 'guru') {
+    return <TeacherHomeScreen />;
   }
   return <ComingSoonHome />;
 }
