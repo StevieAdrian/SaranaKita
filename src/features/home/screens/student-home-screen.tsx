@@ -28,11 +28,14 @@ function ItemSeparator(): React.JSX.Element {
   return <View className="h-3" />;
 }
 
-export function StudentHomeScreen(): React.JSX.Element {
+type HomeRole = 'siswa' | 'guru';
+
+function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const user = useCurrentUser();
   const feed = useHomeFeed();
-  const { vote } = feed;
+  const { vote, recommend } = feed;
+  const isTeacher = role === 'guru';
   const [filterOpen, setFilterOpen] = useState(false);
   const navigation = useNavigation();
 
@@ -49,6 +52,14 @@ export function StudentHomeScreen(): React.JSX.Element {
       }
     },
     [vote],
+  );
+
+  const handleRecommendation = useCallback(
+    async (id: string) => {
+      const message = await recommend(id);
+      if (message) Alert.alert('Gagal menyimpan rekomendasi', message);
+    },
+    [recommend],
   );
 
   const renderPopular: ListRenderItem<FeedReport> = useCallback(
@@ -73,6 +84,7 @@ export function StudentHomeScreen(): React.JSX.Element {
           title={item.title}
           description={item.description}
           location={item.location}
+          badgeLabel={isTeacher ? item.reporterClass ?? item.location : undefined}
           status={item.status}
           imageUrl={item.imageUrl}
           reporterName={item.reporterName}
@@ -81,30 +93,49 @@ export function StudentHomeScreen(): React.JSX.Element {
           votes={item.votes}
           comments={item.comments}
           onPress={() => openDetail(item.id)}
-          action={{
-            label: item.votedByMe ? 'Voted' : 'Vote',
-            variant: item.votedByMe ? 'muted' : 'solid',
-            accessibilityLabel: item.votedByMe
-              ? `Batalkan vote untuk ${item.title}`
-              : `Vote ${item.title}`,
-            onPress: () => {
-              handleVote(item.id).catch(() => {});
-            },
-          }}
+          action={
+            isTeacher
+              ? {
+                  label: item.recommendedByMe
+                    ? 'Direkomendasikan'
+                    : 'Beri Rekomendasi',
+                  variant: item.recommendedByMe ? 'muted' : 'solid',
+                  tone: 'teacher',
+                  accessibilityLabel: item.recommendedByMe
+                    ? `Batalkan rekomendasi untuk ${item.title}`
+                    : `Beri rekomendasi untuk ${item.title}`,
+                  onPress: () => {
+                    handleRecommendation(item.id).catch(() => {});
+                  },
+                }
+              : {
+                  label: item.votedByMe ? 'Voted' : 'Vote',
+                  variant: item.votedByMe ? 'muted' : 'solid',
+                  accessibilityLabel: item.votedByMe
+                    ? `Batalkan vote untuk ${item.title}`
+                    : `Vote ${item.title}`,
+                  onPress: () => {
+                    handleVote(item.id).catch(() => {});
+                  },
+                }
+          }
         />
       </View>
     ),
-    [handleVote, openDetail],
+    [handleRecommendation, handleVote, isTeacher, openDetail],
   );
 
   const header = (
     <View className="gap-6 pb-4">
       <View
-        className="gap-5 bg-primary px-5 pb-6"
-        style={{ paddingTop: insets.top + 24 }}
+        className="gap-5 px-5 pb-6"
+        style={{
+          backgroundColor: isTeacher ? palette.teacherPrimary : palette.primary,
+          paddingTop: insets.top + 24,
+        }}
       >
         <HomeHeader
-          name={user?.displayName ?? ''}
+          name={`${isTeacher ? 'Guru ' : ''}${user?.displayName ?? ''}`}
           schoolName={feed.schoolName}
         />
         <SearchBar
@@ -119,6 +150,7 @@ export function StudentHomeScreen(): React.JSX.Element {
           value={feed.categoryId}
           onChange={feed.setCategoryId}
           accessibilityLabel="Kategori laporan"
+          tone={isTeacher ? 'teacher' : 'primary'}
         />
       </View>
 
@@ -139,7 +171,9 @@ export function StudentHomeScreen(): React.JSX.Element {
       ) : null}
 
       <View className="px-5">
-        <SectionHeader title="Semua Laporan" />
+        <SectionHeader
+          title={isTeacher ? 'Semua Laporan Sekolah' : 'Semua Laporan'}
+        />
       </View>
     </View>
   );
@@ -215,4 +249,12 @@ export function StudentHomeScreen(): React.JSX.Element {
       />
     </View>
   );
+}
+
+export function StudentHomeScreen(): React.JSX.Element {
+  return <ReportHomeScreen role="siswa" />;
+}
+
+export function TeacherHomeScreen(): React.JSX.Element {
+  return <ReportHomeScreen role="guru" />;
 }
