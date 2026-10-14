@@ -34,7 +34,7 @@ export function Button({
   const isDisabled = Boolean(disabled) || loading;
   const isPrimary = variant === 'primary';
 
-  const backgroundColor = isPrimary ? theme.colors.primary : theme.colors.surface;
+  const backgroundColor = isPrimary ? theme.colors.primary : theme.colors.borderSubtle;
   const textColor = isPrimary ? theme.colors.onPrimary : theme.colors.text;
 
   const handlePressIn = (e: GestureResponderEvent) => {
