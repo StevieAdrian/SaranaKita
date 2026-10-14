@@ -7,6 +7,17 @@ export type ReportTimelineEvent = {
   readonly at: string;
 };
 
+export type ReportComment = {
+  readonly id: string;
+  readonly reportId: string;
+  readonly userId: string;
+  readonly authorName: string;
+  readonly authorRole: UserRole | null;
+  readonly avatarUrl: string | null;
+  readonly commentText: string;
+  readonly createdAt: string;
+};
+
 export type ReportDetail = {
   readonly id: string;
   readonly title: string;
@@ -32,4 +43,20 @@ export type ReportDetail = {
 
 export function getReportDetail(id: string): Promise<ReportDetail> {
   return apiClient.get<ReportDetail>(`/reports/${encodeURIComponent(id)}`);
+}
+
+export function getReportComments(id: string): Promise<ReportComment[]> {
+  return apiClient.get<ReportComment[]>(
+    `/reports/${encodeURIComponent(id)}/comments`,
+  );
+}
+
+export function createReportComment(
+  id: string,
+  commentText: string,
+): Promise<ReportComment> {
+  return apiClient.post<ReportComment>(
+    `/reports/${encodeURIComponent(id)}/comments`,
+    { commentText },
+  );
 }

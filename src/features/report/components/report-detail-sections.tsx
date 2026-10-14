@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
-import { Image, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import checkIcon from '@/assets/images/check.png';
-import type { ReportTimelineEvent } from '@/services/report';
+import type { ReportComment, ReportTimelineEvent } from '@/services/report';
 import { palette } from '@/shared/theme';
-
-const WHITE_TINT = { tintColor: '#FFFFFF' } as const;
+import { COMMENT_MAX_LENGTH } from '../constants';
 import {
   formatShortDate,
   initialOf,
   timelineCopy,
 } from '../utils/detail-format';
+
+const WHITE_TINT = { tintColor: palette.white } as const;
 
 export function DetailStats({
   votes,
@@ -66,8 +74,8 @@ function Avatar({
   }
   return (
     <View
-      style={style}
-      className="items-center justify-center rounded-full bg-green-600"
+      className="items-center justify-center rounded-full"
+      style={[style, { backgroundColor: palette.success }]}
     >
       <Text className="font-bold text-white">{initialOf(name)}</Text>
     </View>
@@ -145,16 +153,37 @@ export function ReportTimeline({
   );
 }
 
-const COMMENT_MAX = 300;
+export type CommentSectionProps = {
+  count: number;
+  userName: string;
+  comments: readonly ReportComment[];
+  error: string | null;
+  canComment: boolean;
+  submitting: boolean;
+  onSubmit: (text: string) => Promise<boolean>;
+  onRetry: () => void;
+};
 
 export function CommentSection({
   count,
   userName,
-}: {
-  count: number;
-  userName: string;
-}): React.JSX.Element {
+  comments,
+  error,
+  canComment,
+  submitting,
+  onSubmit,
+  onRetry,
+}: CommentSectionProps): React.JSX.Element {
   const [text, setText] = useState('');
+  const trimmedText = text.trim();
+  const handleSubmit = async () => {
+    if (!trimmedText || submitting) {
+      return;
+    }
+    if (await onSubmit(trimmedText)) {
+      setText('');
+    }
+  };
 
   return (
     <View className="gap-3">
@@ -170,7 +199,10 @@ export function CommentSection({
         >
           Komentar
         </Text>
-        <View className="rounded-full bg-[#DBEAFE] px-3 py-0.5">
+        <View
+          className="rounded-full px-3 py-0.5"
+          style={{ backgroundColor: palette.infoBackground }}
+        >
           <Text className="text-xs font-semibold text-primary">{count}</Text>
         </View>
       </View>
@@ -182,27 +214,79 @@ export function CommentSection({
             onChangeText={setText}
             placeholder="Tambahkan komentar..."
             placeholderTextColor={palette.gray500}
-            maxLength={COMMENT_MAX}
+            maxLength={COMMENT_MAX_LENGTH}
             multiline
+            editable={canComment && !submitting}
             accessibilityLabel="Tulis komentar"
             className="min-h-[48px] flex-1 text-sm text-gray-900"
           />
         </View>
         <View className="flex-row items-center justify-between">
           <Text className="text-xs text-gray-400">
-            {text.length}/{COMMENT_MAX}
+            {text.length}/{COMMENT_MAX_LENGTH}
           </Text>
-          <View
-            accessible
+          <Pressable
+            onPress={() => {
+              handleSubmit().catch(() => {});
+            }}
+            disabled={!canComment || !trimmedText || submitting}
             accessibilityRole="button"
-            accessibilityState={{ disabled: true }}
-            accessibilityLabel="Kirim komentar, belum tersedia"
-            className="min-h-[36px] justify-center rounded-lg bg-gray-300 px-5"
+            accessibilityState={{
+              disabled: !canComment || !trimmedText || submitting,
+              busy: submitting,
+            }}
+            accessibilityLabel="Kirim komentar"
+            className={`min-h-[36px] justify-center rounded-lg px-5 ${
+              canComment && trimmedText && !submitting
+                ? 'bg-primary'
+                : 'bg-gray-300'
+            }`}
           >
-            <Text className="font-semibold text-white">Kirim</Text>
-          </View>
+            {submitting ? (
+              <ActivityIndicator size="small" color={palette.white} />
+            ) : (
+              <Text className="font-semibold text-white">Kirim</Text>
+            )}
+          </Pressable>
         </View>
       </View>
+      {!canComment ? (
+        <Text className="text-xs text-gray-500">
+          Hanya siswa yang dapat menambahkan komentar.
+        </Text>
+      ) : null}
+      {error ? (
+        <View className="flex-row items-center justify-between gap-3">
+          <Text style={{ color: palette.danger }} className="flex-1 text-sm">
+            {error}
+          </Text>
+          <Pressable
+            onPress={onRetry}
+            accessibilityRole="button"
+            className="min-h-[40px] justify-center px-2"
+          >
+            <Text className="font-semibold text-primary">Coba lagi</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      {comments.map(comment => (
+        <View key={comment.id} className="flex-row items-start gap-3 py-1">
+          <Avatar name={comment.authorName} uri={comment.avatarUrl} size={32} />
+          <View className="flex-1 gap-1 rounded-xl bg-gray-50 p-3">
+            <View className="flex-row items-center justify-between gap-2">
+              <Text className="flex-1 text-sm font-semibold text-gray-900">
+                {comment.authorName}
+              </Text>
+              <Text className="text-xs text-gray-400">
+                {formatShortDate(comment.createdAt)}
+              </Text>
+            </View>
+            <Text className="text-sm leading-5 text-gray-700">
+              {comment.commentText}
+            </Text>
+          </View>
+        </View>
+      ))}
     </View>
   );
 }

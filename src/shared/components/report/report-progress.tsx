@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, Text, View } from 'react-native';
 import checkIcon from '@/assets/images/check.png';
+import { palette } from '@/shared/theme';
 import { REPORT_STATUS_META, type ReportStatus } from './report-status';
 import { PROGRESS_STEPS, REPORT_PROGRESS } from './report-progress-meta';
 
@@ -10,7 +11,7 @@ export type ReportProgressProps = {
 
 const INACTIVE = '#E2E8F0';
 const INACTIVE_DOT = '#94A3B8';
-const CHECK_TINT = { tintColor: '#FFFFFF' } as const;
+const CHECK_TINT = { tintColor: palette.white } as const;
 const HIDDEN_LINE = { backgroundColor: 'transparent' } as const;
 const INACTIVE_FILL = { backgroundColor: INACTIVE } as const;
 const INACTIVE_DOT_FILL = { backgroundColor: INACTIVE_DOT } as const;
