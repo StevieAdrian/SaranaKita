@@ -60,8 +60,8 @@ describe('user-management permissions and constants', () => {
     // Search
     const searchMatch = mockUsers.filter(
       (u) =>
-        u.fullName?.toLowerCase().includes('Jelly') ||
-        u.email.toLowerCase().includes('Jelly'),
+        u.fullName?.toLowerCase().includes('jelly') ||
+        u.email.toLowerCase().includes('jelly@sch.id'),
     );
     expect(searchMatch).toHaveLength(1);
     expect(searchMatch[0]?.id).toBe('2');
