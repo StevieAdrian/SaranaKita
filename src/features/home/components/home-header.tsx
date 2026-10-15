@@ -35,6 +35,7 @@ export function HomeHeader({
           </Text>
         ) : null}
       </View>
+     
       <Pressable
         onPress={onNotificationsPress}
         disabled={!onNotificationsPress}

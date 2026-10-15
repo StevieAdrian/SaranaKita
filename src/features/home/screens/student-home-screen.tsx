@@ -10,7 +10,7 @@ import {
   type ListRenderItem,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { FeedReport } from '@/services/report';
 import { PopularReportCard, ReportListCard } from '@/shared/components/report';
 import {
@@ -41,6 +41,11 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
   const feed = useHomeFeed();
   const { vote, recommend } = feed;
   const isTeacher = role === 'guru';
+  useFocusEffect(
+    useCallback(() => {
+      feed.refresh();
+    }, [feed.refresh]),
+  );
   const [filterOpen, setFilterOpen] = useState(false);
   const [recommendationReportId, setRecommendationReportId] = useState<
     string | null
@@ -48,6 +53,11 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
   const [recommendationSubmitting, setRecommendationSubmitting] =
     useState(false);
   const navigation = useNavigation();
+
+  const openEdit = useCallback(
+    (reportId: string) => navigation.navigate('EditReport', { reportId }),
+    [navigation],
+  );
 
   const openDetail = useCallback(
     (reportId: string) => navigation.navigate('ReportDetail', { reportId }),
@@ -118,7 +128,6 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
           title={item.title}
           description={item.description}
           location={item.location}
-          badgeLabel={isTeacher ? item.reporterClass ?? item.location : undefined}
           status={item.status}
           imageUrl={item.imageUrl}
           reporterName={item.reporterName}
@@ -127,38 +136,20 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
           votes={item.votes}
           comments={item.comments}
           onPress={() => openDetail(item.id)}
-          action={
-            isTeacher
-              ? {
-                  label: item.recommendedByMe
-                    ? 'Direkomendasikan'
-                    : 'Beri Rekomendasi',
-                  variant: item.recommendedByMe ? 'muted' : 'solid',
-                  tone: 'teacher',
-                  accessibilityLabel: item.recommendedByMe
-                    ? `Batalkan rekomendasi untuk ${item.title}`
-                    : `Beri rekomendasi untuk ${item.title}`,
-                  onPress: () =>
-                    handleRecommendation(
-                      item.id,
-                      item.recommendedByMe,
-                    ).catch(() => {}),
-                }
-              : {
-                  label: item.votedByMe ? 'Voted' : 'Vote',
-                  variant: item.votedByMe ? 'muted' : 'solid',
-                  accessibilityLabel: item.votedByMe
-                    ? `Batalkan vote untuk ${item.title}`
-                    : `Vote ${item.title}`,
-                  onPress: () => {
-                    handleVote(item.id).catch(() => {});
-                  },
-                }
-          }
+          action={{
+            label: item.votedByMe ? 'Voted' : 'Vote',
+            variant: item.votedByMe ? 'muted' : 'solid',
+            accessibilityLabel: item.votedByMe
+              ? `Batalkan vote untuk ${item.title}`
+              : `Vote ${item.title}`,
+            onPress: () => {
+              handleVote(item.id).catch(() => {});
+            },
+          }}
         />
       </View>
     ),
-    [handleRecommendation, handleVote, isTeacher, openDetail],
+    [handleVote, openDetail],
   );
 
   const header = (
