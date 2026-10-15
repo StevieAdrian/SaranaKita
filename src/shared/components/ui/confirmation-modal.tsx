@@ -50,13 +50,14 @@ export function ConfirmationModal({
   const confirmTextColor = theme.onPrimary;
 
   return (
+    // PopUp
     <Modal
       visible={visible}
       transparent
       animationType="fade"
       statusBarTranslucent
       navigationBarTranslucent
-      onRequestClose={loading ? () => {} : onCancel}
+      onRequestClose={loading ? () => { } : onCancel}
     >
       <View style={styles.overlay}>
         <Pressable
@@ -76,12 +77,11 @@ export function ConfirmationModal({
             },
           ]}
         >
-          {/* Circular Icon Container */}
+
           <View style={[styles.iconCircle, { backgroundColor: iconBgColor }]}>
             <Image source={icon} resizeMode="contain" style={styles.iconImage} />
           </View>
 
-          {/* Title & Message */}
           <Text
             accessibilityRole="header"
             style={[styles.title, { color: theme.textHeading }]}
@@ -92,7 +92,7 @@ export function ConfirmationModal({
             {message}
           </Text>
 
-          {/* Action Buttons */}
+          {/* Button */}
           <View style={styles.buttonGroup}>
             <Pressable
               onPress={onConfirm}
