@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { palette } from '@/shared/theme';
 import { ReportThumbnail } from './report-thumbnail';
 import { StatusBadge } from './status-badge';
 import type { ReportStatus } from './report-status';
@@ -9,12 +10,15 @@ export type ReportListCardAction = {
   onPress: () => void;
   variant?: 'solid' | 'muted';
   accessibilityLabel?: string;
+  disabled?: boolean;
+  tone?: 'primary' | 'teacher';
 };
 
 export type ReportListCardProps = {
   title: string;
   description: string;
   location: string;
+  badgeLabel?: string;
   status: ReportStatus;
   imageUrl: string | null;
   reporterName: string;
@@ -32,6 +36,7 @@ export function ReportListCard({
   title,
   description,
   location,
+  badgeLabel,
   status,
   imageUrl,
   reporterName,
@@ -45,6 +50,8 @@ export function ReportListCard({
   onEditPress,
 }: ReportListCardProps): React.JSX.Element {
   const isMuted = action?.variant === 'muted';
+  const actionColor =
+    action?.tone === 'teacher' ? palette.teacherPrimary : palette.primary;
   const reporter = reporterClass
     ? `${reporterName} · Kelas ${reporterClass}`
     : reporterName;
@@ -70,7 +77,7 @@ export function ReportListCard({
               </Text>
               <View className="rounded-md bg-[#DBEAFE] px-2 py-0.5">
                 <Text className="text-xs font-semibold text-navy">
-                  {location}
+                  {badgeLabel ?? location}
                 </Text>
               </View>
             </View>
@@ -111,6 +118,15 @@ export function ReportListCard({
             onPress={action.onPress}
             accessibilityRole="button"
             accessibilityLabel={action.accessibilityLabel ?? action.label}
+            accessibilityState={{ disabled: action.disabled }}
+            disabled={action.disabled}
+            style={
+              isMuted
+                ? action?.tone === 'teacher'
+                  ? { borderColor: actionColor }
+                  : undefined
+                : { backgroundColor: actionColor }
+            }
             className={`min-h-[44px] justify-center rounded-lg px-6 active:opacity-70 ${
               action.variant === 'muted'
                 ? 'border border-primary bg-white'
@@ -121,6 +137,11 @@ export function ReportListCard({
               className={`font-semibold ${
                 action.variant === 'muted' ? 'text-primary' : 'text-white'
               }`}
+              style={
+                isMuted && action.tone === 'teacher'
+                  ? { color: actionColor }
+                  : undefined
+              }
             >
               {action.label}
             </Text>

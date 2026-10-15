@@ -6,6 +6,10 @@ export { DatePicker, type DatePickerProps } from './date-picker';
 export { FormField, type FormFieldProps } from './form-field';
 export { Input, type InputProps } from './input';
 export { PhotoPicker, type PhotoPickerProps, type PickedPhoto } from './photo-picker';
+export {
+  RecommendationSheet,
+  type RecommendationSheetProps,
+} from './recommendation-sheet';
 export { ScreenHeader, type ScreenHeaderProps } from './screen-header';
 export { SearchBar, type SearchBarProps } from './search-bar';
 export { SectionHeader, type SectionHeaderProps } from './section-header';

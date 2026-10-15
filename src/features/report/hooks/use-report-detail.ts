@@ -7,6 +7,9 @@ import {
   getReportComments,
   unvoteReport,
   voteReport,
+  recommendReport,
+  removeRecommendation,
+  rejectReport as rejectReportApi,
   type ReportDetail,
   type ReportComment,
 } from '@/services/report';
@@ -16,11 +19,15 @@ export type UseReportDetail = {
   readonly loading: boolean;
   readonly error: string | null;
   readonly voting: boolean;
+  readonly recommending: boolean;
+  readonly rejecting: boolean;
   readonly comments: readonly ReportComment[];
   readonly commentsError: string | null;
   readonly submittingComment: boolean;
   readonly reload: () => void;
   readonly toggleVote: () => Promise<string | null>;
+  readonly toggleRecommendation: (reason?: string) => Promise<string | null>;
+  readonly submitReject: () => Promise<string | null>;
   readonly submitComment: (text: string) => Promise<string | null>;
 };
 
@@ -29,6 +36,8 @@ export function useReportDetail(reportId: string): UseReportDetail {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [voting, setVoting] = useState(false);
+  const [recommending, setRecommending] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
   const [comments, setComments] = useState<ReportComment[]>([]);
   const [commentsError, setCommentsError] = useState<string | null>(null);
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -101,6 +110,63 @@ export function useReportDetail(reportId: string): UseReportDetail {
     }
   }, [report, voting]);
 
+  const toggleRecommendation = useCallback(
+    async (reason?: string): Promise<string | null> => {
+      if (!report || recommending) {
+        return null;
+      }
+      const normalizedReason = reason?.trim() ?? '';
+      if (!report.recommendedByMe) {
+        if (normalizedReason.length < 10) {
+          return 'Alasan rekomendasi minimal 10 karakter.';
+        }
+        if (normalizedReason.length > 300) {
+          return 'Alasan rekomendasi maksimal 300 karakter.';
+        }
+      }
+      setRecommending(true);
+      try {
+        const result = report.recommendedByMe
+          ? await removeRecommendation(report.id)
+          : await recommendReport(report.id, normalizedReason);
+        setReport(current =>
+          current
+            ? {
+                ...current,
+                recommendations: result.recommendations,
+                recommendedByMe: result.recommendedByMe,
+              }
+            : current,
+        );
+        return null;
+      } catch (err) {
+        return toUserMessage(err);
+      } finally {
+        setRecommending(false);
+      }
+    },
+    [report, recommending],
+  );
+
+  const submitReject = useCallback(async (): Promise<string | null> => {
+    if (!report || rejecting) {
+      return null;
+    }
+    setRejecting(true);
+    try {
+      await rejectReportApi(report.id);
+      setReport(current =>
+        current ? { ...current, status: 'rejected' } : current,
+      );
+
+      return null;
+    } catch (err) {
+      return toUserMessage(err);
+    } finally {
+      setRejecting(false);
+    }
+  }, [report, rejecting]);
+
   const submitComment = useCallback(
     async (text: string): Promise<string | null> => {
       if (!report || submittingCommentRef.current) {
@@ -135,11 +201,15 @@ export function useReportDetail(reportId: string): UseReportDetail {
     loading,
     error,
     voting,
+    recommending,
+    rejecting,
     comments,
     commentsError,
     submittingComment,
     reload,
     toggleVote,
+    toggleRecommendation,
+    submitReject,
     submitComment,
   };
 }

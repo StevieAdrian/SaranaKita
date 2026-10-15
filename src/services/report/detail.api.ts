@@ -38,6 +38,7 @@ export type ReportDetail = {
   readonly comments: number;
   readonly recommendations: number;
   readonly votedByMe: boolean;
+  readonly recommendedByMe: boolean;
   readonly timeline: readonly ReportTimelineEvent[];
 };
 
@@ -58,5 +59,16 @@ export function createReportComment(
   return apiClient.post<ReportComment>(
     `/reports/${encodeURIComponent(id)}/comments`,
     { commentText },
+  );
+}
+
+export type RejectReportResult = {
+  readonly reportId: string;
+  readonly status: string;
+};
+
+export function rejectReport(id: string): Promise<RejectReportResult> {
+  return apiClient.post<RejectReportResult>(
+    `/reports/${encodeURIComponent(id)}/reject`,
   );
 }

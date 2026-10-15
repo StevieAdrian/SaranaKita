@@ -23,6 +23,7 @@ export type FeedReport = {
   readonly comments: number;
   readonly recommendations: number;
   readonly votedByMe: boolean;
+  readonly recommendedByMe: boolean;
 };
 
 export type ReportSort =
@@ -58,6 +59,12 @@ export type VoteResult = {
   readonly reportId: string;
   readonly votes: number;
   readonly votedByMe: boolean;
+};
+
+export type RecommendationResult = {
+  readonly reportId: string;
+  readonly recommendations: number;
+  readonly recommendedByMe: boolean;
 };
 
 type QueryValue = string | number | readonly string[] | undefined;
@@ -99,5 +106,23 @@ export function voteReport(id: string): Promise<VoteResult> {
 export function unvoteReport(id: string): Promise<VoteResult> {
   return apiClient.delete<VoteResult>(
     `/reports/${encodeURIComponent(id)}/votes`,
+  );
+}
+
+export function recommendReport(
+  id: string,
+  reason: string,
+): Promise<RecommendationResult> {
+  return apiClient.post<RecommendationResult>(
+    `/reports/${encodeURIComponent(id)}/recommendations`,
+    { reason },
+  );
+}
+
+export function removeRecommendation(
+  id: string,
+): Promise<RecommendationResult> {
+  return apiClient.delete<RecommendationResult>(
+    `/reports/${encodeURIComponent(id)}/recommendations`,
   );
 }
