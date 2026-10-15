@@ -7,6 +7,7 @@ import { CreateReportScreen, ReportDetailScreen } from '@/features/report';
 import { AuthNavigator } from './auth-navigator';
 import { TabNavigator } from './tab-navigator';
 import type { RootStackParamList } from './types';
+import { EditReportScreen } from '@/features/report/screens/edit-report-screen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -33,6 +34,7 @@ export function RootNavigator(): React.JSX.Element {
             <Stack.Screen name="Main" component={TabNavigator} />
             <Stack.Screen name="CreateReport" component={CreateReportScreen} />
             <Stack.Screen name="ReportDetail" component={ReportDetailScreen} />
+            <Stack.Screen name="EditReport" component={EditReportScreen} />
           </Stack.Group>
         )}
       </Stack.Navigator>

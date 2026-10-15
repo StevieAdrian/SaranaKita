@@ -10,7 +10,7 @@ import {
   type ListRenderItem,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { FeedReport } from '@/services/report';
 import { PopularReportCard, ReportListCard } from '@/shared/components/report';
 import { ChipTabs, SearchBar, SectionHeader } from '@/shared/components/ui';
@@ -33,8 +33,18 @@ export function StudentHomeScreen(): React.JSX.Element {
   const user = useCurrentUser();
   const feed = useHomeFeed();
   const { vote } = feed;
+  useFocusEffect(
+    useCallback(() => {
+      feed.refresh();
+    }, [feed.refresh]),
+  );
   const [filterOpen, setFilterOpen] = useState(false);
   const navigation = useNavigation();
+
+  const openEdit = useCallback(
+    (reportId: string) => navigation.navigate('EditReport', { reportId }),
+    [navigation],
+  );
 
   const openDetail = useCallback(
     (reportId: string) => navigation.navigate('ReportDetail', { reportId }),
@@ -69,12 +79,6 @@ export function StudentHomeScreen(): React.JSX.Element {
   const renderReport: ListRenderItem<FeedReport> = useCallback(
     ({ item }) => {
       const isOwner = item.reporter_id === user?.id;
-      console.log('DEBUG PEMILIK LAPORAN:', {
-        reportId: item.id,
-        reporterId: item.reporter_id,
-        currentUserId: user?.id,
-        isOwner,
-      });
 
       return (
         <View className="px-5">
@@ -91,9 +95,7 @@ export function StudentHomeScreen(): React.JSX.Element {
             comments={item.comments}
             onPress={() => openDetail(item.id)}
             canEdit={isOwner}
-            onEditPress={
-              isOwner ? () => Alert.alert('Edit Laporan') : undefined
-            }
+            onEditPress={isOwner ? () => openEdit(item.id) : undefined}
             action={
               isOwner
                 ? undefined
@@ -112,7 +114,7 @@ export function StudentHomeScreen(): React.JSX.Element {
         </View>
       );
     },
-    [handleVote, openDetail, user?.id],
+    [handleVote, openDetail, openEdit, user?.id],
   );
 
   const header = (
