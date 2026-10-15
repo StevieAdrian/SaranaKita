@@ -4,7 +4,7 @@ import {
   USER_ROLE_OPTIONS,
 } from '../src/features/user-management/utils/constants';
 import { isRoleAdminOrStaff } from '../src/features/user-management/utils/permissions';
-import type { ManagedUser } from '../src/services/users';
+import type { ManageUser } from '../src/services/users';
 
 describe('user-management permissions and constants', () => {
   it('allows only administrator and staff to manage users', () => {
@@ -32,7 +32,7 @@ describe('user-management permissions and constants', () => {
   });
 
   it('filters users by query, role, and status', () => {
-    const mockUsers: ManagedUser[] = [
+    const mockUsers: ManageUser[] = [
       {
         id: '1',
         username: 'BC',
