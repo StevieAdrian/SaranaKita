@@ -4,6 +4,8 @@ import { getCategories, type Category } from '@/services/category';
 import {
   getPopularReports,
   listReports,
+  recommendReport,
+  removeRecommendation,
   unvoteReport,
   voteReport,
   type FeedReport,
@@ -12,7 +14,13 @@ import { getMySchool } from '@/services/school';
 import type { ChipTabOption } from '@/shared/components/ui';
 import { useDebounce } from '@/shared/hooks/use-debounce';
 import { ALL_CATEGORIES } from '../types';
-import { applyVoteResult, mergePage, toggleVote } from '../utils/feed';
+import {
+  applyRecommendationResult,
+  applyVoteResult,
+  mergePage,
+  toggleRecommendation,
+  toggleVote,
+} from '../utils/feed';
 import {
   DEFAULT_FILTERS,
   isDefaultFilters,
@@ -41,6 +49,7 @@ export type UseHomeFeed = {
   readonly refresh: () => void;
   readonly loadMore: () => void;
   readonly vote: (id: string) => Promise<string | null>;
+  readonly recommend: (id: string, reason?: string) => Promise<string | null>;
 };
 
 export function useHomeFeed(): UseHomeFeed {
@@ -62,6 +71,7 @@ export function useHomeFeed(): UseHomeFeed {
 
   const requestId = useRef(0);
   const pendingVotes = useRef(new Set<string>());
+  const pendingRecommendations = useRef(new Set<string>());
 
   useEffect(() => {
     getMySchool()
@@ -183,6 +193,48 @@ export function useHomeFeed(): UseHomeFeed {
     [reports, popular],
   );
 
+  const recommend = useCallback(
+    async (id: string, reason?: string): Promise<string | null> => {
+      const target =
+        reports.find(report => report.id === id) ??
+        popular.find(report => report.id === id);
+      if (!target) {
+        return 'Laporan tidak ditemukan. Muat ulang daftar lalu coba lagi.';
+      }
+      if (pendingRecommendations.current.has(id)) {
+        return 'Rekomendasi sedang diproses. Coba lagi sebentar.';
+      }
+      const normalizedReason = reason?.trim() ?? '';
+      if (!target.recommendedByMe) {
+        if (normalizedReason.length < 10) {
+          return 'Alasan rekomendasi minimal 10 karakter.';
+        }
+        if (normalizedReason.length > 300) {
+          return 'Alasan rekomendasi maksimal 300 karakter.';
+        }
+      }
+      pendingRecommendations.current.add(id);
+      setReports(current => toggleRecommendation(current, id));
+      setPopular(current => toggleRecommendation(current, id));
+
+      try {
+        const result = target.recommendedByMe
+          ? await removeRecommendation(id)
+          : await recommendReport(id, normalizedReason);
+        setReports(current => applyRecommendationResult(current, result));
+        setPopular(current => applyRecommendationResult(current, result));
+        return null;
+      } catch (err) {
+        setReports(current => toggleRecommendation(current, id));
+        setPopular(current => toggleRecommendation(current, id));
+        return toUserMessage(err);
+      } finally {
+        pendingRecommendations.current.delete(id);
+      }
+    },
+    [reports, popular],
+  );
+
   const categoryOptions = useMemo(
     () => [
       { value: ALL_CATEGORIES, label: 'Semua' },
@@ -213,5 +265,6 @@ export function useHomeFeed(): UseHomeFeed {
     refresh,
     loadMore,
     vote,
+    recommend,
   };
 }
