@@ -1,4 +1,5 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { ManageUser } from '@/services/users';
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -18,10 +19,14 @@ export type RootStackParamList = {
   CreateReport: undefined;
   ReportDetail: { reportId: string };
   EditReport: { reportId: string };
+  ProfileSettings: undefined;
+  UserManagement: undefined;
+  AddUser: undefined;
+  EditUser: { user: ManageUser };
 };
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends RootStackParamList { }
   }
 }
