@@ -15,13 +15,13 @@ export function updateProfile(input: UpdateProfileInput): Promise<Profile> {
 }
 
 export function getFullProfile(): Promise<FullProfile> {
-  return apiClient.get<FullProfile>('/profile/me');
+  return apiClient.get<FullProfile>('/profile/myprofile');
 }
 
 export function updateFullProfile(
   input: UpdateProfileInput,
 ): Promise<FullProfile> {
-  return apiClient.put<FullProfile>('/profile/me', input);
+  return apiClient.put<FullProfile>('/profile/myprofile', input);
 }
 
 export function changePassword(
