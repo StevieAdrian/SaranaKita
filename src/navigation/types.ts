@@ -19,6 +19,10 @@ export type RootStackParamList = {
   CreateReport: undefined;
   ReportDetail: { reportId: string };
   EditReport: { reportId: string };
+  ProfileSettings: undefined;
+  UserManagement: undefined;
+  AddUser: undefined;
+  EditUser: { user: ManageUser };
 };
 
 declare global {
