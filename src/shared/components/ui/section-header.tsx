@@ -19,7 +19,7 @@ export function SectionHeader({
         accessibilityRole="header"
         className="text-xl font-bold text-gray-900"
       >
-        {title}
+        {title} 
       </Text>
       {onActionPress ? (
         <Pressable

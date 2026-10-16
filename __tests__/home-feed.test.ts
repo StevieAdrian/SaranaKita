@@ -14,6 +14,7 @@ function report(overrides: Partial<FeedReport> & { id: string }): FeedReport {
     categoryId: 'c1',
     status: 'waiting_verification',
     imageUrl: null,
+    reporter_id: 'user-1',
     reporterName: 'Alicia',
     reporterClass: 'X A',
     createdAt: '2026-07-01T10:00:00Z',

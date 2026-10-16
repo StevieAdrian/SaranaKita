@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  Text,
+  View,
+} from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import addPhotoIcon from '@/assets/images/add-photo.png';
 
@@ -43,7 +50,10 @@ export function PhotoPicker({
         return;
       }
       if (result.errorCode) {
-        Alert.alert('Gagal memilih foto', result.errorMessage ?? 'Silakan coba lagi.');
+        Alert.alert(
+          'Gagal memilih foto',
+          result.errorMessage ?? 'Silakan coba lagi.',
+        );
         return;
       }
       const asset = result.assets?.[0];
@@ -70,7 +80,9 @@ export function PhotoPicker({
 
   if (value) {
     return (
-      <View className={`h-[140px] overflow-hidden rounded-lg border ${borderClass}`}>
+      <View
+        className={`h-[140px] overflow-hidden rounded-lg border ${borderClass}`}
+      >
         <Image
           source={{ uri: value.uri }}
           resizeMode="cover"
@@ -113,7 +125,11 @@ export function PhotoPicker({
         <ActivityIndicator />
       ) : (
         <>
-          <Image source={addPhotoIcon} resizeMode="contain" className="mb-1 h-12 w-12" />
+          <Image
+            source={addPhotoIcon}
+            resizeMode="contain"
+            className="mb-1 h-12 w-12"
+          />
           <Text className="text-sm text-gray-600">{title}</Text>
           <Text className="text-xs text-gray-400">{subtitle}</Text>
         </>

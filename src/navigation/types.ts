@@ -18,10 +18,7 @@ export type RootStackParamList = {
   Main: NavigatorScreenParams<TabParamList>;
   CreateReport: undefined;
   ReportDetail: { reportId: string };
-  ProfileSettings: undefined;
-  UserManagement: undefined;
-  AddUser: undefined;
-  EditUser: { user: ManageUser };
+  EditReport: { reportId: string };
 };
 
 declare global {
