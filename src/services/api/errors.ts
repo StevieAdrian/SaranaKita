@@ -32,6 +32,10 @@ export function toUserMessage(error: unknown): string {
     return 'No connection. Check your internet and try again.';
   }
   if (error instanceof ApiError) {
+    const apiMessage = getApiMessage(error.body);
+    if (apiMessage) {
+      return apiMessage;
+    }
     if (error.status === 401 || error.status === 403) {
       return 'Your session has expired. Please sign in again.';
     }
@@ -41,4 +45,28 @@ export function toUserMessage(error: unknown): string {
     return 'We could not complete that request.';
   }
   return 'An unexpected error occurred.';
+}
+
+function getApiMessage(body: unknown): string | null {
+  if (typeof body !== 'object' || body === null || !('error' in body)) {
+    return null;
+  }
+  const error = body.error;
+  if (typeof error === 'string' && error.trim()) {
+    return error;
+  }
+  if (typeof error !== 'object' || error === null || !('message' in error)) {
+    return null;
+  }
+  const message = error.message;
+  if (typeof message === 'string' && message.trim()) {
+    return message;
+  }
+  if (Array.isArray(message)) {
+    const messages = message.filter(
+      (item): item is string => typeof item === 'string' && item.trim().length > 0,
+    );
+    return messages.length ? messages.join('\n') : null;
+  }
+  return null;
 }

@@ -1,11 +1,7 @@
 import { apiClient } from '@/services/api';
+import type { ReportStatus } from './status.constants';
 
-export type ReportStatus =
-  | 'waiting_verification'
-  | 'in_review'
-  | 'in_repair'
-  | 'rejected'
-  | 'done';
+export type { ReportStatus } from './status.constants';
 
 export type FeedReport = {
   readonly id: string;
