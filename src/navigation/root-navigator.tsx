@@ -1,8 +1,7 @@
 import React from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useSession } from '@/features/auth';
+import { LoadingScreen, NotFoundScreen, useSession } from '@/features/auth';
 import { ProfileSettingsScreen } from '@/features/profile';
 import { CreateReportScreen, EditReportScreen, ReportDetailScreen } from '@/features/report';
 import { AddUserScreen, EditUserScreen, UserManagementScreen } from '@/features/user-management';
@@ -16,11 +15,7 @@ export function RootNavigator(): React.JSX.Element {
   const session = useSession();
 
   if (session.status === 'unknown') {
-    return (
-      <View style={styles.splash}>
-        <ActivityIndicator />
-      </View>
-    );
+    return <LoadingScreen message="Memuat aplikasi ..." />;
   }
 
   const needsAuth = session.status !== 'authenticated';
@@ -42,15 +37,9 @@ export function RootNavigator(): React.JSX.Element {
             <Stack.Screen name="EditUser" component={EditUserScreen} />
           </Stack.Group>
         )}
+        <Stack.Screen name="NotFound" component={NotFoundScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  splash: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

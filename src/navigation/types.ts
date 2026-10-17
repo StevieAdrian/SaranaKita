@@ -2,7 +2,21 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { ManageUser } from '@/services/users';
 
 export type AuthStackParamList = {
+  Splash: undefined;
   Login: undefined;
+  Register: undefined;
+  RegisterProfile?: {
+    username: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    dateOfBirth: string;
+    classGrade: string;
+    gender: 'Male' | 'Female';
+  };
+  Loading?: { message?: string };
+  NotFound?: undefined;
 };
 
 export type TabParamList = {
@@ -23,6 +37,7 @@ export type RootStackParamList = {
   UserManagement: undefined;
   AddUser: undefined;
   EditUser: { user: ManageUser };
+  NotFound: undefined;
 };
 
 declare global {

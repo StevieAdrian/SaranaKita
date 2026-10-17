@@ -12,6 +12,7 @@ import {
   type TextInputInstance,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import logo from '../../../../assets/images/logo-saranakita.png';
 import { Button } from '@/shared/components/ui/button';
 import { TextField } from '@/shared/components/ui/text-field';
@@ -30,10 +31,12 @@ function comingSoon(feature: string): void {
 }
 
 export function LoginScreen(): React.JSX.Element {
+  const navigation = useNavigation<any>();
   const { email, password, errors, submitting, setEmail, setPassword, submit } =
     useLoginForm();
   const passwordRef = useRef<TextInputInstance>(null);
   const [googlePressed, setGooglePressed] = useState(false);
+
 
   const onForgotPassword = useCallback(() => comingSoon('Forgot Password'), []);
   const onSignUp = useCallback(() => comingSoon('Sign Up'), []);
@@ -154,6 +157,21 @@ export function LoginScreen(): React.JSX.Element {
             <Text style={styles.googleMark}>G</Text>
             <Text style={styles.googleText}>Google</Text>
           </Pressable>
+
+          {/* Button Testing - Temporary */}
+          <View>
+            <Text>-- DEV TESTING BUTTONS --</Text>
+            <View>
+              <Pressable
+                onPress={() => navigation.navigate('NotFound')}>
+                <Text>Test Page 404</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => navigation.navigate('Loading')}>
+                <Text>Test Loading</Text>
+              </Pressable>
+            </View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
