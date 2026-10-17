@@ -39,8 +39,9 @@ export function LoginScreen(): React.JSX.Element {
 
 
   const onForgotPassword = useCallback(() => comingSoon('Forgot Password'), []);
-  const onSignUp = useCallback(() => comingSoon('Sign Up'), []);
+  const onSignUp = useCallback(() => navigation.navigate('Register'), [navigation]);
   const onGoogle = useCallback(() => comingSoon('Google Sign-In'), []);
+
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
