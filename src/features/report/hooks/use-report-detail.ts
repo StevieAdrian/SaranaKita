@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toUserMessage } from '@/services/api';
 import { COMMENT_MAX_LENGTH } from '../constants';
+import { REPORT_STATUS } from '@/services/report/status.constants';
 import {
   getReportDetail,
   createReportComment,
@@ -10,8 +11,10 @@ import {
   recommendReport,
   removeRecommendation,
   rejectReport as rejectReportApi,
+  updateReportStatus as updateReportStatusApi,
   type ReportDetail,
   type ReportComment,
+  type UpdateReportStatusInput,
 } from '@/services/report';
 
 export type UseReportDetail = {
@@ -24,11 +27,15 @@ export type UseReportDetail = {
   readonly comments: readonly ReportComment[];
   readonly commentsError: string | null;
   readonly submittingComment: boolean;
+  readonly changingStatus: boolean;
   readonly reload: () => void;
   readonly toggleVote: () => Promise<string | null>;
   readonly toggleRecommendation: (reason?: string) => Promise<string | null>;
   readonly submitReject: () => Promise<string | null>;
   readonly submitComment: (text: string) => Promise<string | null>;
+  readonly changeStatus: (
+    input: UpdateReportStatusInput,
+  ) => Promise<string | null>;
 };
 
 export function useReportDetail(reportId: string): UseReportDetail {
@@ -41,6 +48,7 @@ export function useReportDetail(reportId: string): UseReportDetail {
   const [comments, setComments] = useState<ReportComment[]>([]);
   const [commentsError, setCommentsError] = useState<string | null>(null);
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [changingStatus, setChangingStatus] = useState(false);
   const submittingCommentRef = useRef(false);
   const requestId = useRef(0);
 
@@ -156,7 +164,9 @@ export function useReportDetail(reportId: string): UseReportDetail {
     try {
       await rejectReportApi(report.id);
       setReport(current =>
-        current ? { ...current, status: 'rejected' } : current,
+        current
+          ? { ...current, status: REPORT_STATUS.REJECTED }
+          : current,
       );
 
       return null;
@@ -196,6 +206,26 @@ export function useReportDetail(reportId: string): UseReportDetail {
     [report, submittingComment],
   );
 
+  const changeStatus = useCallback(
+    async (input: UpdateReportStatusInput): Promise<string | null> => {
+      if (!report || changingStatus) {
+        return null;
+      }
+      setChangingStatus(true);
+      try {
+        const updated = await updateReportStatusApi(report.id, input);
+        setReport(updated);
+        setCommentsError(null);
+        return null;
+      } catch (err) {
+        return toUserMessage(err);
+      } finally {
+        setChangingStatus(false);
+      }
+    },
+    [report, changingStatus],
+  );
+
   return {
     report,
     loading,
@@ -206,10 +236,12 @@ export function useReportDetail(reportId: string): UseReportDetail {
     comments,
     commentsError,
     submittingComment,
+    changingStatus,
     reload,
     toggleVote,
     toggleRecommendation,
     submitReject,
     submitComment,
+    changeStatus,
   };
 }

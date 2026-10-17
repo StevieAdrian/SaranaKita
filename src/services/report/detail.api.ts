@@ -1,6 +1,7 @@
 import { apiClient } from '@/services/api';
 import type { UserRole } from '@/services/auth';
 import type { ReportStatus } from './feed.api';
+import type { UpdateReportStatusName } from './status.constants';
 
 export type ReportTimelineEvent = {
   readonly type: 'created' | ReportStatus;
@@ -70,5 +71,19 @@ export type RejectReportResult = {
 export function rejectReport(id: string): Promise<RejectReportResult> {
   return apiClient.post<RejectReportResult>(
     `/reports/${encodeURIComponent(id)}/reject`,
+  );
+}
+
+export type UpdateReportStatusInput = {
+  readonly statusName: UpdateReportStatusName;
+};
+
+export function updateReportStatus(
+  id: string,
+  input: UpdateReportStatusInput,
+): Promise<ReportDetail> {
+  return apiClient.patch<ReportDetail>(
+    `/reports/${encodeURIComponent(id)}/status`,
+    input,
   );
 }

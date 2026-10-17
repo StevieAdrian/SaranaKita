@@ -11,7 +11,6 @@ export {
   REPORT_STATUS_NAME,
   REPORT_STATUS_NAMES,
   REPORT_STATUSES,
-  type ReportStatus as CanonicalReportStatus,
   type UpdateReportStatusName,
 } from './status.constants';
 export {
