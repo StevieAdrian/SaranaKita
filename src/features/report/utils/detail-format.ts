@@ -1,5 +1,6 @@
 import type { UserRole } from '@/services/auth';
 import type { ReportTimelineEvent } from '@/services/report';
+import { REPORT_STATUS, REPORT_STATUS_NAME } from '@/services/report/status.constants';
 
 const MONTHS = [
   'Jan',
@@ -31,23 +32,26 @@ const TIMELINE_COPY: Record<
     title: 'Laporan Dibuat',
     body: 'Laporan berhasil dikirim ke tim pengelola sekolah.',
   },
-  waiting_verification: {
-    title: 'Menunggu Verifikasi',
+  [REPORT_STATUS.WAITING_VERIFICATION]: {
+    title: REPORT_STATUS_NAME.WAITING_VERIFICATION,
     body: 'Laporan sedang menunggu verifikasi pihak sekolah.',
   },
-  in_review: {
-    title: 'Dalam Pemeriksaan',
+  [REPORT_STATUS.IN_REVIEW]: {
+    title: REPORT_STATUS_NAME.IN_REVIEW,
     body: 'Laporan sedang diperiksa oleh pihak sekolah.',
   },
-  in_repair: {
-    title: 'Dalam Perbaikan',
+  [REPORT_STATUS.IN_REPAIR]: {
+    title: REPORT_STATUS_NAME.IN_REPAIR,
     body: 'Kerusakan sedang dalam proses perbaikan.',
   },
-  rejected: {
-    title: 'Laporan Ditolak',
+  [REPORT_STATUS.REJECTED]: {
+    title: `Laporan ${REPORT_STATUS_NAME.REJECTED}`,
     body: 'Laporan ditolak oleh pihak sekolah.',
   },
-  done: { title: 'Selesai', body: 'Perbaikan telah selesai dilakukan.' },
+  [REPORT_STATUS.DONE]: {
+    title: REPORT_STATUS_NAME.DONE,
+    body: 'Perbaikan telah selesai dilakukan.',
+  },
 };
 
 function parse(iso: string): Date | null {

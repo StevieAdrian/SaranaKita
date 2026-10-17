@@ -18,6 +18,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { REPORT_PROGRESS, ReportProgress } from '@/shared/components/report';
 import { RecommendationSheet, ScreenHeader } from '@/shared/components/ui';
 import { palette } from '@/shared/theme';
+import { USER_ROLE } from '@/services/auth';
+import { REPORT_STATUS } from '@/services/report/status.constants';
 import { ReportGallery } from '../components/report-gallery';
 import {
   CommentSection,
@@ -55,8 +57,8 @@ export function ReportDetailScreen(): React.JSX.Element {
     submitComment,
   } = useReportDetail(params.reportId);
 
-  const isTeacher = user?.role === 'guru';
-  const canVote = user?.role === 'siswa';
+  const isTeacher = user?.role === USER_ROLE.GURU;
+  const canVote = user?.role === USER_ROLE.SISWA;
   const canComment = canVote;
 
   const handleCommentSubmit = async (text: string): Promise<boolean> => {
@@ -133,7 +135,8 @@ export function ReportDetailScreen(): React.JSX.Element {
     }
 
     const progress = REPORT_PROGRESS[report.status];
-    const hasTeacherBar = isTeacher && report.status !== 'rejected';
+    const hasTeacherBar =
+      isTeacher && report.status !== REPORT_STATUS.REJECTED;
     const scrollContent = {
       paddingBottom: canVote || hasTeacherBar ? 24 : insets.bottom + 24,
     };
@@ -259,7 +262,7 @@ export function ReportDetailScreen(): React.JSX.Element {
           </Pressable>
         </View>
       ) : null}
-      {report && isTeacher && report.status !== 'rejected' ? (
+      {report && isTeacher && report.status !== REPORT_STATUS.REJECTED ? (
         <View
           className="flex-row gap-3 px-5 pt-4"
           style={{

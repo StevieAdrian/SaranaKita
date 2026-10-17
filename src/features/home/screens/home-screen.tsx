@@ -3,6 +3,8 @@ import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HomeHeader } from '../components/home-header';
 import { useCurrentUser } from '../hooks/use-current-user';
+import { USER_ROLE } from '@/services/auth';
+import { AdministratorHomeScreen } from './administrator-home-screen';
 import { StudentHomeScreen, TeacherHomeScreen } from './student-home-screen';
 
 function ComingSoonHome(): React.JSX.Element {
@@ -36,11 +38,14 @@ function ComingSoonHome(): React.JSX.Element {
 export function HomeScreen(): React.JSX.Element {
   const user = useCurrentUser();
 
-  if (user?.role === 'siswa') {
+  if (user?.role === USER_ROLE.SISWA) {
     return <StudentHomeScreen />;
   }
-  if (user?.role === 'guru') {
+  if (user?.role === USER_ROLE.GURU) {
     return <TeacherHomeScreen />;
+  }
+  if (user?.role === USER_ROLE.ADMINISTRATOR) {
+    return <AdministratorHomeScreen />;
   }
   return <ComingSoonHome />;
 }
