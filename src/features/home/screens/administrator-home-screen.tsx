@@ -1,14 +1,20 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   RefreshControl,
   ScrollView,
   Text,
   View,
+  type ImageSourcePropType,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import verificationIcon from '@/assets/images/verif.png';
+import actionRequiredIcon from '@/assets/images/need-action.png';
+import examinationIcon from '@/assets/images/examination.png';
+import repairIcon from '@/assets/images/repair.png';
 import {
   REPORT_STATUS,
   type FeedReport,
@@ -20,6 +26,10 @@ import { REPORT_STATUS_META } from '@/shared/components/report/report-status';
 import { getThemeColors } from '@/shared/theme';
 import { HomeHeader } from '../components/home-header';
 import { useAdminDashboard } from '../hooks/use-admin-dashboard';
+import {
+  useAdminReportList,
+  type AdminReportFilter,
+} from '../hooks/use-admin-report-list';
 import { toDisplayDate } from '../utils/feed';
 
 const ADMIN_PRIMARY = getThemeColors(USER_ROLE.ADMINISTRATOR).primary;
@@ -60,23 +70,44 @@ function CountTile({
   count,
   label,
   color,
+  icon,
+  selected,
+  onPress,
 }: {
   count: number;
   label: string;
   color: string;
+  icon: ImageSourcePropType;
+  selected: boolean;
+  onPress: () => void;
 }): React.JSX.Element {
   return (
-    <View
-      className="min-h-[72px] flex-1 flex-row items-center gap-3 rounded-lg px-4 py-3"
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      className={`min-h-[88px] flex-1 flex-row items-center gap-2.5 rounded-lg border px-3 py-3 active:opacity-90 ${
+        selected ? 'border-white' : 'border-transparent'
+      }`}
       style={{ backgroundColor: color }}
     >
-      <Text className="text-xl font-bold text-white">{count}</Text>
-      <Text className="flex-1 text-xs font-semibold text-white">{label}</Text>
-    </View>
+      <Image
+        source={icon}
+        resizeMode="contain"
+        className="h-6 w-6 shrink-0"
+        accessibilityElementsHidden
+      />
+      <View className="flex-1 gap-0.5">
+        <Text className="text-2xl font-bold leading-7 text-white">{count}</Text>
+        <Text className="text-[13px] font-medium leading-[18px] text-white">
+          {label}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
 
-function UrgentReportCard({
+function ReportCard({
   report,
   onPress,
 }: {
@@ -121,6 +152,14 @@ export function AdministratorHomeScreen({
   const navigation = useNavigation();
   const { dashboard, loading, refreshing, error, refresh } =
     useAdminDashboard();
+  const [reportFilter, setReportFilter] =
+    React.useState<AdminReportFilter>('all');
+  const reportList = useAdminReportList(reportFilter);
+
+  const refreshDashboard = () => {
+    refresh();
+    reportList.refresh();
+  };
 
   if (!dashboard && loading) {
     return (
@@ -165,12 +204,16 @@ export function AdministratorHomeScreen({
     statusCounts[REPORT_STATUS.IN_REVIEW] +
     statusCounts[REPORT_STATUS.IN_REPAIR];
   const totalForPercent = dashboard.totalReports;
+  const filterLabel = reportFilter === 'all' ? 'Semua Laporan' : reportFilter === 'action_required' ? 'Perlu Tindakan' : STATUS_ROWS.find(row => row.status === reportFilter)?.label ?? 'Semua Laporan';
 
   return (
     <View className="flex-1 bg-[#ECF3FD]">
       <ScrollView
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={refresh} />
+          <RefreshControl
+            refreshing={refreshing || reportList.loading}
+            onRefresh={refreshDashboard}
+          />
         }
         contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}
       >
@@ -228,9 +271,14 @@ export function AdministratorHomeScreen({
                     ? Math.round((count / totalForPercent) * 100)
                     : 0;
                 return (
-                  <View
+                  <Pressable
                     key={status}
-                    className="flex-row items-center justify-between"
+                    onPress={() => setReportFilter(status)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: reportFilter === status }}
+                    className={`flex-row items-center justify-between rounded px-1 py-0.5 ${
+                      reportFilter === status ? 'bg-white/10' : ''
+                    }`}
                   >
                     <View className="flex-1 flex-row items-center gap-2">
                       <View
@@ -245,7 +293,7 @@ export function AdministratorHomeScreen({
                     <Text className="w-9 text-right text-xs text-white">
                       {percent}%
                     </Text>
-                  </View>
+                  </Pressable>
                 );
               })}
             </View>
@@ -263,36 +311,70 @@ export function AdministratorHomeScreen({
             <View className="flex-row gap-2">
               <CountTile
                 count={statusCounts[REPORT_STATUS.WAITING_VERIFICATION]}
-                label={REPORT_STATUS_META[REPORT_STATUS.WAITING_VERIFICATION].label}
+                label={
+                  REPORT_STATUS_META[REPORT_STATUS.WAITING_VERIFICATION].label
+                }
+                icon={verificationIcon}
                 color="#2563EB"
+                selected={reportFilter === REPORT_STATUS.WAITING_VERIFICATION}
+                onPress={() =>
+                  setReportFilter(REPORT_STATUS.WAITING_VERIFICATION)
+                }
               />
               <CountTile
                 count={openReports}
                 label="Perlu Tindakan"
+                icon={actionRequiredIcon}
                 color="#B91C1C"
+                selected={reportFilter === 'action_required'}
+                onPress={() => setReportFilter('action_required')}
               />
             </View>
             <View className="flex-row gap-2">
               <CountTile
                 count={statusCounts[REPORT_STATUS.IN_REVIEW]}
                 label={REPORT_STATUS_META[REPORT_STATUS.IN_REVIEW].label}
+                icon={examinationIcon}
                 color="#F59E0B"
+                selected={reportFilter === REPORT_STATUS.IN_REVIEW}
+                onPress={() => setReportFilter(REPORT_STATUS.IN_REVIEW)}
               />
               <CountTile
                 count={statusCounts[REPORT_STATUS.IN_REPAIR]}
                 label={REPORT_STATUS_META[REPORT_STATUS.IN_REPAIR].label}
+                icon={repairIcon}
                 color="#854D0E"
+                selected={reportFilter === REPORT_STATUS.IN_REPAIR}
+                onPress={() => setReportFilter(REPORT_STATUS.IN_REPAIR)}
               />
             </View>
           </View>
 
           <View className="gap-3">
-            <Text className="text-base font-bold text-gray-900">
-              Perlu Tindakan Segera
-            </Text>
-            {dashboard.urgentReports.length ? (
-              dashboard.urgentReports.map(report => (
-                <UrgentReportCard
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-gray-900">
+                {filterLabel}
+              </Text>
+              {reportFilter !== 'all' ? (
+                <Pressable
+                  onPress={() => setReportFilter('all')}
+                  accessibilityRole="button"
+                >
+                  <Text className="text-xs font-semibold text-blue-700">
+                    Tampilkan Semua
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+            {reportList.error ? (
+              <Text className="rounded-lg bg-red-100 px-4 py-3 text-sm text-red-800">
+                {reportList.error}
+              </Text>
+            ) : reportList.loading && reportList.reports.length === 0 ? (
+              <ActivityIndicator color={primaryColor} />
+            ) : reportList.reports.length ? (
+              reportList.reports.map(report => (
+                <ReportCard
                   key={report.id}
                   report={report}
                   onPress={() =>
@@ -304,9 +386,28 @@ export function AdministratorHomeScreen({
               ))
             ) : (
               <Text className="rounded-lg bg-white px-4 py-5 text-sm text-gray-500">
-                Tidak ada laporan yang menunggu verifikasi.
+                Tidak ada laporan untuk filter ini.
               </Text>
             )}
+            {reportList.hasMore ? (
+              <Pressable
+                onPress={reportList.loadMore}
+                disabled={reportList.loadingMore}
+                accessibilityRole="button"
+                className="min-h-[44px] items-center justify-center rounded-lg bg-white"
+              >
+                {reportList.loadingMore ? (
+                  <ActivityIndicator color={primaryColor} />
+                ) : (
+                  <Text
+                    className="text-sm font-semibold"
+                    style={{ color: primaryColor }}
+                  >
+                    Muat Laporan Lainnya
+                  </Text>
+                )}
+              </Pressable>
+            ) : null}
           </View>
 
           <View className="gap-3">
