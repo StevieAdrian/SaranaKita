@@ -14,13 +14,15 @@ import {
   type FeedReport,
   type ReportStatus,
 } from '@/services/report';
+import { USER_ROLE } from '@/services/auth';
 import { ReportThumbnail, StatusBadge } from '@/shared/components/report';
 import { REPORT_STATUS_META } from '@/shared/components/report/report-status';
+import { getThemeColors } from '@/shared/theme';
 import { HomeHeader } from '../components/home-header';
 import { useAdminDashboard } from '../hooks/use-admin-dashboard';
 import { toDisplayDate } from '../utils/feed';
 
-const ADMIN_PRIMARY = '#360707';
+const ADMIN_PRIMARY = getThemeColors(USER_ROLE.ADMINISTRATOR).primary;
 
 const STATUS_ROWS: readonly {
   status: ReportStatus;
