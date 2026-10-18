@@ -16,6 +16,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import checkIcon from '@/assets/images/check.png';
 import leftArrow from '@/assets/images/left-arrow.png';
+import { USER_ROLE } from '@/services/auth';
+import { useSession } from '@/features/auth';
 import {
   REPORT_STATUS_BY_NAME,
   REPORT_STATUS_NAME_BY_STATUS,
@@ -43,23 +45,27 @@ import {
   formatShortDate,
 } from '../utils/detail-format';
 
-type AdminDetailRoute = RouteProp<
-  { AdminReportDetail: { reportId: string } },
-  'AdminReportDetail'
+type ManagementDetailRoute = RouteProp<
+  { ManagementReportDetail: { reportId: string } },
+  'ManagementReportDetail'
 >;
 
-const ADMIN_PRIMARY = '#360707';
-function AdminHeader({
+const ADMINISTRATOR_PRIMARY = '#360707';
+const STAFF_PRIMARY = '#173574';
+
+function DetailHeader({
   onBack,
   topInset,
+  primaryColor,
 }: {
   onBack: () => void;
   topInset: number;
+  primaryColor: string;
 }): React.JSX.Element {
   return (
     <View
       className="px-5 pb-5"
-      style={{ backgroundColor: ADMIN_PRIMARY, paddingTop: topInset + 12 }}
+      style={{ backgroundColor: primaryColor, paddingTop: topInset + 12 }}
     >
       <View className="min-h-11 flex-row items-center justify-center">
         <Pressable
@@ -101,10 +107,15 @@ function SummaryRow({
   );
 }
 
-export function AdministratorReportDetailScreen(): React.JSX.Element {
+export function ReportManagementDetailScreen(): React.JSX.Element {
   const navigation = useNavigation();
-  const route = useRoute<AdminDetailRoute>();
+  const route = useRoute<ManagementDetailRoute>();
   const insets = useSafeAreaInsets();
+  const { user } = useSession();
+  const primaryColor =
+    user?.role === USER_ROLE.STAFF
+      ? STAFF_PRIMARY
+      : ADMINISTRATOR_PRIMARY;
   const [statusSheetOpen, setStatusSheetOpen] = useState(false);
   const {
     report,
@@ -148,14 +159,20 @@ export function AdministratorReportDetailScreen(): React.JSX.Element {
     updateStatus(REPORT_STATUS_NAME.IN_REVIEW).catch(() => {});
   };
 
-  const header = <AdminHeader onBack={navigation.goBack} topInset={insets.top} />;
+  const header = (
+    <DetailHeader
+      onBack={navigation.goBack}
+      topInset={insets.top}
+      primaryColor={primaryColor}
+    />
+  );
 
   if (loading && !report) {
     return (
       <View className="flex-1 bg-white">
         {header}
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color={ADMIN_PRIMARY} />
+          <ActivityIndicator color={primaryColor} />
         </View>
       </View>
     );
@@ -173,7 +190,7 @@ export function AdministratorReportDetailScreen(): React.JSX.Element {
             onPress={reload}
             accessibilityRole="button"
             className="min-h-[44px] justify-center rounded-lg px-5"
-            style={{ backgroundColor: ADMIN_PRIMARY }}
+            style={{ backgroundColor: primaryColor }}
           >
             <Text className="font-semibold text-white">Coba lagi</Text>
           </Pressable>
@@ -266,7 +283,7 @@ export function AdministratorReportDetailScreen(): React.JSX.Element {
             </Text>
             <View className="flex-row items-center gap-3">
               {changingStatus ? (
-                <ActivityIndicator size="small" color={ADMIN_PRIMARY} />
+                <ActivityIndicator size="small" color={primaryColor} />
               ) : (
                 <Text className="rounded-full bg-[#FEF3C7] px-4 py-1 text-[10px] font-semibold text-[#854D0E]">
                   {selectedStatus}
@@ -313,7 +330,10 @@ export function AdministratorReportDetailScreen(): React.JSX.Element {
                   accessibilityRole="button"
                   className="min-h-[40px] justify-center px-2"
                 >
-                  <Text className="font-semibold text-[#360707]">
+                  <Text
+                    className="font-semibold"
+                    style={{ color: primaryColor }}
+                  >
                     Coba lagi
                   </Text>
                 </Pressable>
@@ -362,7 +382,7 @@ export function AdministratorReportDetailScreen(): React.JSX.Element {
         <View
           className="flex-row gap-3 px-5 pt-4"
           style={{
-            backgroundColor: ADMIN_PRIMARY,
+            backgroundColor: primaryColor,
             paddingBottom: insets.bottom + 16,
           }}
         >
@@ -389,16 +409,19 @@ export function AdministratorReportDetailScreen(): React.JSX.Element {
             className="min-h-[48px] flex-1 flex-row items-center justify-center gap-2 rounded-md bg-white"
           >
             {changingStatus ? (
-              <ActivityIndicator color={ADMIN_PRIMARY} />
+              <ActivityIndicator color={primaryColor} />
             ) : (
               <>
                 <Image
                   source={checkIcon}
                   resizeMode="contain"
                   className="h-5 w-5"
-                  style={{ tintColor: ADMIN_PRIMARY }}
+                  style={{ tintColor: primaryColor }}
                 />
-                <Text className="text-sm font-semibold text-[#360707]">
+                <Text
+                  className="text-sm font-semibold"
+                  style={{ color: primaryColor }}
+                >
                   Verifikasi Laporan
                 </Text>
               </>

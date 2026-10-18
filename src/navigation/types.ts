@@ -18,7 +18,7 @@ export type RootStackParamList = {
   Main: NavigatorScreenParams<TabParamList>;
   CreateReport: undefined;
   ReportDetail: { reportId: string };
-  AdminReportDetail: { reportId: string };
+  ManagementReportDetail: { reportId: string };
   EditReport: { reportId: string };
   ProfileSettings: undefined;
   UserManagement: undefined;
