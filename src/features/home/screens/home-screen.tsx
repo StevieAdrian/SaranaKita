@@ -5,6 +5,7 @@ import { HomeHeader } from '../components/home-header';
 import { useCurrentUser } from '../hooks/use-current-user';
 import { USER_ROLE } from '@/services/auth';
 import { AdministratorHomeScreen } from './administrator-home-screen';
+import { StaffHomeScreen } from './staff-home-screen';
 import { StudentHomeScreen, TeacherHomeScreen } from './student-home-screen';
 
 function ComingSoonHome(): React.JSX.Element {
@@ -46,6 +47,9 @@ export function HomeScreen(): React.JSX.Element {
   }
   if (user?.role === USER_ROLE.ADMINISTRATOR) {
     return <AdministratorHomeScreen />;
+  }
+  if (user?.role === USER_ROLE.STAFF) {
+    return <StaffHomeScreen />;
   }
   return <ComingSoonHome />;
 }

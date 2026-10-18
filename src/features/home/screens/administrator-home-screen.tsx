@@ -108,7 +108,13 @@ function UrgentReportCard({
   );
 }
 
-export function AdministratorHomeScreen(): React.JSX.Element {
+export function AdministratorHomeScreen({
+  name = 'Administrator',
+  primaryColor = ADMIN_PRIMARY,
+}: {
+  name?: string;
+  primaryColor?: string;
+}): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { dashboard, loading, refreshing, error, refresh } =
@@ -117,7 +123,7 @@ export function AdministratorHomeScreen(): React.JSX.Element {
   if (!dashboard && loading) {
     return (
       <View className="flex-1 items-center justify-center bg-page">
-        <ActivityIndicator color={ADMIN_PRIMARY} />
+        <ActivityIndicator color={primaryColor} />
       </View>
     );
   }
@@ -128,11 +134,11 @@ export function AdministratorHomeScreen(): React.JSX.Element {
         <View
           className="gap-5 px-5 pb-8"
           style={{
-            backgroundColor: ADMIN_PRIMARY,
+            backgroundColor: primaryColor,
             paddingTop: insets.top + 24,
           }}
         >
-          <HomeHeader name="Administrator" schoolName={null} />
+          <HomeHeader name={name} schoolName={null} />
         </View>
         <View className="flex-1 items-center justify-center gap-3 px-6">
           <Text className="text-center text-sm text-gray-500">
@@ -142,7 +148,7 @@ export function AdministratorHomeScreen(): React.JSX.Element {
             onPress={refresh}
             accessibilityRole="button"
             className="min-h-[44px] justify-center rounded-lg px-5"
-            style={{ backgroundColor: ADMIN_PRIMARY }}
+            style={{ backgroundColor: primaryColor }}
           >
             <Text className="font-semibold text-white">Coba lagi</Text>
           </Pressable>
@@ -169,11 +175,11 @@ export function AdministratorHomeScreen(): React.JSX.Element {
         <View
           className="gap-5 px-5 pb-8"
           style={{
-            backgroundColor: ADMIN_PRIMARY,
+            backgroundColor: primaryColor,
             paddingTop: insets.top + 24,
           }}
         >
-          <HomeHeader name="Administrator" schoolName={dashboard.schoolName} />
+          <HomeHeader name={name} schoolName={dashboard.schoolName} />
           <View className="flex-row items-center gap-4 rounded-lg bg-white/10 px-4 py-3">
             <Text className="text-xl font-bold text-white">
               {dashboard.totalThisMonth}
@@ -288,7 +294,7 @@ export function AdministratorHomeScreen(): React.JSX.Element {
                   key={report.id}
                   report={report}
                   onPress={() =>
-                    navigation.navigate('AdminReportDetail', {
+                    navigation.navigate('ManagementReportDetail', {
                       reportId: report.id,
                     })
                   }
@@ -328,7 +334,7 @@ export function AdministratorHomeScreen(): React.JSX.Element {
                         className="h-full rounded-full"
                         style={{
                           width: `${width}%`,
-                          backgroundColor: ADMIN_PRIMARY,
+                          backgroundColor: primaryColor,
                         }}
                       />
                     </View>
