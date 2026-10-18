@@ -32,7 +32,7 @@ import {
   REPORT_PROGRESS,
 } from '@/shared/components/report';
 import { BottomSheet } from '@/shared/components/ui';
-import { palette } from '@/shared/theme';
+import { getThemeColors, palette } from '@/shared/theme';
 import { ReportGallery } from '../components/report-gallery';
 import {
   ReporterCard,
@@ -49,9 +49,6 @@ type ManagementDetailRoute = RouteProp<
   { ManagementReportDetail: { reportId: string } },
   'ManagementReportDetail'
 >;
-
-const ADMINISTRATOR_PRIMARY = '#360707';
-const STAFF_PRIMARY = '#173574';
 
 function DetailHeader({
   onBack,
@@ -114,9 +111,13 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
   const { user } = useSession();
   const primaryColor =
     user?.role === USER_ROLE.STAFF
-      ? STAFF_PRIMARY
-      : ADMINISTRATOR_PRIMARY;
+      ? getThemeColors(USER_ROLE.STAFF).primary
+      : getThemeColors(USER_ROLE.ADMINISTRATOR).primary;
   const [statusSheetOpen, setStatusSheetOpen] = useState(false);
+  const [verificationConfirmationOpen, setVerificationConfirmationOpen] =
+    useState(false);
+  const [rejectionConfirmationOpen, setRejectionConfirmationOpen] =
+    useState(false);
   const {
     report,
     loading,
@@ -139,24 +140,21 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
   };
 
   const handleReject = () => {
-    Alert.alert(
-      'Tolak Laporan',
-      'Apakah kamu yakin ingin menolak laporan ini?',
-      [
-        { text: 'Batal', style: 'cancel' },
-        {
-          text: 'Tolak',
-          style: 'destructive',
-          onPress: () => {
-            updateStatus(REPORT_STATUS_NAME.REJECTED).catch(() => {});
-          },
-        },
-      ],
-    );
+    setRejectionConfirmationOpen(true);
   };
 
   const handleVerify = () => {
+    setVerificationConfirmationOpen(true);
+  };
+
+  const confirmVerification = () => {
+    setVerificationConfirmationOpen(false);
     updateStatus(REPORT_STATUS_NAME.IN_REVIEW).catch(() => {});
+  };
+
+  const confirmRejection = () => {
+    setRejectionConfirmationOpen(false);
+    updateStatus(REPORT_STATUS_NAME.REJECTED).catch(() => {});
   };
 
   const header = (
@@ -429,6 +427,106 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
           </Pressable>
         </View>
       ) : null}
+
+      <BottomSheet
+        visible={verificationConfirmationOpen}
+        onClose={() => setVerificationConfirmationOpen(false)}
+      >
+        <View className="items-center px-2 pb-3 pt-4">
+          <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-[#EEF0FF]">
+            <Image
+              source={checkIcon}
+              resizeMode="contain"
+              className="h-7 w-7"
+              style={{ tintColor: primaryColor }}
+            />
+          </View>
+          <Text
+            accessibilityRole="header"
+            className="mb-4 text-center text-xl font-bold text-[#172033]"
+          >
+            Verifikasi Laporan?
+          </Text>
+          <Text className="mb-7 text-center text-base leading-6 text-[#64748B]">
+            Laporan akan diverifikasi dan dipindahkan ke status Dalam
+            Pemeriksaan.
+          </Text>
+          <View className="w-full gap-3">
+            <Pressable
+              onPress={confirmVerification}
+              disabled={changingStatus}
+              accessibilityRole="button"
+              accessibilityLabel="Konfirmasi verifikasi laporan"
+              className="min-h-[52px] items-center justify-center rounded-lg"
+              style={{ backgroundColor: primaryColor }}
+            >
+              <Text className="text-base font-semibold text-white">
+                Verifikasi Laporan
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setVerificationConfirmationOpen(false)}
+              disabled={changingStatus}
+              accessibilityRole="button"
+              className="min-h-[52px] items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC]"
+            >
+              <Text className="text-base font-semibold text-[#475569]">
+                Batal
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </BottomSheet>
+
+      <BottomSheet
+        visible={rejectionConfirmationOpen}
+        onClose={() => setRejectionConfirmationOpen(false)}
+      >
+        <View className="items-center px-2 pb-3 pt-4">
+          <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-[#FDECEC]">
+            <Text
+              accessibilityElementsHidden
+              className="text-4xl font-light leading-[40px]"
+              style={{ color: primaryColor }}
+            >
+              ×
+            </Text>
+          </View>
+          <Text
+            accessibilityRole="header"
+            className="mb-4 text-center text-xl font-bold text-[#172033]"
+          >
+            Tolak Laporan?
+          </Text>
+          <Text className="mb-7 text-center text-base leading-6 text-[#64748B]">
+            Laporan akan ditolak dan tidak diproses lebih lanjut.
+          </Text>
+          <View className="w-full gap-3">
+            <Pressable
+              onPress={confirmRejection}
+              disabled={changingStatus}
+              accessibilityRole="button"
+              accessibilityLabel="Konfirmasi tolak laporan"
+              className="min-h-[52px] items-center justify-center rounded-lg"
+              style={{ backgroundColor: primaryColor }}
+            >
+              <Text className="text-base font-semibold text-white">
+                Tolak Laporan
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setRejectionConfirmationOpen(false)}
+              disabled={changingStatus}
+              accessibilityRole="button"
+              className="min-h-[52px] items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC]"
+            >
+              <Text className="text-base font-semibold text-[#475569]">
+                Batal
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </BottomSheet>
 
       <BottomSheet
         visible={statusSheetOpen}
