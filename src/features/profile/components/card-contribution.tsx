@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { REPORT_STATUS_NAME } from '@/services/report';
 import { BaseCard } from '@/shared/components/ui';
 import { useRole } from '@/shared/context/theme-context';
 import { radius, spacing } from '@/shared/theme';
@@ -29,11 +30,14 @@ export function CardContribution({
   const secondMetricLabel = isGuru ? 'Rekomendasi' : 'Dukungan';
 
   const statusItems = [
-    { label: 'Menunggu Konfirmasi', count: pendingConfirmation },
-    { label: 'Dalam Pemeriksaan', count: inReview },
-    { label: 'Dalam Perbaikan', count: inRepair },
-    { label: 'Ditolak', count: rejected },
-    { label: 'Selesai', count: resolved },
+    {
+      label: REPORT_STATUS_NAME.WAITING_VERIFICATION,
+      count: pendingConfirmation,
+    },
+    { label: REPORT_STATUS_NAME.IN_REVIEW, count: inReview },
+    { label: REPORT_STATUS_NAME.IN_REPAIR, count: inRepair },
+    { label: REPORT_STATUS_NAME.REJECTED, count: rejected },
+    { label: REPORT_STATUS_NAME.DONE, count: resolved },
   ];
 
   return (

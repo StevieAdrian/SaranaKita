@@ -1,4 +1,5 @@
 import type { ReportSort, ReportStatus } from '@/services/report';
+import { REPORT_STATUSES } from '@/services/report/status.constants';
 
 export type ReportFilters = {
   readonly statuses: readonly ReportStatus[];
@@ -7,13 +8,7 @@ export type ReportFilters = {
 
 export const DEFAULT_FILTERS: ReportFilters = { statuses: [], sort: 'latest' };
 
-export const STATUS_OPTIONS: readonly ReportStatus[] = [
-  'waiting_verification',
-  'in_review',
-  'in_repair',
-  'rejected',
-  'done',
-];
+export const STATUS_OPTIONS: readonly ReportStatus[] = REPORT_STATUSES;
 
 export const SORT_OPTIONS: readonly { value: ReportSort; label: string }[] = [
   { value: 'latest', label: 'Terbaru' },
