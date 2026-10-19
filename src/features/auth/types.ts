@@ -25,7 +25,7 @@ export type RegisterFormState = {
   readonly phone: string;
   readonly dateOfBirth: Date;
   readonly classGrade: string;
-  readonly gender: Gender;
+  readonly gender: Gender | null;
 };
 
 export type RegisterFormErrors = {
@@ -64,7 +64,7 @@ export type RegisterProfileRouteParams = {
   readonly phone: string;
   readonly dateOfBirth: string;
   readonly classGrade: string;
-  readonly gender: Gender;
+  readonly gender?: Gender | null;
 };
 
 export type Session = AuthState;
