@@ -1,14 +1,19 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { LoginScreen } from '@/features/auth';
+import { LoadingScreen, LoginScreen, NotFoundScreen, RegisterProfileScreen, RegisterScreen, SplashScreen } from '@/features/auth';
 import type { AuthStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 export function AuthNavigator(): React.JSX.Element {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="RegisterProfile" component={RegisterProfileScreen} />
+      <Stack.Screen name="Loading" component={LoadingScreen} />
+      <Stack.Screen name="NotFound" component={NotFoundScreen} />
     </Stack.Navigator>
   );
 }
