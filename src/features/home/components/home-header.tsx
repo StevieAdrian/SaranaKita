@@ -2,6 +2,7 @@ import React from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import notificationIcon from '@/assets/images/notification.png';
 import { hitSlop } from '@/shared/theme';
+import { NotificationButton } from '@/shared/components/ui/notification';
 
 export type HomeHeaderProps = {
   name: string;
@@ -35,30 +36,12 @@ export function HomeHeader({
           </Text>
         ) : null}
       </View>
-     
-      <Pressable
-        onPress={onNotificationsPress}
-        disabled={!onNotificationsPress}
-        hitSlop={hitSlop}
-        accessibilityRole="button"
-        accessibilityLabel={
-          unreadNotifications > 0
-            ? `Notifikasi, ${unreadNotifications} belum dibaca`
-            : 'Notifikasi'
-        }
-        className="h-11 w-11 items-center justify-center rounded-full bg-white/20 active:opacity-70"
-      >
-        <Image
-          source={notificationIcon}
-          resizeMode="contain"
-          className="h-6 w-6"
-        />
-        {unreadNotifications > 0 ? (
-          <View className="absolute -right-1 -top-1 min-w-[20px] items-center rounded-full bg-red-500 px-1">
-            <Text className="text-xs font-bold text-white">{badge}</Text>
-          </View>
-        ) : null}
-      </Pressable>
+
+      <NotificationButton
+        notificationIcon={notificationIcon}
+        unreadNotifications={unreadNotifications}
+        onNotificationsPress={onNotificationsPress}
+      />
     </View>
   );
 }

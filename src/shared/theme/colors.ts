@@ -285,4 +285,7 @@ export const palette = {
   tabInactive: '#CBD5E1',
   danger: '#E5484D',
   success: '#2BA471',
+  warning: '#F59E0B',
+  brown: '#713F12',
+  greenStatus: '#713F12'
 } as const;
