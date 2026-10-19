@@ -15,7 +15,7 @@ export type ChipTabsProps<T extends string> = {
   tone?: 'primary' | 'teacher';
 };
 
-const CONTENT_STYLE = { gap: 8 } as const;
+const CONTENT_STYLE = { flexGrow: 1, flexDirection: 'row', gap: 8 } as const;
 
 export function ChipTabs<T extends string>({
   options,
