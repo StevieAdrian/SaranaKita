@@ -37,6 +37,8 @@ export function DatePicker({
         mode: 'date',
         minimumDate,
         maximumDate,
+        positiveButton: { label: 'OK', textColor: '#2563EB' },
+        negativeButton: { label: 'Batal', textColor: '#2563EB' },
         onValueChange: (_event, date) => onChange(date),
       });
       return;

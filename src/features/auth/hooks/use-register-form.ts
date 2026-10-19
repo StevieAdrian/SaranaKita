@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { authClient } from '@/services/auth';
+import { toIsoDate } from '@/shared/utils/date';
 import { hasErrors, validateRegisterForm } from '../utils/validation';
 import type {
   Gender,
@@ -9,7 +10,7 @@ import type {
   UsernameStatus,
 } from '../types';
 
-const INITIAL_DATE = new Date(2005, 1, 1);
+const INITIAL_DATE = new Date(2005, 0, 1);
 
 export function useRegisterForm() {
   const navigation = useNavigation<any>();
@@ -23,7 +24,7 @@ export function useRegisterForm() {
   const [phone, setPhone] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState<Date>(INITIAL_DATE);
   const [classGrade, setClassGrade] = useState<string>('');
-  const [gender, setGender] = useState<Gender>('Female');
+  const [gender, setGender] = useState<Gender | null>(null);
 
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle');
   const [errors, setErrors] = useState<RegisterFormErrors>({});
@@ -111,7 +112,7 @@ export function useRegisterForm() {
         email: email.trim().toLowerCase(),
         password,
         phone: phone.trim(),
-        dateOfBirth: dateOfBirth.toISOString().split('T')[0],
+        dateOfBirth: toIsoDate(dateOfBirth),
         classGrade,
         gender,
       });

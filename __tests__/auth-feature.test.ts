@@ -67,4 +67,23 @@ describe('auth validation', () => {
 
     expect(hasErrors(validateRegisterForm(validForm))).toBe(false);
   });
+
+  it('requires gender to be explicitly selected', () => {
+    const formWithoutGender: RegisterFormState = {
+      username: 'john_doe',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      password: 'password123',
+      confirmPassword: 'password123',
+      phone: '08123456789',
+      dateOfBirth: new Date(2005, 0, 1),
+      classGrade: '10-A',
+      gender: null,
+    };
+
+    const errors = validateRegisterForm(formWithoutGender);
+    expect(errors.gender).toBe('Gender is required.');
+    expect(hasErrors(errors)).toBe(true);
+  });
 });

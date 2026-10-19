@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  type GestureResponderEvent,
-} from 'react-native';
+import { Image, Platform, Pressable, StyleSheet, Text, type GestureResponderEvent } from 'react-native';
 import googleLogo from '@/assets/images/google-logo.png';
 import { authConstants } from '../constants/auth-constants';
 
@@ -61,7 +55,8 @@ const styles = StyleSheet.create({
   },
   text: {
     color: authConstants.colors.text.dark,
+    fontFamily: authConstants.typography.buttonText.fontFamily,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
   },
 });

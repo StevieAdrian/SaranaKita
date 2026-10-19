@@ -1,34 +1,20 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Animated, Dimensions, Image, Pressable, StyleSheet, View, } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Animated, Dimensions, Image, Pressable, StatusBar, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import logoBlue from '@/assets/images/logo-saranakita-blue.png';
+import splashGradient from '@/assets/images/splash-bg-gradient.png';
 import { authConstants } from '../../constants/auth-constants';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const LOGO_WIDTH = 220;
-const LOGO_HEIGHT = Math.round((LOGO_WIDTH * 48) / 220);
-const SPLASH_DURATION_MS = 2200;
-const GRADIENT_STEPS = 28;
-
-function interpolateColor(t: number): string {
-  const r = Math.round(255 + (37 - 255) * t);
-  const g = Math.round(255 + (99 - 255) * t);
-  const b = Math.round(255 + (235 - 255) * t);
-  return `rgb(${r}, ${g}, ${b})`;
-}
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('screen');
+const LOGO_WIDTH = 206;
+const LOGO_HEIGHT = 44;
+const SPLASH_DURATION_MS = 2000;
 
 export function SplashScreen(): React.JSX.Element {
   const navigation = useNavigation<any>();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.92)).current;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const gradientBands = useMemo(() => {
-    return Array.from({ length: GRADIENT_STEPS }, (_, index) => {
-      const progress = Math.pow((index + 1) / GRADIENT_STEPS, 1.35);
-      return interpolateColor(progress);
-    });
-  }, []);
 
   const navigateNext = useCallback(() => {
     if (timerRef.current) {
@@ -69,17 +55,13 @@ export function SplashScreen(): React.JSX.Element {
       accessibilityRole="button"
       accessibilityLabel="Lanjut ke halaman masuk"
     >
-      <View style={styles.gradientContainer} pointerEvents="none">
-        <View style={styles.topWhiteArea} />
-        <View style={styles.gradientArea}>
-          {gradientBands.map((color, idx) => (
-            <View
-              key={idx}
-              style={[styles.gradientBand, { backgroundColor: color }]}
-            />
-          ))}
-        </View>
-      </View>
+      <StatusBar barStyle="dark-content" />
+      <Image
+        source={splashGradient}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+        accessibilityElementsHidden
+      />
 
       {/* Animation */}
       <Animated.View
@@ -110,18 +92,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  gradientContainer: {
-    ...StyleSheet.absoluteFill,
-  },
-  topWhiteArea: {
-    flex: 1.1,
-    backgroundColor: authConstants.colors.backgroundSplash,
-  },
-  gradientArea: {
-    flex: 1.4,
-  },
-  gradientBand: {
-    flex: 1,
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    minWidth: SCREEN_WIDTH,
+    minHeight: SCREEN_HEIGHT,
   },
   logoContainer: {
     alignItems: 'center',

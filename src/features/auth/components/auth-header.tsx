@@ -22,8 +22,9 @@ export function AuthHeader({ title, subtitle }: AuthHeaderProps): React.JSX.Elem
         accessibilityLabel="SaranaKita"
       />
       <Text style={styles.title} accessibilityRole="header">
-        {title}1
+        {title}
       </Text>
+
       <Text style={styles.subtitle}>{subtitle}</Text>
     </View>
   );

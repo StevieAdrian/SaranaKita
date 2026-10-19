@@ -1,18 +1,7 @@
 import React, { useCallback, useRef } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  type TextInputInstance,
-} from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, type TextInputInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Button } from '@/shared/components/ui/button';
 import { TextField } from '@/shared/components/ui/text-field';
 import { AuthDivider, AuthHeader, GoogleButton } from '../components';
 import { authConstants } from '../constants/auth-constants';
@@ -38,6 +27,7 @@ export function LoginScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <StatusBar barStyle="light-content" />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -48,10 +38,12 @@ export function LoginScreen(): React.JSX.Element {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <AuthHeader
-            title="Welcome Back!"
-            subtitle="Let’s continue your healthy journey with us."
-          />
+          <View style={styles.centerBlock}>
+            <AuthHeader
+              title="Welcome Back!"
+              subtitle="Let’s continue your healthy journey with us."
+            />
+          </View>
 
           {/* Form */}
           <View style={styles.card}>
@@ -109,13 +101,23 @@ export function LoginScreen(): React.JSX.Element {
             ) : null}
 
             {/* Button */}
-            <Button
-              title="Continue"
-              loading={submitting}
+            <TouchableOpacity
               onPress={submit}
-              style={styles.continueButton}
-            />
-
+              disabled={submitting}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Continue"
+              style={[
+                styles.continueButton,
+                submitting && styles.buttonDisabled,
+              ]}
+            >
+              {submitting ? (
+                <ActivityIndicator color={authConstants.colors.text.light} size="small" />
+              ) : (
+                <Text style={styles.continueButtonText}>Continue</Text>
+              )}
+            </TouchableOpacity>
 
             <View style={styles.signUpRow}>
               <Text style={styles.signUpText}>Haven’t create an account? </Text>
@@ -129,10 +131,12 @@ export function LoginScreen(): React.JSX.Element {
             </View>
           </View>
 
-          <AuthDivider text="Or Continue With" />
+          <View style={styles.bottomBlock}>
+            <AuthDivider text="Or Continue With" />
 
-          {/* Google Button */}
-          <GoogleButton onPress={onGoogle} label="Google" />
+            {/* Google Button */}
+            <GoogleButton onPress={onGoogle} label="Google" />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -142,45 +146,65 @@ export function LoginScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: authConstants.colors.backgroundBlue,
+    backgroundColor: authConstants.colors.brand,
   },
   flex: {
     flex: 1,
   },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: authConstants.spacing.screenMargin,
+    paddingHorizontal: 20,
     paddingTop: 32,
     paddingBottom: 40,
+    alignItems: 'center',
+  },
+  centerBlock: {
+    width: '100%',
+    maxWidth: 369,
+    alignSelf: 'center',
   },
   card: {
+    width: '100%',
+    maxWidth: 369,
+    alignSelf: 'center',
     backgroundColor: authConstants.colors.surface,
     borderRadius: authConstants.components.card.borderRadius,
-    borderWidth: authConstants.components.card.borderWidth,
+    borderWidth: 1,
     borderColor: authConstants.colors.ui.cardBorder,
     paddingVertical: authConstants.components.card.paddingVertical,
     paddingHorizontal: authConstants.components.card.paddingHorizontal,
-    gap: authConstants.spacing.fieldGap,
+    gap: 18,
+  },
+  bottomBlock: {
+    width: '100%',
+    maxWidth: 369,
+    alignSelf: 'center',
   },
   label: {
-    ...authConstants.typography.label,
+    fontFamily: authConstants.typography.label.fontFamily,
+    fontSize: 16,
+    fontWeight: '500',
+    color: authConstants.colors.text.dark,
   },
   input: {
     backgroundColor: authConstants.colors.surface,
-    borderColor: authConstants.colors.ui.inputBorder,
+    borderColor: authConstants.colors.ui.inputBorderLight,
     borderWidth: authConstants.components.input.borderWidth,
     borderRadius: authConstants.components.input.borderRadius,
     height: authConstants.components.input.height,
-    ...authConstants.typography.inputText,
+    fontFamily: authConstants.typography.inputText.fontFamily,
+    fontSize: 14,
+    color: authConstants.colors.text.dark,
   },
   forgot: {
     alignSelf: 'flex-end',
     marginTop: -6,
   },
   linkText: {
-    color: authConstants.colors.text.link,
-    fontSize: 13,
-    fontWeight: '600',
+    color: authConstants.colors.brand,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    fontFamily: authConstants.typography.link.fontFamily,
   },
   formError: {
     color: authConstants.colors.text.error,
@@ -188,21 +212,37 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   continueButton: {
-    backgroundColor: authConstants.colors.ui.buttonPrimaryBg,
+    backgroundColor: authConstants.colors.ui.buttonBlack,
     borderRadius: authConstants.components.button.borderRadius,
     height: authConstants.components.button.height,
-    marginTop: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    width: '100%',
+  },
+  buttonPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  continueButtonText: {
+    fontFamily: authConstants.typography.buttonText.fontFamily,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    color: authConstants.colors.text.light,
   },
   signUpRow: {
-
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     flexWrap: 'wrap',
-    marginTop: 4,
+    marginTop: 14,
   },
   signUpText: {
     color: authConstants.colors.text.dark,
-    fontSize: 13,
+    fontSize: 14,
+    fontFamily: authConstants.typography.inputText.fontFamily,
   },
 });
