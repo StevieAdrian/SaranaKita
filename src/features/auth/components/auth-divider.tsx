@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { authConstants } from '../constants/auth-constants';
 
 export type AuthDividerProps = {
@@ -32,7 +32,8 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     color: authConstants.colors.text.light,
-    fontSize: 13,
-    fontWeight: '500',
+    fontFamily: authConstants.typography.label.fontFamily,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '500' : undefined,
   },
 });

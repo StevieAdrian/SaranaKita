@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import addPhotoIcon from '@/assets/images/add-photo.png';
 import maleDefault from '@/assets/images/male-default.png';
+import vectorEdit from '@/assets/images/vector-edit.png';
 import womanDefault from '@/assets/images/woman-default.png';
 import { authConstants } from '../constants/auth-constants';
 import type { Gender } from '../types';
@@ -15,7 +15,7 @@ export type PickedPhoto = {
 };
 
 export type AvatarPickerProps = {
-  gender?: Gender | string;
+  gender?: Gender | null | string;
   photo: PickedPhoto | null;
   onChange: (photo: PickedPhoto | null) => void;
   disabled?: boolean;
@@ -24,7 +24,7 @@ export type AvatarPickerProps = {
 const MAX_PHOTO_SIZE_BYTES = 5 * 1024 * 1024;
 
 export function AvatarPicker({
-  gender = 'Female',
+  gender,
   photo,
   onChange,
   disabled = false,
@@ -32,7 +32,7 @@ export function AvatarPicker({
   const [picking, setPicking] = useState(false);
 
   const defaultAvatarSource =
-    gender === 'Male' ? maleDefault : womanDefault;
+    gender === 'Female' ? womanDefault : maleDefault;
 
   const handlePick = async () => {
     if (disabled || picking) return;
@@ -83,35 +83,44 @@ export function AvatarPicker({
   return (
     <View style={styles.container}>
       <View style={styles.avatarFrame}>
-        <Image
-          source={photo?.uri ? { uri: photo.uri } : defaultAvatarSource}
-          style={styles.avatarImage}
-          resizeMode="cover"
-          accessibilityRole="image"
-          accessibilityLabel="Profile Avatar"
-        />
+        {photo?.uri ? (
+          <Image
+            source={{ uri: photo.uri }}
+            style={styles.avatarImage}
+            resizeMode="cover"
+            accessibilityRole="image"
+            accessibilityLabel="Profile Avatar"
+          />
+        ) : (
+          <Image
+            source={defaultAvatarSource}
+            style={styles.defaultAvatarImage}
+            resizeMode="contain"
+            accessibilityRole="image"
+            accessibilityLabel="Profile Avatar"
+          />
+        )}
       </View>
 
-      <Pressable
+      <TouchableOpacity
+        activeOpacity={0.8}
         onPress={handlePick}
         disabled={disabled || picking}
         accessibilityRole="button"
         accessibilityLabel="Pilih Foto Profil"
-        style={({ pressed }) => [
-          styles.cameraBadge,
-          pressed && styles.cameraBadgePressed,
-        ]}
+        style={styles.cameraBadge}
       >
         {picking ? (
-          <ActivityIndicator size="small" color="#1A73E8" />
+          <ActivityIndicator size="small" color={authConstants.colors.brand} />
         ) : (
           <Image
-            source={addPhotoIcon}
+            source={vectorEdit}
             style={styles.cameraIcon}
             resizeMode="contain"
+            accessibilityElementsHidden
           />
         )}
-      </Pressable>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -119,10 +128,9 @@ export function AvatarPicker({
 const styles = StyleSheet.create({
   container: {
     width: authConstants.components.avatar.size,
-    height: authConstants.components.avatar.size,
+    height: 136,
     alignSelf: 'center',
     position: 'relative',
-    marginVertical: 12,
   },
   avatarFrame: {
     width: authConstants.components.avatar.size,
@@ -131,35 +139,36 @@ const styles = StyleSheet.create({
     backgroundColor: authConstants.colors.ui.avatarBg,
     overflow: 'hidden',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
   },
   avatarImage: {
     width: authConstants.components.avatar.size,
     height: authConstants.components.avatar.size,
   },
+  defaultAvatarImage: {
+    width: authConstants.components.avatar.defaultWidth,
+    height: authConstants.components.avatar.defaultHeight,
+  },
   cameraBadge: {
     position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: authConstants.colors.surface,
+    bottom: 0,
+    right: 0,
+    width: authConstants.components.avatar.badgeSize,
+    height: authConstants.components.avatar.badgeSize,
+    borderRadius: authConstants.components.avatar.badgeRadius,
+    backgroundColor: authConstants.colors.ui.badgeBg,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: authConstants.colors.surface,
-    shadowColor: '#000',
+    shadowColor: authConstants.colors.ui.shadowColor,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.15,
     shadowRadius: 3,
-    elevation: 3,
-  },
-  cameraBadgePressed: {
-    opacity: 0.75,
+    elevation: 4,
+    zIndex: 10,
   },
   cameraIcon: {
-    width: 20,
-    height: 20,
+    width: 18,
+    height: 18,
+    tintColor: authConstants.colors.text.dark,
   },
 });

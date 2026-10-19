@@ -1,8 +1,7 @@
 import React from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Button } from '@/shared/components/ui/button';
 import { TextField } from '@/shared/components/ui/text-field';
 import { AuthDivider, AuthHeader, ClassSelectField, DateOfBirthField, GenderRadioField, GoogleButton, UsernameInput } from '../components';
 import { authConstants } from '../constants/auth-constants';
@@ -47,6 +46,7 @@ export function RegisterScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <StatusBar barStyle="light-content" />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -57,10 +57,12 @@ export function RegisterScreen(): React.JSX.Element {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <AuthHeader
-            title="Get Started Now"
-            subtitle="Create an account and start your healthy journey together."
-          />
+          <View style={styles.centerBlock}>
+            <AuthHeader
+              title="Get Started Now"
+              subtitle="Create an account and start your healthy journey together."
+            />
+          </View>
 
           {/* Register Form */}
           <View style={styles.card}>
@@ -73,7 +75,6 @@ export function RegisterScreen(): React.JSX.Element {
               required
             />
 
-            {/* 2. First Name & Last Name (Side by side row) */}
             <View style={styles.row}>
               <View style={styles.flex}>
                 <TextField
@@ -149,7 +150,7 @@ export function RegisterScreen(): React.JSX.Element {
               required
               value={phone}
               onChangeText={setPhone}
-              placeholder="08123456789"
+              placeholder="087223627139"
               placeholderTextColor={authConstants.typography.inputPlaceholder.color}
               keyboardType="phone-pad"
               errorText={errors.phone}
@@ -185,12 +186,23 @@ export function RegisterScreen(): React.JSX.Element {
             ) : null}
 
             {/* Button */}
-            <Button
-              title="Continue"
-              loading={submitting}
+            <TouchableOpacity
               onPress={submit}
-              style={styles.continueButton}
-            />
+              disabled={submitting}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Continue"
+              style={[
+                styles.continueButton,
+                submitting && styles.buttonDisabled,
+              ]}
+            >
+              {submitting ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.continueButtonText}>Continue</Text>
+              )}
+            </TouchableOpacity>
 
             <View style={styles.loginRow}>
               <Text style={styles.loginText}>Already have an account? </Text>
@@ -204,10 +216,10 @@ export function RegisterScreen(): React.JSX.Element {
             </View>
           </View>
 
-          <AuthDivider text="Or Continue With" />
-
-          {/* Google Button */}
-          <GoogleButton onPress={handleGooglePress} label="Google" />
+          <View style={styles.bottomBlock}>
+            <AuthDivider text="Or Continue With" />
+            <GoogleButton onPress={handleGooglePress} label="Google" />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -217,40 +229,60 @@ export function RegisterScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: authConstants.colors.backgroundBlue,
+    backgroundColor: authConstants.colors.brand,
   },
   flex: {
     flex: 1,
   },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: authConstants.spacing.screenMargin,
+    paddingHorizontal: 20,
     paddingTop: 32,
-    paddingBottom: 40,
+    paddingBottom: 48,
+    alignItems: 'center',
+  },
+  centerBlock: {
+    width: '100%',
+    maxWidth: 369,
+    alignSelf: 'center',
   },
   card: {
+    width: '100%',
+    maxWidth: 369,
+    alignSelf: 'center',
     backgroundColor: authConstants.colors.surface,
     borderRadius: authConstants.components.card.borderRadius,
-    borderWidth: authConstants.components.card.borderWidth,
-    borderColor: authConstants.colors.ui.cardBorder,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
     paddingVertical: authConstants.components.card.paddingVertical,
     paddingHorizontal: authConstants.components.card.paddingHorizontal,
-    gap: authConstants.spacing.fieldGap,
+    gap: 18,
+  },
+  bottomBlock: {
+    width: '100%',
+    maxWidth: 369,
+    alignSelf: 'center',
   },
   row: {
     flexDirection: 'row',
     gap: 12,
+    width: '100%',
   },
   label: {
-    ...authConstants.typography.label,
+    fontFamily: authConstants.typography.label.fontFamily,
+    fontSize: 16,
+    fontWeight: '500',
+    color: authConstants.colors.text.dark,
   },
   input: {
     backgroundColor: authConstants.colors.surface,
-    borderColor: authConstants.colors.ui.inputBorder,
+    borderColor: authConstants.colors.ui.inputBorderLight,
     borderWidth: authConstants.components.input.borderWidth,
     borderRadius: authConstants.components.input.borderRadius,
     height: authConstants.components.input.height,
-    ...authConstants.typography.inputText,
+    fontFamily: authConstants.typography.inputText.fontFamily,
+    fontSize: 14,
+    color: authConstants.colors.text.dark,
   },
   formError: {
     color: authConstants.colors.text.error,
@@ -258,25 +290,39 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   continueButton: {
-    backgroundColor: authConstants.colors.ui.buttonPrimaryBg,
+    backgroundColor: authConstants.colors.ui.buttonBlack,
     borderRadius: authConstants.components.button.borderRadius,
     height: authConstants.components.button.height,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 8,
+    width: '100%',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  continueButtonText: {
+    fontFamily: authConstants.typography.buttonText.fontFamily,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    color: authConstants.colors.text.light,
   },
   loginRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     flexWrap: 'wrap',
-    marginTop: 4,
+    marginTop: 14,
   },
   loginText: {
     color: authConstants.colors.text.dark,
-    fontSize: 13,
+    fontSize: 14,
+    fontFamily: authConstants.typography.inputText.fontFamily,
   },
   linkText: {
-    color: authConstants.colors.text.link,
-    fontSize: 13,
-    fontWeight: '600',
+    color: authConstants.colors.brand,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    fontFamily: authConstants.typography.link.fontFamily,
   },
 });

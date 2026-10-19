@@ -1,61 +1,63 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import leftArrow from '@/assets/images/left-arrow.png';
+import { Image, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import arrowBackIcon from '@/assets/images/404-arrowback.png';
 import { authConstants } from '../../constants/auth-constants';
 
 export type NotFoundScreenProps = {
+  navigation?: any;
   onGoBack?: () => void;
 };
 
 export function NotFoundScreen({
+  navigation,
   onGoBack,
 }: NotFoundScreenProps): React.JSX.Element {
-  const navigation = useNavigation<any>();
-
   const handleBack = () => {
     if (onGoBack) {
       onGoBack();
       return;
     }
-    if (navigation.canGoBack()) {
+    if (navigation?.canGoBack?.()) {
       navigation.goBack();
-    } else {
+    } else if (navigation?.navigate) {
       navigation.navigate('Login');
     }
   };
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
       <View style={styles.content}>
-        <Text style={styles.oopsText} accessibilityRole="header">
-          Oops!
-        </Text>
+        <View style={styles.textGroup}>
+          <Text style={styles.oopsText} accessibilityRole="header">
+            Oops!
+          </Text>
 
-        <Text style={styles.codeText} accessibilityRole="text">
-          404
-        </Text>
+          <Text style={styles.codeText} accessibilityRole="text">
+            404
+          </Text>
 
-        <Text style={styles.descriptionText}>
-          {'Halaman ini tidak tersedia.\nKembali ke halaman utama.'}
-        </Text>
+          <Text style={styles.descriptionText}>
+            <Text style={styles.boldDesc}>Halaman ini tidak tersedia.{'\n'}</Text>
+            <Text style={styles.normalDesc}>Kembali ke halaman utama.</Text>
+          </Text>
+        </View>
 
-        <Pressable
+        <TouchableOpacity
           onPress={handleBack}
+          activeOpacity={0.8}
           accessibilityRole="button"
-          accessibilityLabel="Kembali ke halaman sebelumnya"
-          style={({ pressed }) => [
-            styles.roundBackButton,
-            pressed && styles.pressed,
-          ]}
+          accessibilityLabel="Kembali ke halaman utama"
+          style={styles.backButton}
         >
           <Image
-            source={leftArrow}
+            source={arrowBackIcon}
             style={styles.backIcon}
             resizeMode="contain"
             accessibilityElementsHidden
           />
-        </Pressable>
+          <Text style={styles.backButtonText}>Kembali</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -64,7 +66,7 @@ export function NotFoundScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: authConstants.colors.backgroundBlue,
+    backgroundColor: authConstants.colors.brand,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: authConstants.spacing.screenMargin,
@@ -72,52 +74,74 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
+    maxWidth: 300,
+    gap: 29,
+  },
+  textGroup: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 29,
+    width: '100%',
   },
   oopsText: {
     fontFamily: authConstants.typography.errorTitle.fontFamily,
     fontSize: 34,
-    fontWeight: '700',
-    fontStyle: 'italic',
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
+    fontStyle: Platform.OS === 'ios' ? 'italic' : undefined,
+    lineHeight: 38,
     color: authConstants.colors.text.light,
     textAlign: 'center',
-    marginBottom: 4,
   },
   codeText: {
     fontFamily: authConstants.typography.errorCode.fontFamily,
-    fontSize: 68,
-    fontWeight: '700',
+    fontSize: 64,
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
     color: authConstants.colors.text.light,
     textAlign: 'center',
-    letterSpacing: 2,
-    lineHeight: 76,
-    marginBottom: 12,
+    lineHeight: 64,
   },
   descriptionText: {
-    fontFamily: authConstants.typography.subtitle.fontFamily,
-    fontSize: 14,
-    fontWeight: '400',
-    lineHeight: 20,
-    color: authConstants.colors.text.light,
     textAlign: 'center',
-    marginBottom: 28,
+    lineHeight: 22,
   },
-  roundBackButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1.5,
-    borderColor: authConstants.colors.text.light,
+  boldDesc: {
+    fontFamily: authConstants.typography.errorCode.fontFamily,
+    fontSize: 16,
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
+    color: authConstants.colors.text.light,
+  },
+  normalDesc: {
+    fontFamily: authConstants.typography.label.fontFamily,
+    fontSize: 16,
+    fontWeight: Platform.OS === 'ios' ? '500' : undefined,
+    color: authConstants.colors.text.light,
+  },
+  backButton: {
+    width: '100%',
+    maxWidth: 300,
+    height: 52,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
+    gap: 10,
+    backgroundColor: authConstants.colors.surface,
+    borderRadius: 999,
+    shadowColor: authConstants.colors.ui.shadowColor,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 28,
+    elevation: 6,
   },
   backIcon: {
-    width: 20,
-    height: 20,
-    tintColor: authConstants.colors.text.light,
+    width: 18,
+    height: 18,
   },
-  pressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.94 }],
+  backButtonText: {
+    fontFamily: authConstants.typography.buttonText.fontFamily,
+    fontSize: 15,
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
+    lineHeight: 22,
+    color: authConstants.colors.brand,
   },
 });

@@ -29,4 +29,3 @@ export function uploadAvatarImage(
   const query = cleanUsername ? `?username=${encodeURIComponent(cleanUsername)}` : '';
   return apiClient.upload<UploadedImage>(`/uploads/avatar${query}`, formData, { skipAuth: true });
 }
-

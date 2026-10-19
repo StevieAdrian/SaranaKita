@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import leftArrow from '@/assets/images/left-arrow.png';
 import logo from '@/assets/images/logo-saranakita.png';
+import { toUserMessage } from '@/services/api';
 import { authClient } from '@/services/auth';
 import { uploadAvatarImage } from '@/services/upload';
-import { Button } from '@/shared/components/ui/button';
 import { AvatarPicker, type PickedPhoto } from '../components';
 import { authConstants } from '../constants/auth-constants';
 import type { RegisterProfileRouteParams } from '../types';
 
-const LOGO_WIDTH = 130;
-const LOGO_HEIGHT = Math.round((LOGO_WIDTH * 29) / 124);
+const LOGO_WIDTH = 124;
+const LOGO_HEIGHT = 27;
 
 type RegisterProfileRouteProp = RouteProp<
   { RegisterProfile?: RegisterProfileRouteParams },
@@ -27,15 +27,26 @@ export function RegisterProfileScreen(): React.JSX.Element {
   const [pickedPhoto, setPickedPhoto] = useState<PickedPhoto | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
 
-  const fullName = [params?.firstName, params?.lastName]
-    .filter(Boolean)
-    .join(' ')
-    .trim() || 'User Profile';
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const fullName =
+    [params?.firstName, params?.lastName].filter(Boolean).join(' ').trim() ||
+    params?.username ||
+    'User Profile';
 
   const handleRegister = async () => {
     if (!params || !params.username || !params.email || !params.password) {
-      Alert.alert('Error', 'Data pendaftaran tidak lengkap. Silakan isi form registrasi kembali.');
+      Alert.alert(
+        'Error',
+        'Data pendaftaran tidak lengkap. Silakan isi form registrasi kembali.',
+      );
       return;
     }
 
@@ -45,14 +56,13 @@ export function RegisterProfileScreen(): React.JSX.Element {
     try {
       let avatarUrl: string | undefined;
 
-
       if (pickedPhoto) {
         try {
           const uploadRes = await uploadAvatarImage(pickedPhoto, params.username);
           avatarUrl = uploadRes.url;
-        } catch { }
+        } catch {
+        }
       }
-
 
       await authClient.register({
         username: params.username,
@@ -68,16 +78,21 @@ export function RegisterProfileScreen(): React.JSX.Element {
       });
     } catch (err: any) {
       const message =
-        err?.message || 'Terjadi kesalahan saat memproses pendaftaran.';
+        toUserMessage(err) ||
+        err?.message ||
+        'Terjadi kesalahan saat memproses pendaftaran.';
       setErrorMessage(message);
       Alert.alert('Pendaftaran Gagal', message);
     } finally {
-      setSubmitting(false);
+      if (isMountedRef.current) {
+        setSubmitting(false);
+      }
     }
   };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <StatusBar barStyle="light-content" />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -89,13 +104,11 @@ export function RegisterProfileScreen(): React.JSX.Element {
         >
           {/* Header */}
           <View style={styles.headerBar}>
-            <Pressable
+            <TouchableOpacity
               onPress={() => navigation.goBack()}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              style={({ pressed }: { pressed: boolean }) => [
-                styles.backButton,
-                pressed && styles.backButtonPressed,
-              ]}
+              activeOpacity={0.7}
+              style={styles.backButton}
               accessibilityRole="button"
               accessibilityLabel="Kembali ke halaman pendaftaran"
             >
@@ -104,7 +117,7 @@ export function RegisterProfileScreen(): React.JSX.Element {
                 style={styles.backIcon}
                 resizeMode="contain"
               />
-            </Pressable>
+            </TouchableOpacity>
 
             <View style={styles.logoContainer}>
               <Image
@@ -147,12 +160,23 @@ export function RegisterProfileScreen(): React.JSX.Element {
             ) : null}
 
             {/* Button */}
-            <Button
-              title="Register Account"
-              loading={submitting}
+            <TouchableOpacity
               onPress={handleRegister}
-              style={styles.registerButton}
-            />
+              disabled={submitting}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Register Account"
+              style={[
+                styles.registerButton,
+                submitting && styles.buttonDisabled,
+              ]}
+            >
+              {submitting ? (
+                <ActivityIndicator color={authConstants.colors.text.light} size="small" />
+              ) : (
+                <Text style={styles.registerButtonText}>Register Account</Text>
+              )}
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -163,7 +187,7 @@ export function RegisterProfileScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: authConstants.colors.backgroundBlue,
+    backgroundColor: authConstants.colors.brand,
   },
   flex: {
     flex: 1,
@@ -173,19 +197,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: authConstants.spacing.screenMargin,
     paddingTop: 24,
     paddingBottom: 40,
-    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    minHeight: 40,
+    minHeight: 44,
+    marginBottom: 40,
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -205,39 +230,65 @@ const styles = StyleSheet.create({
     height: LOGO_HEIGHT,
   },
   headerSpacer: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
   },
   content: {
-
     width: '100%',
-    paddingVertical: 40,
-    gap: authConstants.spacing.fieldGap,
+    alignItems: 'center',
   },
   nameBox: {
+    width: '100%',
+    maxWidth: 323,
     height: authConstants.components.input.height,
     backgroundColor: authConstants.colors.surface,
     borderRadius: authConstants.components.input.borderRadius,
-    borderWidth: authConstants.components.input.borderWidth,
+    borderWidth: 0.5,
     borderColor: authConstants.colors.ui.inputBorder,
-    paddingHorizontal: authConstants.components.input.paddingHorizontal,
+    paddingHorizontal: 12,
     justifyContent: 'center',
+    marginTop: 20,
+    marginBottom: 0,
   },
   nameText: {
-    ...authConstants.typography.inputText,
+    fontFamily: authConstants.typography.inputText.fontFamily,
+    fontSize: 14,
     color: authConstants.colors.text.dark,
+    fontWeight: '400',
   },
   errorText: {
-    color: authConstants.colors.text.error,
+    color: authConstants.colors.text.light,
+    backgroundColor: 'rgba(239, 68, 68, 0.4)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 4,
     fontSize: 13,
     textAlign: 'center',
-    marginTop: -4,
+    width: '100%',
+    maxWidth: 323,
+    marginTop: 12,
   },
   registerButton: {
-    backgroundColor: authConstants.colors.ui.buttonPrimaryBg,
-    borderRadius: authConstants.components.button.borderRadius,
+    width: '100%',
+    maxWidth: 323,
     height: authConstants.components.button.height,
-    marginTop: 6,
+    backgroundColor: authConstants.colors.ui.buttonBlack,
+    borderRadius: authConstants.components.button.borderRadius,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  buttonPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  registerButtonText: {
+    fontFamily: authConstants.typography.buttonText.fontFamily,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    color: authConstants.colors.text.light,
   },
 });
-

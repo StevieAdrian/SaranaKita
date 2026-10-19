@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { LoadingScreen, NotFoundScreen, useSession } from '@/features/auth';
+import { NotFoundScreen, useSession } from '@/features/auth';
 import { ProfileSettingsScreen } from '@/features/profile';
 import {
   CreateReportScreen,
@@ -18,11 +18,6 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator(): React.JSX.Element {
   const session = useSession();
-
-  if (session.status === 'unknown') {
-    return <LoadingScreen message="Memuat aplikasi ..." />;
-  }
-
   const needsAuth = session.status !== 'authenticated';
 
   return (

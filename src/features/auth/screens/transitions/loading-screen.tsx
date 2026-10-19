@@ -1,17 +1,20 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { Animated, Easing, Image, Platform, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 import loadingLogo from '@/assets/images/loading-logo.png';
 import { authConstants } from '../../constants/auth-constants';
 
 export type LoadingScreenProps = {
+  navigation?: any;
+  route?: any;
   message?: string;
 };
 
 export function LoadingScreen({
-  message = 'Loading ...',
+  navigation,
+  route,
+  message = 'Loading....',
 }: LoadingScreenProps): React.JSX.Element {
-  const navigation = useNavigation<any>();
+  const displayMessage = route?.params?.message ?? message;
   const spinAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -34,7 +37,7 @@ export function LoadingScreen({
   });
 
   const handleTap = () => {
-    if (navigation.canGoBack()) {
+    if (navigation?.canGoBack?.()) {
       navigation.goBack();
     }
   };
@@ -44,10 +47,10 @@ export function LoadingScreen({
       onPress={handleTap}
       style={styles.container}
       accessibilityRole="progressbar"
-      accessibilityLabel={message}
+      accessibilityLabel={displayMessage}
     >
+      <StatusBar barStyle="light-content" />
       <View style={styles.centerContent} pointerEvents="none">
-
         <Animated.View style={{ transform: [{ rotate: spin }] }}>
           <Image
             source={loadingLogo}
@@ -58,7 +61,7 @@ export function LoadingScreen({
           />
         </Animated.View>
 
-        <Text style={styles.messageText}>{message}</Text>
+        <Text style={styles.messageText}>{displayMessage}</Text>
       </View>
     </Pressable>
   );
@@ -67,24 +70,25 @@ export function LoadingScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: authConstants.colors.backgroundBlue,
+    backgroundColor: authConstants.colors.brand,
     justifyContent: 'center',
     alignItems: 'center',
   },
   centerContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
+    gap: 21,
   },
   spinner: {
-    width: 44,
-    height: 44,
+    width: 62,
+    height: 62,
   },
   messageText: {
-    ...authConstants.typography.subtitle,
+    fontFamily: authConstants.typography.buttonText.fontFamily,
+    fontSize: 16,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    lineHeight: 20,
     color: authConstants.colors.text.light,
-    fontSize: 15,
-    fontWeight: '500',
     textAlign: 'center',
   },
 });

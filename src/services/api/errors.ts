@@ -3,7 +3,8 @@ export class ApiError extends Error {
   readonly body: unknown;
 
   constructor(status: number, body: unknown, message?: string) {
-    super(message ?? `Request failed with status ${status}`);
+    const apiMessage = getApiMessage(body);
+    super(message ?? apiMessage ?? `Request failed with status ${status}`);
     this.name = 'ApiError';
     this.status = status;
     this.body = body;
