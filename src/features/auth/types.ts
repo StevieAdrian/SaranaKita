@@ -55,5 +55,16 @@ export type RegisterPayload = {
   readonly avatarUrl?: string;
 };
 
-export type Session = AuthState;
+export type RegisterProfileRouteParams = {
+  readonly username: string;
+  readonly firstName: string;
+  readonly lastName: string;
+  readonly email: string;
+  readonly password: string;
+  readonly phone: string;
+  readonly dateOfBirth: string;
+  readonly classGrade: string;
+  readonly gender: Gender;
+};
 
+export type Session = AuthState;
