@@ -111,6 +111,29 @@ function subscribe(listener: AuthListener): () => void {
   };
 }
 
+async function checkUsername(username: string): Promise<{ available: boolean; username: string }> {
+  return apiClient.get<{ available: boolean; username: string }>(
+    `/auth/check-username?username=${encodeURIComponent(username)}`,
+    { skipAuth: true },
+  );
+}
+
+async function checkEmail(email: string): Promise<{ available: boolean; email: string }> {
+  return apiClient.get<{ available: boolean; email: string }>(
+    `/auth/check-email?email=${encodeURIComponent(email)}`,
+    { skipAuth: true },
+  );
+}
+
+async function register(payload: unknown): Promise<AuthUser> {
+  const response = await apiClient.post<SessionResponse>(
+    '/auth/register',
+    payload,
+    { skipAuth: true },
+  );
+  return applySession(response);
+}
+
 export const authClient = {
   signIn,
   signOut,
@@ -119,4 +142,8 @@ export const authClient = {
   getState,
   getAccessToken,
   subscribe,
+  checkUsername,
+  checkEmail,
+  register,
 };
+

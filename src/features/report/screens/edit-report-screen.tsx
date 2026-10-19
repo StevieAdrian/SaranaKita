@@ -24,7 +24,6 @@ import {
   Select,
 } from '@/shared/components/ui';
 import { palette } from '@/shared/theme';
-import type { RootStackParamList } from '@/navigation/types';
 import {
   CLASS_OPTIONS,
   DESCRIPTION_MAX_LENGTH,
@@ -41,11 +40,13 @@ const SUBMIT_BUTTON = {
 
 const SCROLL_CONTENT = { flexGrow: 1, paddingHorizontal: 16 } as const;
 
-type EditRoute = RouteProp<RootStackParamList, 'EditReport'>;
+type EditRoute = RouteProp<
+  { EditReport: { reportId: string } },
+  'EditReport'
+>;
 
 export function EditReportScreen(): React.JSX.Element {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation();
   const route = useRoute<EditRoute>();
   const insets = useSafeAreaInsets();
   const reportId = route.params.reportId;

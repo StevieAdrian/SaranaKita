@@ -54,6 +54,16 @@ module.exports = {
             from: './src/features',
             except: ['./home'],
           },
+          {
+            target: './src/features/profile',
+            from: './src/features',
+            except: ['./profile'],
+          },
+          {
+            target: './src/features/user-management',
+            from: './src/features',
+            except: ['./user-management'],
+          },
         ],
       },
     ],

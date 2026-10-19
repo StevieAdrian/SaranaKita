@@ -1,2 +1,15 @@
-export { getProfile, updateProfile } from './profile.api';
-export type { Profile, UpdateProfileInput } from './types';
+export {
+  getProfile,
+  updateProfile,
+  getFullProfile,
+  updateFullProfile,
+  changePassword,
+} from './profile.api';
+export type {
+  ChangePasswordInput,
+  ContributionStats,
+  FullProfile,
+  Profile,
+  SchoolInfo,
+  UpdateProfileInput,
+} from './types';

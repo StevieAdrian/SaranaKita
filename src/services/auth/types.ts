@@ -3,7 +3,19 @@ export type AuthTokens = {
   readonly refreshToken: string;
 };
 
-export const USER_ROLES = ['siswa', 'guru', 'staff', 'administrator'] as const;
+export const USER_ROLE = {
+  SISWA: 'siswa',
+  GURU: 'guru',
+  STAFF: 'staff',
+  ADMINISTRATOR: 'administrator',
+} as const;
+
+export const USER_ROLES = [
+  USER_ROLE.SISWA,
+  USER_ROLE.GURU,
+  USER_ROLE.STAFF,
+  USER_ROLE.ADMINISTRATOR,
+] as const;
 
 export type UserRole = (typeof USER_ROLES)[number];
 

@@ -1,46 +1,33 @@
-import React, { useCallback, useRef, useState } from 'react';
-import {
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  type TextInputInstance,
-} from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, type TextInputInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import logo from '../../../../assets/images/logo-saranakita.png';
-import { Button } from '@/shared/components/ui/button';
+import { useNavigation } from '@react-navigation/native';
 import { TextField } from '@/shared/components/ui/text-field';
-import { hitSlop, palette, radius, spacing } from '@/shared/theme';
+import { AuthDivider, AuthHeader, GoogleButton } from '../components';
+import { authConstants } from '../constants/auth-constants';
 import { useLoginForm } from '../hooks/use-login-form';
 
-const LOGO_WIDTH = 100;
-const LOGO_HEIGHT = Math.round((LOGO_WIDTH * 29) / 124);
-
-const INPUT_BORDER = '#D0D5DD';
-const PLACEHOLDER = '#98A2B3';
-const TEXT = '#101828';
-
-function comingSoon(feature: string): void {
-  Alert.alert(feature, 'This feature is coming soon.');
-}
-
 export function LoginScreen(): React.JSX.Element {
+  const navigation = useNavigation<any>();
   const { email, password, errors, submitting, setEmail, setPassword, submit } =
     useLoginForm();
   const passwordRef = useRef<TextInputInstance>(null);
-  const [googlePressed, setGooglePressed] = useState(false);
 
-  const onForgotPassword = useCallback(() => comingSoon('Forgot Password'), []);
-  const onSignUp = useCallback(() => comingSoon('Sign Up'), []);
-  const onGoogle = useCallback(() => comingSoon('Google Sign-In'), []);
+  const onForgotPassword = useCallback(() => {
+    Alert.alert('Forgot Password', 'Fitur reset kata sandi segera hadir.');
+  }, []);
+
+  const onSignUp = useCallback(() => {
+    navigation.navigate('Register');
+  }, [navigation]);
+
+  const onGoogle = useCallback(() => {
+    Alert.alert('Google Sign-In', 'Fitur Google Sign-In segera hadir.');
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <StatusBar barStyle="light-content" />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -48,23 +35,17 @@ export function LoginScreen(): React.JSX.Element {
         <ScrollView
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.header}>
-            <Image
-              source={logo}
-              style={styles.logo}
-              resizeMode="contain"
-              accessibilityRole="image"
-              accessibilityLabel="SaranaKita"
+          {/* Header */}
+          <View style={styles.centerBlock}>
+            <AuthHeader
+              title="Welcome Back!"
+              subtitle="Let’s continue your healthy journey with us."
             />
-            <Text style={styles.title} accessibilityRole="header">
-              Welcome Back!
-            </Text>
-            <Text style={styles.subtitle}>
-              Let’s continue your healthy journey with us.
-            </Text>
           </View>
 
+          {/* Form */}
           <View style={styles.card}>
             <TextField
               label="Email"
@@ -72,7 +53,7 @@ export function LoginScreen(): React.JSX.Element {
               value={email}
               onChangeText={setEmail}
               placeholder="johndoe@gmail.com"
-              placeholderTextColor={PLACEHOLDER}
+              placeholderTextColor={authConstants.typography.inputPlaceholder.color}
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"
@@ -85,6 +66,7 @@ export function LoginScreen(): React.JSX.Element {
               labelStyle={styles.label}
               style={styles.input}
             />
+
             <TextField
               ref={passwordRef}
               label="Password"
@@ -92,7 +74,7 @@ export function LoginScreen(): React.JSX.Element {
               value={password}
               onChangeText={setPassword}
               placeholder="••••••••••"
-              placeholderTextColor={PLACEHOLDER}
+              placeholderTextColor={authConstants.typography.inputPlaceholder.color}
               secureTextEntry
               autoComplete="password"
               textContentType="password"
@@ -106,10 +88,10 @@ export function LoginScreen(): React.JSX.Element {
             <Pressable
               onPress={onForgotPassword}
               accessibilityRole="link"
-              hitSlop={hitSlop}
+              accessibilityLabel="Forgot Password?"
               style={styles.forgot}
             >
-              <Text style={styles.link}>Forgot Password?</Text>
+              <Text style={styles.linkText}>Forgot Password?</Text>
             </Pressable>
 
             {errors.form ? (
@@ -118,42 +100,43 @@ export function LoginScreen(): React.JSX.Element {
               </Text>
             ) : null}
 
-            <Button
-              title="Continue"
-              loading={submitting}
+            {/* Button */}
+            <TouchableOpacity
               onPress={submit}
-              style={styles.continueButton}
-            />
+              disabled={submitting}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Continue"
+              style={[
+                styles.continueButton,
+                submitting && styles.buttonDisabled,
+              ]}
+            >
+              {submitting ? (
+                <ActivityIndicator color={authConstants.colors.text.light} size="small" />
+              ) : (
+                <Text style={styles.continueButtonText}>Continue</Text>
+              )}
+            </TouchableOpacity>
 
             <View style={styles.signUpRow}>
               <Text style={styles.signUpText}>Haven’t create an account? </Text>
               <Pressable
                 onPress={onSignUp}
                 accessibilityRole="link"
-                hitSlop={hitSlop}
+                accessibilityLabel="Sign Up"
               >
-                <Text style={[styles.link, styles.bold]}>Sign Up</Text>
+                <Text style={styles.linkText}>Sign Up</Text>
               </Pressable>
             </View>
           </View>
 
-          <View style={styles.dividerRow} accessibilityElementsHidden>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>Or Continue With</Text>
-            <View style={styles.dividerLine} />
-          </View>
+          <View style={styles.bottomBlock}>
+            <AuthDivider text="Or Continue With" />
 
-          <Pressable
-            onPress={onGoogle}
-            onPressIn={() => setGooglePressed(true)}
-            onPressOut={() => setGooglePressed(false)}
-            accessibilityRole="button"
-            accessibilityLabel="Continue with Google"
-            style={[styles.googleButton, googlePressed && styles.pressed]}
-          >
-            <Text style={styles.googleMark}>G</Text>
-            <Text style={styles.googleText}>Google</Text>
-          </Pressable>
+            {/* Google Button */}
+            <GoogleButton onPress={onGoogle} label="Google" />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -163,133 +146,103 @@ export function LoginScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: palette.brand,
+    backgroundColor: authConstants.colors.brand,
   },
   flex: {
     flex: 1,
   },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl + spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
-  header: {
+    paddingHorizontal: 20,
+    paddingTop: 32,
+    paddingBottom: 40,
     alignItems: 'center',
-    marginBottom: spacing.xl,
   },
-  logo: {
-    width: LOGO_WIDTH,
-    height: LOGO_HEIGHT,
-    marginBottom: spacing.lg,
-  },
-  title: {
-    color: palette.white,
-    fontSize: 28,
-    fontWeight: '700',
-    lineHeight: 36,
-    textAlign: 'center',
-  },
-  subtitle: {
-    color: palette.white,
-    fontSize: 15,
-    lineHeight: 22,
-    textAlign: 'center',
-    marginTop: spacing.xs,
-    maxWidth: 260,
+  centerBlock: {
+    width: '100%',
+    maxWidth: 369,
+    alignSelf: 'center',
   },
   card: {
-    backgroundColor: palette.white,
-    borderRadius: radius.md,
-    padding: spacing.lg,
-    paddingTop: spacing.xl,
-    gap: spacing.md,
+    width: '100%',
+    maxWidth: 369,
+    alignSelf: 'center',
+    backgroundColor: authConstants.colors.surface,
+    borderRadius: authConstants.components.card.borderRadius,
+    borderWidth: 1,
+    borderColor: authConstants.colors.ui.cardBorder,
+    paddingVertical: authConstants.components.card.paddingVertical,
+    paddingHorizontal: authConstants.components.card.paddingHorizontal,
+    gap: 18,
+  },
+  bottomBlock: {
+    width: '100%',
+    maxWidth: 369,
+    alignSelf: 'center',
   },
   label: {
-    color: TEXT,
-    fontSize: 15,
+    fontFamily: authConstants.typography.label.fontFamily,
+    fontSize: 16,
     fontWeight: '500',
-    lineHeight: 20,
+    color: authConstants.colors.text.dark,
   },
   input: {
-    backgroundColor: palette.white,
-    borderColor: INPUT_BORDER,
-    borderWidth: 1,
-    borderRadius: radius.sm,
-    color: TEXT,
+    backgroundColor: authConstants.colors.surface,
+    borderColor: authConstants.colors.ui.inputBorderLight,
+    borderWidth: authConstants.components.input.borderWidth,
+    borderRadius: authConstants.components.input.borderRadius,
+    height: authConstants.components.input.height,
+    fontFamily: authConstants.typography.inputText.fontFamily,
     fontSize: 14,
+    color: authConstants.colors.text.dark,
   },
   forgot: {
     alignSelf: 'flex-end',
+    marginTop: -6,
   },
-  link: {
-    color: palette.link,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  bold: {
-    fontWeight: '600',
+  linkText: {
+    color: authConstants.colors.brand,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    fontFamily: authConstants.typography.link.fontFamily,
   },
   formError: {
-    color: palette.danger,
+    color: authConstants.colors.text.error,
     fontSize: 13,
+    textAlign: 'center',
   },
   continueButton: {
-    backgroundColor: palette.black,
-    borderRadius: radius.sm,
+    backgroundColor: authConstants.colors.ui.buttonBlack,
+    borderRadius: authConstants.components.button.borderRadius,
+    height: authConstants.components.button.height,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    width: '100%',
+  },
+  buttonPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  continueButtonText: {
+    fontFamily: authConstants.typography.buttonText.fontFamily,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    color: authConstants.colors.text.light,
   },
   signUpRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     flexWrap: 'wrap',
-    marginTop: spacing.xs,
+    marginTop: 14,
   },
   signUpText: {
-    color: TEXT,
-    fontSize: 13,
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    gap: spacing.sm,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: palette.white,
-    opacity: 0.8,
-  },
-  dividerText: {
-    color: palette.white,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  googleButton: {
-    minHeight: 44,
-    marginHorizontal: spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    backgroundColor: palette.white,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: INPUT_BORDER,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  googleMark: {
-    color: '#4285F4',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  googleText: {
-    color: TEXT,
+    color: authConstants.colors.text.dark,
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: authConstants.typography.inputText.fontFamily,
   },
 });

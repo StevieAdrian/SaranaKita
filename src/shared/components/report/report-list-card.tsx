@@ -127,16 +127,14 @@ export function ReportListCard({
                   : undefined
                 : { backgroundColor: actionColor }
             }
-            className={`min-h-[44px] justify-center rounded-lg px-6 active:opacity-70 ${
-              action.variant === 'muted'
-                ? 'border border-primary bg-white'
-                : 'bg-primary'
-            }`}
+            className={`min-h-[44px] justify-center rounded-lg px-6 active:opacity-70 ${action.variant === 'muted'
+              ? 'border border-primary bg-white'
+              : 'bg-primary'
+              }`}
           >
             <Text
-              className={`font-semibold ${
-                action.variant === 'muted' ? 'text-primary' : 'text-white'
-              }`}
+              className={`font-semibold ${action.variant === 'muted' ? 'text-primary' : 'text-white'
+                }`}
               style={
                 isMuted && action.tone === 'teacher'
                   ? { color: actionColor }
@@ -147,7 +145,6 @@ export function ReportListCard({
             </Text>
           </Pressable>
         ) : null}
-        ```
       </View>
     </View>
   );
