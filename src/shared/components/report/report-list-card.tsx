@@ -14,6 +14,12 @@ export type ReportListCardAction = {
   tone?: 'primary' | 'teacher';
 };
 
+export type ReportNoteData = {
+  id: string;
+  text: string;
+  createdAt: string;
+};
+
 export type ReportListCardProps = {
   title: string;
   description: string;
@@ -30,6 +36,14 @@ export type ReportListCardProps = {
   onPress?: () => void;
   canEdit?: boolean;
   onEditPress?: () => void;
+  canAddNote?: boolean;
+  note?: ReportNoteData | null;
+  onAddNotePress?: () => void;
+  onEditNotePress?: () => void;
+  onDeleteNotePress?: () => void;
+  canStillEdit?: boolean;
+  finalTime?: string;
+  remainingTime?: string;
 };
 
 export function ReportListCard({
@@ -48,6 +62,14 @@ export function ReportListCard({
   onPress,
   canEdit = false,
   onEditPress,
+  canAddNote = false,
+  note = null,
+  onAddNotePress,
+  onEditNotePress,
+  onDeleteNotePress,
+  canStillEdit = false,
+  finalTime,
+  remainingTime = '00:00',
 }: ReportListCardProps): React.JSX.Element {
   const isMuted = action?.variant === 'muted';
   const actionColor =
@@ -98,12 +120,26 @@ export function ReportListCard({
           </Text>
         </View>
       </Pressable>
+      <View className="border-t border-gray-100 px-4 py-3">
+        <View className="flex-row items-center justify-between gap-2">
+          <Text className="flex-1 text-xs text-gray-400">
+            {canStillEdit
+              ? 'Waktu Tersisa Untuk Mengubah Laporan:'
+              : 'Waktu Laporan Final'}
+          </Text>
+
+          <Text className="text-xs text-gray-400">
+            {canStillEdit ? remainingTime : finalTime}
+          </Text>
+        </View>
+      </View>
 
       <View className="flex-row items-center justify-between border-t border-gray-100 px-4 py-3">
         <Text className="text-sm text-gray-500">
           <Text className="font-bold text-gray-900">{votes}</Text> Votes{'   '}
           <Text className="font-bold text-gray-900">{comments}</Text> Komentar
         </Text>
+
         {canEdit && onEditPress ? (
           <Pressable
             onPress={onEditPress}
@@ -113,6 +149,40 @@ export function ReportListCard({
           >
             <Text className="font-semibold text-primary">Edit Laporan</Text>
           </Pressable>
+        ) : canAddNote ? (
+          <View className="flex-row items-center gap-2">
+            {note ? (
+              <>
+                <Pressable
+                  onPress={onEditNotePress}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Ubah catatan ${title}`}
+                  className="min-h-[44px] justify-center rounded-lg border border-primary bg-white px-3 active:opacity-70"
+                >
+                  <Text className="font-semibold text-primary">
+                    Ubah Catatan
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={onDeleteNotePress}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Hapus catatan ${title}`}
+                  className="min-h-[44px] justify-center rounded-lg bg-red-50 px-3 active:opacity-70"
+                >
+                  <Text className="font-semibold text-red-600">Hapus</Text>
+                </Pressable>
+              </>
+            ) : (
+              <Pressable
+                onPress={onAddNotePress}
+                accessibilityRole="button"
+                accessibilityLabel={`Tambah catatan ${title}`}
+                className="min-h-[44px] justify-center rounded-lg border border-primary bg-white px-4 active:opacity-70"
+              >
+                <Text className="font-semibold text-primary">+ Catatan</Text>
+              </Pressable>
+            )}
+          </View>
         ) : action ? (
           <Pressable
             onPress={action.onPress}
@@ -127,14 +197,16 @@ export function ReportListCard({
                   : undefined
                 : { backgroundColor: actionColor }
             }
-            className={`min-h-[44px] justify-center rounded-lg px-6 active:opacity-70 ${action.variant === 'muted'
-              ? 'border border-primary bg-white'
-              : 'bg-primary'
-              }`}
+            className={`min-h-[44px] justify-center rounded-lg px-6 active:opacity-70 ${
+              action.variant === 'muted'
+                ? 'border border-primary bg-white'
+                : 'bg-primary'
+            }`}
           >
             <Text
-              className={`font-semibold ${action.variant === 'muted' ? 'text-primary' : 'text-white'
-                }`}
+              className={`font-semibold ${
+                action.variant === 'muted' ? 'text-primary' : 'text-white'
+              }`}
               style={
                 isMuted && action.tone === 'teacher'
                   ? { color: actionColor }

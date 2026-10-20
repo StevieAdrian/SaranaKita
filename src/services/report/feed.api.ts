@@ -20,6 +20,12 @@ export type FeedReport = {
   readonly recommendations: number;
   readonly votedByMe: boolean;
   readonly recommendedByMe: boolean;
+  readonly note: {
+    readonly id: string;
+    readonly authorId: string;
+    readonly text: string;
+    readonly createdAt: string;
+  } | null;
 };
 
 export type ReportSort =
@@ -61,6 +67,14 @@ export type RecommendationResult = {
   readonly reportId: string;
   readonly recommendations: number;
   readonly recommendedByMe: boolean;
+};
+
+export type ReportNote = {
+  readonly id: string;
+  readonly report_id: string;
+  readonly author_id: string;
+  readonly note_text: string;
+  readonly created_at: string;
 };
 
 type QueryValue = string | number | readonly string[] | undefined;
@@ -120,5 +134,34 @@ export function removeRecommendation(
 ): Promise<RecommendationResult> {
   return apiClient.delete<RecommendationResult>(
     `/reports/${encodeURIComponent(id)}/recommendations`,
+  );
+}
+
+//report notes
+export function createReportNote(
+  reportId: string,
+  noteText: string,
+): Promise<ReportNote> {
+  return apiClient.post<ReportNote>(
+    `/reports/${encodeURIComponent(reportId)}/notes`,
+    { note_text: noteText },
+  );
+}
+
+export function updateReportNote(
+  reportId: string,
+  noteText: string,
+): Promise<ReportNote> {
+  return apiClient.put<ReportNote>(
+    `/reports/${encodeURIComponent(reportId)}/notes`,
+    { note_text: noteText },
+  );
+}
+
+export function deleteReportNote(
+  reportId: string,
+): Promise<{ message: string }> {
+  return apiClient.delete<{ message: string }>(
+    `/reports/${encodeURIComponent(reportId)}/notes`,
   );
 }
