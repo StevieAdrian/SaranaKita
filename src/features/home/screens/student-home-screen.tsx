@@ -122,34 +122,51 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
   );
 
   const renderReport: ListRenderItem<FeedReport> = useCallback(
-    ({ item }) => (
-      <View className="px-5">
-        <ReportListCard
-          title={item.title}
-          description={item.description}
-          location={item.location}
-          status={item.status}
-          imageUrl={item.imageUrl}
-          reporterName={item.reporterName}
-          reporterClass={item.reporterClass}
-          date={toDisplayDate(item.createdAt)}
-          votes={item.votes}
-          comments={item.comments}
-          onPress={() => openDetail(item.id)}
-          action={{
-            label: item.votedByMe ? 'Voted' : 'Vote',
-            variant: item.votedByMe ? 'muted' : 'solid',
-            accessibilityLabel: item.votedByMe
-              ? `Batalkan vote untuk ${item.title}`
-              : `Vote ${item.title}`,
-            onPress: () => {
-              handleVote(item.id).catch(() => {});
-            },
-          }}
-        />
-      </View>
-    ),
-    [handleVote, openDetail],
+    ({ item }) => {
+      const isOwner = item.reporterName === user?.displayName;
+
+      console.log('DEBUG OWNER:', {
+        reportId: item.id,
+        reporterName: item.reporterName,
+        currentUserName: user?.displayName,
+        isOwner,
+      });
+
+      return (
+        <View className="px-5">
+          <ReportListCard
+            title={item.title}
+            description={item.description}
+            location={item.location}
+            status={item.status}
+            imageUrl={item.imageUrl}
+            reporterName={item.reporterName}
+            reporterClass={item.reporterClass}
+            date={toDisplayDate(item.createdAt)}
+            votes={item.votes}
+            comments={item.comments}
+            onPress={() => openDetail(item.id)}
+            canEdit={isOwner}
+            onEditPress={() => openEdit(item.id)}
+            action={
+              isOwner
+                ? undefined
+                : {
+                    label: item.votedByMe ? 'Voted' : 'Vote',
+                    variant: item.votedByMe ? 'muted' : 'solid',
+                    accessibilityLabel: item.votedByMe
+                      ? `Batalkan vote untuk ${item.title}`
+                      : `Vote ${item.title}`,
+                    onPress: () => {
+                      handleVote(item.id).catch(() => {});
+                    },
+                  }
+            }
+          />
+        </View>
+      );
+    },
+    [handleVote, openDetail, openEdit, user?.displayName],
   );
 
   const header = (
