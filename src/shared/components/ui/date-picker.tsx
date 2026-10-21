@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Image, Platform, Pressable, Text } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import calendarIcon from '@/assets/images/calendar.png';
+import calendarSignupLogo from '@/assets/images/calender-signup-logo.png';
 import { palette } from '@/shared/theme';
 import { formatDisplayDate } from '@/shared/utils/date';
 import { BottomSheet } from './bottom-sheet';
@@ -59,14 +59,20 @@ export function DatePicker({
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
         accessibilityValue={{ text: display }}
-        className={`h-12 flex-row items-center rounded-lg border bg-field px-4 active:opacity-70 ${
-          hasError ? 'border-red-500' : 'border-field-border'
-        }`}
+        className={`h-12 flex-row items-center rounded-lg border bg-field px-4 active:opacity-70 ${hasError ? 'border-red-500' : 'border-field-border'}`}
       >
-        <Text numberOfLines={1} className="flex-1 text-base text-gray-900">
+        <Text
+          numberOfLines={1}
+          style={{ fontFamily: 'Poppins-Regular' }}
+          className="flex-1 text-base text-gray-900"
+        >
           {display}
         </Text>
-        <Image source={calendarIcon} resizeMode="contain" className="h-6 w-6" />
+        <Image
+          source={calendarSignupLogo}
+          resizeMode="contain"
+          style={{ width: 14, height: 16, tintColor: '#828282' }}
+        />
       </Pressable>
 
       {Platform.OS === 'ios' ? (

@@ -1,18 +1,8 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type ImageSourcePropType,
-} from 'react-native';
+import { ActivityIndicator, Image, Modal, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, type ImageSourcePropType } from 'react-native';
+import { useRole } from '@/shared/context/theme-context';
 import defaultAddIcon from '@/assets/images/vector-popup-addpengguna.png';
 import defaultDeleteIcon from '@/assets/images/vector-deletepopup.png';
-import { useRole } from '@/shared/context/theme-context';
-import { radius, spacing } from '@/shared/theme';
 
 export type ConfirmationModalProps = {
   visible: boolean;
@@ -21,11 +11,16 @@ export type ConfirmationModalProps = {
   confirmLabel: string;
   cancelLabel?: string;
   tone?: 'primary' | 'danger';
+  confirmColor?: string;
   iconSource?: ImageSourcePropType;
   loading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 };
+
+const fontBold = 'Poppins-Bold';
+const fontSemiBold = 'Poppins-SemiBold';
+const fontRegular = 'Poppins-Regular';
 
 export function ConfirmationModal({
   visible,
@@ -34,6 +29,7 @@ export function ConfirmationModal({
   confirmLabel,
   cancelLabel = 'Batal',
   tone = 'primary',
+  confirmColor,
   iconSource,
   loading = false,
   onConfirm,
@@ -45,12 +41,13 @@ export function ConfirmationModal({
   const defaultIcon = isDanger ? defaultDeleteIcon : defaultAddIcon;
   const icon = iconSource ?? defaultIcon;
 
-  const iconBgColor = isDanger ? theme.dangerSurface : theme.backgroundSubtle;
-  const confirmBtnBg = isDanger ? theme.danger : theme.primary;
-  const confirmTextColor = theme.onPrimary;
+  const iconBgColor = isDanger
+    ? '#FEE2E2'
+    : (confirmColor ? `${confirmColor}1A` : `${theme.primary}1A`);
+  const confirmBtnBg = isDanger ? '#EF4444' : (confirmColor ?? theme.primary);
+  const confirmTextColor = '#FFFFFF';
 
   return (
-    // PopUp
     <Modal
       visible={visible}
       transparent
@@ -60,50 +57,45 @@ export function ConfirmationModal({
       onRequestClose={loading ? () => { } : onCancel}
     >
       <View style={styles.overlay}>
-        <Pressable
-          style={styles.backdrop}
-          onPress={loading ? undefined : onCancel}
-          accessibilityRole="button"
-          accessibilityLabel="Tutup dialog"
-        />
+        <TouchableWithoutFeedback onPress={loading ? undefined : onCancel}>
+          <View style={styles.backdrop} />
+        </TouchableWithoutFeedback>
 
         <View
           style={[
             styles.card,
             {
-              backgroundColor: theme.surface,
-              borderColor: theme.borderSubtle,
-              shadowColor: theme.shadowColor,
+              backgroundColor: theme.surface || '#FFFFFF',
+              shadowColor: theme.shadowColor || '#000000',
             },
           ]}
         >
-
           <View style={[styles.iconCircle, { backgroundColor: iconBgColor }]}>
             <Image source={icon} resizeMode="contain" style={styles.iconImage} />
           </View>
 
           <Text
             accessibilityRole="header"
-            style={[styles.title, { color: theme.textHeading }]}
+            style={[styles.title, { color: theme.textHeading || '#0F172A' }]}
           >
             {title}
           </Text>
-          <Text style={[styles.message, { color: theme.textSecondary }]}>
+          <Text style={[styles.message, { color: theme.textSecondary || '#64748B' }]}>
             {message}
           </Text>
 
-          {/* Button */}
+          {/* Action Buttons */}
           <View style={styles.buttonGroup}>
-            <Pressable
+            <TouchableOpacity
+              activeOpacity={0.8}
               onPress={onConfirm}
               disabled={loading}
               accessibilityRole="button"
               accessibilityLabel={confirmLabel}
               accessibilityState={{ busy: loading }}
-              style={({ pressed }) => [
+              style={[
                 styles.button,
                 { backgroundColor: confirmBtnBg },
-                pressed && styles.pressed,
                 loading && styles.disabled,
               ]}
             >
@@ -114,28 +106,24 @@ export function ConfirmationModal({
                   {confirmLabel}
                 </Text>
               )}
-            </Pressable>
+            </TouchableOpacity>
 
-            <Pressable
+            <TouchableOpacity
+              activeOpacity={0.8}
               onPress={onCancel}
               disabled={loading}
               accessibilityRole="button"
               accessibilityLabel={cancelLabel}
-              style={({ pressed }) => [
+              style={[
                 styles.button,
                 styles.cancelButton,
-                {
-                  backgroundColor: theme.surfaceInput,
-                  borderColor: theme.borderInput,
-                },
-                pressed && styles.pressed,
                 loading && styles.disabled,
               ]}
             >
-              <Text style={[styles.buttonText, { color: theme.textSecondary }]}>
+              <Text style={styles.cancelButtonText}>
                 {cancelLabel}
               </Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -148,7 +136,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: 24,
     backgroundColor: 'rgba(0, 0, 0, 0.45)',
   },
   backdrop: {
@@ -156,12 +144,11 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    maxWidth: 340,
-    borderRadius: 20,
-    borderWidth: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.lg,
+    maxWidth: 320,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 22,
     alignItems: 'center',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
@@ -169,50 +156,58 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.md,
+    marginBottom: 14,
   },
   iconImage: {
-    width: 36,
-    height: 36,
+    width: 24,
+    height: 24,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontFamily: fontBold,
+    fontSize: 16,
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
     textAlign: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: 6,
   },
   message: {
-    fontSize: 14,
+    fontFamily: fontRegular,
+    fontSize: 12.5,
+    fontWeight: Platform.OS === 'ios' ? '400' : undefined,
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: spacing.lg,
-    paddingHorizontal: spacing.sm,
+    lineHeight: 18,
+    marginBottom: 20,
+    paddingHorizontal: 6,
   },
   buttonGroup: {
     width: '100%',
-    gap: spacing.sm,
+    gap: 10,
   },
   button: {
-    minHeight: 46,
-    borderRadius: radius.md,
+    height: 44,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: 16,
+    width: '100%',
   },
   cancelButton: {
-    borderWidth: 1,
+    backgroundColor: '#F1F5F9',
   },
   buttonText: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontFamily: fontBold,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
   },
-  pressed: {
-    opacity: 0.8,
+  cancelButtonText: {
+    fontFamily: fontSemiBold,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    color: '#64748B',
   },
   disabled: {
     opacity: 0.6,

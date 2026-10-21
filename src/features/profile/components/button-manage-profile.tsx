@@ -1,93 +1,87 @@
 import React from 'react';
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import rightArrow from '@/assets/images/right-arrow.png';
 import userLogo from '@/assets/images/user-logo.png';
 import settingIcon from '@/assets/images/vector-setting.png';
 import { useRole } from '@/shared/context/theme-context';
-import { radius, spacing } from '@/shared/theme';
+import { profileFonts } from '../utils/constants';
 
 export type ButtonManageProfileProps = {
+  role?: string | null;
   onPressEditProfile: () => void;
   onPressUserManagement?: () => void;
 };
 
 export function ButtonManageProfile({
+  role,
   onPressEditProfile,
   onPressUserManagement,
 }: ButtonManageProfileProps): React.JSX.Element {
   const { theme, currentRole } = useRole();
+  const effectiveRole = role ?? currentRole;
+  const showEditProfile = true;
   const showUserManagement =
-    currentRole === 'staff' || currentRole === 'administrator';
+    effectiveRole === 'staff' || effectiveRole === 'administrator';
+
+  const buttonBgColor =
+    theme.primary || (effectiveRole === 'administrator' ? '#360707' : '#112D71');
+  const textColor = theme.onPrimary || '#FFFFFF';
 
   return (
     <View style={styles.container}>
       {/* Button Profile */}
-      <Pressable
-        onPress={onPressEditProfile}
-        accessibilityRole="button"
-        accessibilityLabel="Ubah Data Diri"
-        style={({ pressed }) => [
-          styles.actionButton,
-          {
-            backgroundColor: theme.primary,
-          },
-          pressed && styles.pressed,
-        ]}
-      >
-        <View style={styles.leftGroup}>
-          <Image
-            source={settingIcon}
-            resizeMode="contain"
-            style={[styles.actionIcon, { tintColor: theme.onPrimary }]}
-          />
-          <Text style={[styles.actionLabel, { color: theme.onPrimary }]}>
-            Ubah Data Diri
-          </Text>
-        </View>
+      {showEditProfile && (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={onPressEditProfile}
+          accessibilityRole="button"
+          accessibilityLabel="Ubah Data Diri"
+          style={[styles.actionButton, { backgroundColor: buttonBgColor }]}
+        >
+          <View style={styles.leftGroup}>
+            <Image
+              source={settingIcon}
+              resizeMode="contain"
+              style={[styles.actionIcon, { tintColor: textColor }]}
+            />
+            <Text style={[styles.actionLabel, { color: textColor }]}>
+              Ubah Data Diri
+            </Text>
+          </View>
 
-        <Image
-          source={rightArrow}
-          resizeMode="contain"
-          style={[styles.arrowIcon, { tintColor: theme.onPrimary }]}
-        />
-      </Pressable>
+          <Image
+            source={rightArrow}
+            resizeMode="contain"
+            style={[styles.arrowIcon, { tintColor: textColor }]}
+          />
+        </TouchableOpacity>
+      )}
 
       {/* Button User Management */}
       {showUserManagement && onPressUserManagement ? (
-        <Pressable
+        <TouchableOpacity
+          activeOpacity={0.8}
           onPress={onPressUserManagement}
           accessibilityRole="button"
           accessibilityLabel="Manajemen Profile Pengguna"
-          style={({ pressed }) => [
+          style={[
             styles.actionButton,
             styles.manageButton,
-            {
-              backgroundColor:
-                currentRole === 'administrator'
-                  ? theme.primary
-                  : '#112D71',
-            },
-            pressed && styles.pressed,
+            { backgroundColor: buttonBgColor },
           ]}
         >
           <View style={styles.leftGroup}>
             <Image
               source={userLogo}
               resizeMode="contain"
-              style={[styles.actionIcon, styles.whiteTint]}
+              style={[styles.actionIcon, { tintColor: textColor }]}
             />
-            <View>
-              <Text style={[styles.actionLabel, styles.whiteText]}>
+            <View style={styles.manageTextGroup}>
+              <Text style={[styles.manageTitle, { color: textColor }]}>
                 Manajemen Profile Pengguna
               </Text>
-              <Text style={styles.manageSubtitle}>
-                Kelola profile user & staff sekolah
+              <Text style={[styles.manageSubtitle, { color: textColor }]}>
+                Kelola profile Siswa, Guru & Staff sekolah
               </Text>
             </View>
           </View>
@@ -95,9 +89,9 @@ export function ButtonManageProfile({
           <Image
             source={rightArrow}
             resizeMode="contain"
-            style={[styles.arrowIcon, styles.whiteTint]}
+            style={[styles.arrowIcon, { tintColor: textColor }]}
           />
-        </Pressable>
+        </TouchableOpacity>
       ) : null}
     </View>
   );
@@ -105,54 +99,59 @@ export function ButtonManageProfile({
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
-    gap: spacing.sm,
+    marginHorizontal: 20,
+    marginTop: 12,
+    gap: 10,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: 14,
-    borderRadius: radius.lg,
+    paddingHorizontal: 16,
+    height: 60,
+    borderRadius: 8,
     elevation: 2,
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   manageButton: {
-    paddingVertical: 12,
+    height: 70,
   },
   leftGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: 12,
+    flex: 1,
   },
   actionIcon: {
-    width: 20,
-    height: 20,
+    width: 22,
+    height: 22,
   },
   actionLabel: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontFamily: profileFonts.semiBold,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+  },
+  manageTextGroup: {
+    flex: 1,
+  },
+  manageTitle: {
+    fontFamily: profileFonts.semiBold,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
   },
   manageSubtitle: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.75)',
-    marginTop: 1,
+    fontFamily: profileFonts.regular,
+    fontSize: 10.5,
+    fontWeight: Platform.OS === 'ios' ? '400' : undefined,
+    marginTop: 2,
+    opacity: 0.85,
   },
   arrowIcon: {
     width: 14,
     height: 14,
   },
-  pressed: {
-    opacity: 0.85,
-  },
-  whiteTint: {
-    tintColor: '#FFFFFF',
-  },
-  whiteText: {
-    color: '#FFFFFF',
-  },
 });
+

@@ -1,18 +1,9 @@
 import React, { useState } from 'react';
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import leftArrow from '@/assets/images/left-arrow.png';
-import {
-  changePassword,
-  updateFullProfile,
-} from '@/services/profile';
+import { changePassword, updateFullProfile } from '@/services/profile';
 import { useRole } from '@/shared/context/theme-context';
 import { hitSlop, spacing } from '@/shared/theme';
 import { FormDataSekolah } from '../components/form-data-sekolah';
@@ -20,7 +11,7 @@ import { FormPassword } from '../components/form-password';
 import { FormProfile, type ProfileFormData } from '../components/form-profile';
 import { ProfileTabBar } from '../components/profile-tab-bar';
 import { useProfileScreen } from '../hooks/use-profile-screen';
-import type { ProfileTab } from '../utils/constants';
+import { profileFonts, type ProfileTab } from '../utils/constants';
 
 export function ProfileSettingsScreen(): React.JSX.Element {
   const navigation = useNavigation();
@@ -35,7 +26,6 @@ export function ProfileSettingsScreen(): React.JSX.Element {
     setSubmitting(true);
     try {
       await updateFullProfile({
-        displayName: data.fullName,
         phone: data.phone,
         birthDate: data.birthDate,
         gender: data.gender,
@@ -157,7 +147,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   titleRow: {
-    minHeight: 44,
+    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -169,15 +159,18 @@ const styles = StyleSheet.create({
     left: spacing.md,
     height: 40,
     width: 40,
+    alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 10,
   },
   backIcon: {
-    width: 22,
-    height: 22,
+    width: 20,
+    height: 20,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontFamily: profileFonts.semiBold,
+    fontSize: 20,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
     textAlign: 'center',
   },
   content: {

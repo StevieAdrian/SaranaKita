@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  type TextInputProps,
-} from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 import verifiedCheckmark from '@/assets/images/verified-checkmark.png';
 import unverifiedCrossmark from '@/assets/images/unverified-crossmark.png';
 import { authConstants } from '../constants/auth-constants';
@@ -36,7 +28,7 @@ export function UsernameInput({
     ? authConstants.colors.text.error
     : isSuccess
       ? authConstants.colors.text.success
-      : authConstants.colors.ui.inputBorder;
+      : authConstants.colors.ui.inputBorderLight;
 
   return (
     <View style={styles.container}>

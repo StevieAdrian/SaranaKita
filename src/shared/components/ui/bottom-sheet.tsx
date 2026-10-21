@@ -85,7 +85,9 @@ export function BottomSheet({
             </View>
             {title ? (
               <View style={styles.titleContainer}>
-                <Text style={styles.titleText}>{title}</Text>
+                <Text style={styles.titleText}>
+                  {title}
+                </Text>
               </View>
             ) : null}
           </View>
@@ -141,11 +143,10 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'flex-start',
     paddingTop: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingHorizontal: 8,
+    paddingBottom: 14,
   },
   titleText: {
     fontFamily: 'Poppins-Bold',
@@ -153,6 +154,6 @@ const styles = StyleSheet.create({
     lineHeight: 27,
     fontWeight: Platform.OS === 'ios' ? '700' : undefined,
     color: '#0F172A',
-    textAlign: 'center',
+    textAlign: 'left',
   },
 });

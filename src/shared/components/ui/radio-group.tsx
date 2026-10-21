@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useRole } from '@/shared/context/theme-context';
 import { spacing } from '@/shared/theme';
 
@@ -47,8 +40,9 @@ export function RadioGroup<T extends string = string>({
         style,
       ]}
     >
-      {options.map((option) => {
+      {options.map((option, index) => {
         const selected = option.value === value;
+        const isLast = index === options.length - 1;
         return (
           <Pressable
             key={option.value}
@@ -57,49 +51,56 @@ export function RadioGroup<T extends string = string>({
             accessibilityRole="radio"
             accessibilityState={{ selected, disabled }}
             accessibilityLabel={option.label}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={({ pressed }) => [
-              styles.optionItem,
-              isHorizontal && styles.horizontalItem,
-              itemStyle,
               pressed && !disabled && styles.pressed,
             ]}
           >
             <View
               style={[
-                styles.radioOuter,
-                {
-                  borderColor: selected ? theme.primary : theme.borderControl,
-                },
+                styles.optionRow,
+                isHorizontal && !isLast && styles.horizontalItemSpacing,
+                itemStyle,
               ]}
             >
-              {selected ? (
-                <View
-                  style={[styles.radioInner, { backgroundColor: theme.primary }]}
-                />
-              ) : null}
-            </View>
-
-            {option.dotColor ? (
               <View
-                style={[styles.dotBadge, { backgroundColor: option.dotColor }]}
-              />
-            ) : null}
-
-            <View style={styles.textContainer}>
-              <Text
                 style={[
-                  styles.label,
-                  selected ? styles.selectedLabel : styles.unselectedLabel,
-                  { color: selected ? theme.textHeading : theme.textBody },
+                  styles.radioOuter,
+                  {
+                    borderColor: selected ? theme.primary : '#B1A6A6',
+                  },
                 ]}
               >
-                {option.label}
-              </Text>
-              {option.description ? (
-                <Text style={[styles.description, { color: theme.textSecondary }]}>
-                  {option.description}
-                </Text>
+                {selected ? (
+                  <View
+                    style={[styles.radioInner, { backgroundColor: theme.primary }]}
+                  />
+                ) : null}
+              </View>
+
+              {option.dotColor ? (
+                <View
+                  style={[styles.dotBadge, { backgroundColor: option.dotColor }]}
+                />
               ) : null}
+
+              <View style={styles.textContainer}>
+                <Text
+                  numberOfLines={1}
+                  style={[
+                    styles.label,
+                    selected ? styles.selectedLabel : styles.unselectedLabel,
+                    { color: selected ? '#000000' : '#4A4A4A' },
+                  ]}
+                >
+                  {option.label}
+                </Text>
+                {option.description ? (
+                  <Text style={[styles.description, { color: theme.textSecondary }]}>
+                    {option.description}
+                  </Text>
+                ) : null}
+              </View>
             </View>
           </Pressable>
         );
@@ -112,28 +113,29 @@ const styles = StyleSheet.create({
   horizontalContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.lg,
+    paddingVertical: 2,
   },
   verticalContainer: {
     flexDirection: 'column',
-    gap: spacing.md,
+    gap: spacing.sm,
   },
-  optionItem: {
+  optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 40,
+    minHeight: 28,
   },
-  horizontalItem: {
-    marginRight: spacing.sm,
+  horizontalItemSpacing: {
+    marginRight: 40,
   },
   radioOuter: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.sm,
+    marginRight: 10,
   },
   radioInner: {
     width: 10,
@@ -147,16 +149,19 @@ const styles = StyleSheet.create({
     marginRight: spacing.xs,
   },
   textContainer: {
-    flexShrink: 1,
+    justifyContent: 'center',
   },
   label: {
-    fontSize: 15,
+    fontFamily: 'Poppins-Medium',
+    fontSize: 14,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   selectedLabel: {
-    fontWeight: '600',
+    fontWeight: Platform.OS === 'ios' ? '500' : undefined,
   },
   unselectedLabel: {
-    fontWeight: '400',
+    fontWeight: Platform.OS === 'ios' ? '500' : undefined,
   },
   description: {
     fontSize: 12,
