@@ -25,16 +25,19 @@ export function ProfileScreen(): React.JSX.Element {
   };
 
   const isGuru = currentRole === 'guru';
-  const subtitle = isGuru
-    ? `${profile.classOrPosition || 'Guru Matematika'} · ${profile.schoolInfo.name}`
+  const roleTitle = isGuru
+    ? (profile.classOrPosition || 'Guru')
     : currentRole === 'staff'
-      ? `Staff · ${profile.schoolInfo.name}`
+      ? (profile.classOrPosition || 'Staff')
       : currentRole === 'administrator'
-        ? `Administrator · ${profile.schoolInfo.name}`
-        : `Kelas ${profile.classOrPosition || 'XII-B'} · ${profile.schoolInfo.name}`;
+        ? 'Administrator'
+        : (profile.classOrPosition ? `Kelas ${profile.classOrPosition}` : 'Siswa');
+
+  const schoolText = profile.schoolInfo.name ? ` · ${profile.schoolInfo.name}` : '';
+  const subtitle = `${roleTitle}${schoolText}`;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.backgroundSubtle || '#F0F6FF' }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -47,35 +50,45 @@ export function ProfileScreen(): React.JSX.Element {
         }
       >
         {/* Header */}
-        <HeaderCardProfile schoolName={profile.schoolInfo.name} />
-
-        {/* Header Card Profile */}
-        <ProfileSummaryCard
-          name={profile.fullName}
-          subtitle={subtitle}
+        <HeaderCardProfile
+          schoolName={profile.schoolInfo.name}
           role={currentRole}
-          avatarUrl={profile.avatarUrl}
         />
 
-        {/* Button Profile & User Management*/}
+        {/* Header Card Profile - Siswa, Guru, Staff */}
+        {currentRole !== 'administrator' && (
+          <ProfileSummaryCard
+            name={profile.fullName}
+            subtitle={subtitle}
+            role={currentRole}
+            avatarUrl={profile.avatarUrl}
+            gender={profile.gender}
+          />
+        )}
+
+        {/* Button Profile & User Management */}
         <ButtonManageProfile
+          role={currentRole}
           onPressEditProfile={handleEditProfile}
           onPressUserManagement={handleUserManagement}
         />
 
         {/* Card Kontribusi */}
         <CardContribution
+          role={currentRole}
           reportsCreated={profile.stats.reportsCreated}
           votesOrRecommendations={
             isGuru
               ? profile.stats.recommendationsCount
               : profile.stats.votesCount
           }
-          pendingConfirmation={profile.stats.pendingConfirmation}
-          inReview={profile.stats.inReview}
-          inRepair={profile.stats.inRepair}
-          rejected={profile.stats.rejected}
-          resolved={profile.stats.resolved}
+          {...{
+            'Menunggu Verifikasi': profile.stats['Menunggu Verifikasi'],
+            'Dalam Pemeriksaan': profile.stats['Dalam Pemeriksaan'],
+            'Dalam Perbaikan': profile.stats['Dalam Perbaikan'],
+            'Selesai': profile.stats['Selesai'],
+            'Ditolak': profile.stats['Ditolak'],
+          }}
         />
 
         {/* Card Informasi Sekolah */}

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { FlatList, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import checkIcon from '@/assets/images/check.png';
+import { FlatList, Image, Platform, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
 import leftArrow from '@/assets/images/left-arrow.png';
 import { BottomSheet } from '@/shared/components/ui/bottom-sheet';
 import { authConstants } from '../constants/auth-constants';
@@ -11,6 +10,17 @@ export type ClassSelectFieldProps = {
   onChange: (value: string) => void;
   errorText?: string;
   required?: boolean;
+  label?: string;
+  hideLabel?: boolean;
+  placeholder?: string;
+  sheetTitle?: string;
+  primaryColor?: string;
+  primarySoftColor?: string;
+  highlightBgColor?: string;
+  highlightBorderColor?: string;
+  inputBoxStyle?: StyleProp<ViewStyle>;
+  inputTextStyle?: StyleProp<TextStyle>;
+  activeBadgeText?: string;
 };
 
 export function ClassSelectField({
@@ -18,9 +28,24 @@ export function ClassSelectField({
   onChange,
   errorText,
   required = true,
+  label = 'Class',
+  hideLabel = false,
+  placeholder = 'Pilih Kelas',
+  sheetTitle = 'Pilih Kelas',
+  primaryColor = authConstants.colors.brand,
+  primarySoftColor,
+  highlightBgColor = '#FEF3C7',
+  highlightBorderColor = '#F59E0B',
+  inputBoxStyle,
+  inputTextStyle,
+  activeBadgeText = 'Saat ini',
 }: ClassSelectFieldProps): React.JSX.Element {
   const [open, setOpen] = useState(false);
   const hasError = Boolean(errorText);
+
+  const activeBg = highlightBgColor ?? primarySoftColor ?? '#FEF3C7';
+  const activeBorder = highlightBorderColor ?? '#F59E0B';
+  const radioColor = primaryColor ?? authConstants.colors.brand;
 
   const handleSelect = (next: string) => {
     onChange(next);
@@ -29,24 +54,33 @@ export function ClassSelectField({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
-        Class
-        {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
-      </Text>
+      {!hideLabel ? (
+        <Text style={styles.label}>
+          {label}
+          {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
+        </Text>
+      ) : null}
 
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => setOpen(true)}
         style={[
           styles.inputBox,
+          inputBoxStyle,
           hasError && styles.inputError,
         ]}
         accessibilityRole="button"
-        accessibilityLabel="Class"
-        accessibilityValue={{ text: value ?? 'Pilih Kelas' }}
+        accessibilityLabel={label}
+        accessibilityValue={{ text: value ?? placeholder }}
       >
-        <Text style={[styles.inputText, !value && styles.placeholderText]}>
-          {value || 'Pilih Kelas'}
+        <Text
+          style={[
+            styles.inputText,
+            inputTextStyle,
+            !value && styles.placeholderText,
+          ]}
+        >
+          {value || placeholder}
         </Text>
         <Image
           source={leftArrow}
@@ -59,7 +93,7 @@ export function ClassSelectField({
       <BottomSheet
         visible={open}
         onClose={() => setOpen(false)}
-        title="Pilih Kelas"
+        title={sheetTitle}
       >
         <FlatList
           data={CLASS_OPTIONS}
@@ -78,7 +112,15 @@ export function ClassSelectField({
                 accessibilityState={{ selected: isSelected }}
                 style={[
                   styles.optionItem,
-                  isSelected ? styles.optionItemSelected : styles.optionItemNormal,
+                  isSelected
+                    ? [
+                      styles.optionItemSelected,
+                      {
+                        backgroundColor: activeBg,
+                        borderColor: activeBorder,
+                      },
+                    ]
+                    : styles.optionItemNormal,
                 ]}
               >
                 <Text
@@ -89,14 +131,34 @@ export function ClassSelectField({
                 >
                   {item.label}
                 </Text>
-                {isSelected ? (
-                  <Image
-                    source={checkIcon}
-                    style={styles.checkIcon}
-                    resizeMode="contain"
-                    accessibilityElementsHidden
-                  />
-                ) : null}
+
+                <View style={styles.optionRightContainer}>
+                  {isSelected ? (
+                    <View style={styles.currentBadge}>
+                      <Text style={styles.currentBadgeText}>
+                        {activeBadgeText}
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  <View
+                    style={[
+                      styles.radioOuter,
+                      isSelected
+                        ? [styles.radioOuterSelected, { borderColor: radioColor }]
+                        : styles.radioOuterNormal,
+                    ]}
+                  >
+                    {isSelected ? (
+                      <View
+                        style={[
+                          styles.radioInner,
+                          { backgroundColor: radioColor },
+                        ]}
+                      />
+                    ) : null}
+                  </View>
+                </View>
               </TouchableOpacity>
             );
           }}
@@ -161,41 +223,74 @@ const styles = StyleSheet.create({
   },
   optionItem: {
     width: '100%',
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    borderRadius: 10,
+    height: 48,
+    paddingHorizontal: 14,
+    borderRadius: 9,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: 1,
   },
   optionItemNormal: {
-    backgroundColor: authConstants.colors.surface,
-    borderColor: authConstants.colors.ui.optionBorder,
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+    borderWidth: 1,
   },
   optionItemSelected: {
-    backgroundColor: authConstants.colors.ui.optionSelectedBg,
-    borderColor: authConstants.colors.brand,
     borderWidth: 1.5,
   },
   optionText: {
+    flex: 1,
     fontSize: 14,
-    lineHeight: 21,
-    fontFamily: authConstants.typography.inputText.fontFamily,
+    lineHeight: 20,
   },
   optionTextNormal: {
-    color: authConstants.colors.text.navyText,
-    fontWeight: Platform.OS === 'ios' ? '400' : undefined,
+    fontFamily: 'Poppins-Medium',
+    fontWeight: Platform.OS === 'ios' ? '500' : undefined,
+    color: '#1E2939',
   },
   optionTextSelected: {
-    color: authConstants.colors.brand,
-    fontFamily: authConstants.typography.buttonText.fontFamily,
+    fontFamily: 'Poppins-SemiBold',
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    color: '#1E2939',
   },
-  checkIcon: {
+  optionRightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  currentBadge: {
+    backgroundColor: '#F3F4F6',
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 9999,
+  },
+  currentBadgeText: {
+    fontFamily: 'Poppins-Medium',
+    fontSize: 10,
+    lineHeight: 14,
+    fontWeight: Platform.OS === 'ios' ? '500' : undefined,
+    color: '#99A1AF',
+  },
+  radioOuter: {
     width: 18,
     height: 18,
-    tintColor: authConstants.colors.brand,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioOuterNormal: {
+    borderWidth: 1.5,
+    borderColor: '#D1D5DB',
+    backgroundColor: 'transparent',
+  },
+  radioOuterSelected: {
+    borderWidth: 1.5,
+    backgroundColor: 'transparent',
+  },
+  radioInner: {
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
   },
   errorText: {
     color: authConstants.colors.text.error,

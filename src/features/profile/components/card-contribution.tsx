@@ -1,146 +1,40 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { REPORT_STATUS_NAME } from '@/services/report';
-import { BaseCard } from '@/shared/components/ui';
 import { useRole } from '@/shared/context/theme-context';
-import { radius, spacing } from '@/shared/theme';
+import {
+  CardAdministratorStatistics,
+  type CardAdministratorStatisticsProps,
+} from './card-administrator-statistics';
+import {
+  CardStaffContribution,
+  type CardStaffContributionProps,
+} from './card-staff-contribution';
+import {
+  CardStudentTeacherContribution,
+  type CardStudentTeacherContributionProps,
+} from './card-siswa-guru-contribution';
 
-export type CardContributionProps = {
-  reportsCreated?: number;
-  votesOrRecommendations?: number;
-  pendingConfirmation?: number;
-  inReview?: number;
-  inRepair?: number;
-  rejected?: number;
-  resolved?: number;
-};
+export type CardContributionProps = CardStudentTeacherContributionProps;
 
-export function CardContribution({
-  reportsCreated = 0,
-  votesOrRecommendations = 0,
-  pendingConfirmation = 0,
-  inReview = 0,
-  inRepair = 0,
-  rejected = 0,
-  resolved = 0,
-}: CardContributionProps): React.JSX.Element {
-  const { theme, currentRole } = useRole();
+export function CardContribution(props: CardContributionProps): React.JSX.Element {
+  const { currentRole } = useRole();
+  const effectiveRole = props.role ?? currentRole;
 
-  const isGuru = currentRole === 'guru';
-  const secondMetricLabel = isGuru ? 'Rekomendasi' : 'Dukungan';
+  if (effectiveRole === 'administrator') {
+    return <CardAdministratorStatistics {...props} />;
+  }
 
-  const statusItems = [
-    {
-      label: REPORT_STATUS_NAME.WAITING_VERIFICATION,
-      count: pendingConfirmation,
-    },
-    { label: REPORT_STATUS_NAME.IN_REVIEW, count: inReview },
-    { label: REPORT_STATUS_NAME.IN_REPAIR, count: inRepair },
-    { label: REPORT_STATUS_NAME.REJECTED, count: rejected },
-    { label: REPORT_STATUS_NAME.DONE, count: resolved },
-  ];
+  if (effectiveRole === 'staff') {
+    return <CardStaffContribution {...props} />;
+  }
 
-  return (
-    <BaseCard style={styles.card}>
-      <Text
-        accessibilityRole="header"
-        style={[styles.title, { color: theme.textHeading }]}
-      >
-        Kontribusi Saya
-      </Text>
-
-      <View style={styles.metricRow}>
-        <View
-          style={[
-            styles.metricBox,
-            { backgroundColor: theme.backgroundSubtle },
-          ]}
-        >
-          <Text style={[styles.metricValue, { color: theme.textHeading }]}>
-            {reportsCreated}
-          </Text>
-          <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
-            Laporan Dibuat
-          </Text>
-        </View>
-
-        <View
-          style={[
-            styles.metricBox,
-            { backgroundColor: theme.backgroundSubtle },
-          ]}
-        >
-          <Text style={[styles.metricValue, { color: theme.textHeading }]}>
-            {votesOrRecommendations}
-          </Text>
-          <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
-            {secondMetricLabel}
-          </Text>
-        </View>
-      </View>
-
-      {/* Statistik Jumlah Laporan */}
-      <View style={styles.statusList}>
-        {statusItems.map((item) => (
-          <View key={item.label} style={styles.statusRow}>
-            <Text style={[styles.statusLabel, { color: theme.textSecondary }]}>
-              {item.label}
-            </Text>
-            <Text style={[styles.statusCount, { color: theme.textHeading }]}>
-              {item.count} Laporan
-            </Text>
-          </View>
-        ))}
-      </View>
-    </BaseCard>
-  );
+  return <CardStudentTeacherContribution {...props} role={effectiveRole} />;
 }
 
-const styles = StyleSheet.create({
-  card: {
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
-    padding: spacing.md,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: spacing.sm,
-  },
-  metricRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  metricBox: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.md,
-  },
-  metricValue: {
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  metricLabel: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  statusList: {
-    gap: spacing.xs,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 5,
-  },
-  statusLabel: {
-    fontSize: 13,
-  },
-  statusCount: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-});
+export {
+  CardAdministratorStatistics,
+  CardStaffContribution,
+  CardStudentTeacherContribution,
+  type CardAdministratorStatisticsProps,
+  type CardStaffContributionProps,
+  type CardStudentTeacherContributionProps,
+};

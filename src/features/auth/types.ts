@@ -11,7 +11,7 @@ export type LoginFormErrors = {
   readonly form?: string;
 };
 
-export type Gender = 'Male' | 'Female';
+export type Gender = 'Laki-Laki' | 'Perempuan' | 'Male' | 'Female';
 
 export type UsernameStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
 

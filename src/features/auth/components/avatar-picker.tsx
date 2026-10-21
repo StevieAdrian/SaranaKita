@@ -31,8 +31,13 @@ export function AvatarPicker({
 }: AvatarPickerProps): React.JSX.Element {
   const [picking, setPicking] = useState(false);
 
+  const isFemale =
+    gender === 'Female' || gender === 'Perempuan' ||
+    (typeof gender === 'string' &&
+      (gender.toLowerCase() === 'female' || gender.toLowerCase() === 'perempuan'));
+
   const defaultAvatarSource =
-    gender === 'Female' ? womanDefault : maleDefault;
+    isFemale ? womanDefault : maleDefault;
 
   const handlePick = async () => {
     if (disabled || picking) return;

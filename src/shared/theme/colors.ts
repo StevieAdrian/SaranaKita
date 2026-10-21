@@ -1,4 +1,4 @@
-﻿export const THEME_ROLES = ['siswa', 'guru', 'staff', 'administrator'] as const;
+export const THEME_ROLES = ['siswa', 'guru', 'staff', 'administrator'] as const;
 
 export interface ThemeColors {
   primary: string;
@@ -206,8 +206,8 @@ export const staffTheme: ThemeColors = {
   ...lightNeutrals,
   primary: '#112D71',
   primaryStrong: '#112D71',
-  primarySoft: '#94A3B8',
-  textInactiveOnPrimary: '#94A3B8',
+  primarySoft: '#8598B8',
+  textInactiveOnPrimary: '#8598B8',
   iconActive: '#112D71',
   ...LIGHT_SUCCESS_BADGE,
   ...LIGHT_BLUE_BANNER,
@@ -229,8 +229,8 @@ export const adminTheme: ThemeColors = {
   ...lightNeutrals,
   primary: '#360707',
   primaryStrong: '#360707',
-  primarySoft: '#94A3B8',
-  textInactiveOnPrimary: '#94A3B8',
+  primarySoft: '#9E6B6B',
+  textInactiveOnPrimary: '#9E6B6B',
   iconActive: '#360707',
   ...LIGHT_SUCCESS_BADGE,
   headerGradientStart: '#360707',

@@ -26,11 +26,11 @@ function createEmptyProfile(): FullProfile {
       reportsCreated: 0,
       votesCount: 0,
       recommendationsCount: 0,
-      pendingConfirmation: 0,
-      inReview: 0,
-      inRepair: 0,
-      rejected: 0,
-      resolved: 0,
+      'Menunggu Verifikasi': 0,
+      'Dalam Pemeriksaan': 0,
+      'Dalam Perbaikan': 0,
+      'Selesai': 0,
+      'Ditolak': 0,
     },
   };
 }

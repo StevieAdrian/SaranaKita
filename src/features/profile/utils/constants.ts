@@ -1,6 +1,5 @@
 export { CLASS_OPTIONS } from '@/shared/constants';
 
-
 export const GENDER_OPTIONS = [
   { value: 'Laki-Laki', label: 'Laki-Laki' },
   { value: 'Perempuan', label: 'Perempuan' },
@@ -43,3 +42,10 @@ export function formatBadgeLabel(role?: string | null): string {
       return 'Aktif';
   }
 }
+
+export const profileFonts = {
+  regular: 'Poppins-Regular',
+  medium: 'Poppins-Medium',
+  semiBold: 'Poppins-SemiBold',
+  bold: 'Poppins-Bold',
+} as const;

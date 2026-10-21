@@ -1,8 +1,8 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRole } from '@/shared/context/theme-context';
 import { spacing } from '@/shared/theme';
-import { PROFILE_TABS, type ProfileTab } from '../utils/constants';
+import { PROFILE_TABS, profileFonts, type ProfileTab } from '../utils/constants';
 
 export type ProfileTabBarProps = {
   activeTab: ProfileTab;
@@ -36,7 +36,7 @@ export function ProfileTabBar({
               style={[
                 styles.tabLabel,
                 isActive ? styles.activeTabLabel : styles.inactiveTabLabel,
-                { color: isActive ? theme.onPrimary : theme.textInactiveOnPrimary },
+                { color: isActive ? theme.onPrimary : '#94A3B8' },
               ]}
             >
               {tab}
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingHorizontal: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255, 255, 255, 0.2)',
+    borderBottomColor: 'rgba(255, 255, 255, 0.15)',
   },
   tabItem: {
     paddingVertical: 10,
@@ -64,14 +64,18 @@ const styles = StyleSheet.create({
   },
   activeTabItem: {
     borderBottomWidth: 2,
+    marginBottom: -StyleSheet.hairlineWidth,
   },
   tabLabel: {
-    fontSize: 13,
+    fontSize: 14,
   },
   activeTabLabel: {
-    fontWeight: '700',
+    fontFamily: profileFonts.semiBold,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
   },
   inactiveTabLabel: {
-    fontWeight: '500',
+    fontFamily: profileFonts.regular,
+    fontWeight: Platform.OS === 'ios' ? '400' : undefined,
   },
 });
+

@@ -8,8 +8,8 @@ const Stack = createNativeStackNavigator<AuthStackParamList>();
 export function AuthNavigator(): React.JSX.Element {
   return (
     <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Splash" component={SplashScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Splash" component={SplashScreen} options={{ animation: 'fade' }} />
+      <Stack.Screen name="Login" component={LoginScreen} options={{ animation: 'fade' }} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="RegisterProfile" component={RegisterProfileScreen} />
       <Stack.Screen name="Loading" component={LoadingScreen} />

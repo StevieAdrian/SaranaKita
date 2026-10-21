@@ -5,6 +5,6 @@ export * from './auth-constants';
 export { CLASS_OPTIONS } from '@/shared/constants';
 
 export const GENDER_OPTIONS: readonly RadioOption<Gender>[] = [
-  { value: 'Male', label: 'Male' },
-  { value: 'Female', label: 'Female' },
+  { value: 'Laki-Laki', label: 'Laki-Laki' },
+  { value: 'Perempuan', label: 'Perempuan' },
 ] as const;

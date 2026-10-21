@@ -15,14 +15,32 @@ export function SplashScreen(): React.JSX.Element {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.92)).current;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isNavigatingRef = useRef(false);
 
   const navigateNext = useCallback(() => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
-    navigation.replace('Login');
-  }, [navigation]);
+
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 350,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 0.96,
+        duration: 350,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      navigation.replace('Login');
+    });
+  }, [navigation, fadeAnim, scaleAnim]);
 
   useEffect(() => {
     Animated.parallel([

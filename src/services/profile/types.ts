@@ -11,11 +11,11 @@ export type ContributionStats = {
   readonly reportsCreated: number;
   readonly votesCount: number;
   readonly recommendationsCount: number;
-  readonly pendingConfirmation: number;
-  readonly inReview: number;
-  readonly inRepair: number;
-  readonly rejected: number;
-  readonly resolved: number;
+  readonly 'Menunggu Verifikasi': number;
+  readonly 'Dalam Pemeriksaan': number;
+  readonly 'Dalam Perbaikan': number;
+  readonly 'Selesai': number;
+  readonly 'Ditolak': number;
 };
 
 export type Profile = {
@@ -26,7 +26,7 @@ export type Profile = {
 };
 
 export type UpdateProfileInput = {
-  readonly displayName?: string;
+  readonly fullName?: string;
   readonly avatarUrl?: string | null;
   readonly phone?: string;
   readonly birthDate?: string;

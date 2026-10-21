@@ -26,3 +26,4 @@ export { SearchBar, type SearchBarProps } from './search-bar';
 export { SectionHeader, type SectionHeaderProps } from './section-header';
 export { Select, type SelectOption, type SelectProps } from './select';
 export { TextField, type TextFieldProps } from './text-field';
+export { Toast, type ToastProps } from './toast';
