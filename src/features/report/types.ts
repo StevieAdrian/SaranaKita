@@ -12,3 +12,14 @@ export type ReportFormValues = {
 export type ReportFormField = keyof ReportFormValues;
 
 export type ReportFormErrors = Partial<Record<ReportFormField, string>>;
+
+export type ReportNoteMode = 'create' | 'edit';
+
+export type ReportNoteSheetProps = {
+  visible: boolean;
+  mode: ReportNoteMode;
+  initialNote?: string;
+  onClose: () => void;
+  onSave: (noteText: string) => Promise<void>;
+  buttonColor?: string;
+};
