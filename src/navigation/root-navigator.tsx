@@ -13,6 +13,7 @@ import { AddUserScreen, EditUserScreen, UserManagementScreen } from '@/features/
 import { AuthNavigator } from './auth-navigator';
 import { TabNavigator } from './tab-navigator';
 import type { RootStackParamList } from './types';
+import { ReportEvaluationsScreen } from '@/features/history/screen/report-evaluations-screen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -36,6 +37,7 @@ export function RootNavigator(): React.JSX.Element {
             <Stack.Screen name="UserManagement" component={UserManagementScreen} />
             <Stack.Screen name="AddUser" component={AddUserScreen} />
             <Stack.Screen name="EditUser" component={EditUserScreen} />
+            <Stack.Screen name="EvaluationReport" component={ReportEvaluationsScreen} />
           </Stack.Group>
         )}
         <Stack.Screen name="NotFound" component={NotFoundScreen} />

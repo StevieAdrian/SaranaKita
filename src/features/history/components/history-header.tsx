@@ -1,48 +1,72 @@
 import React, { useState } from 'react';
-import { USER_ROLE, UserRole } from '@/services/auth';
-import { getThemeColors, palette } from '@/shared/theme';
-import { Pressable, Text, View } from 'react-native';
+import { USER_ROLE, type UserRole } from '@/services/auth';
+import { getThemeColors } from '@/shared/theme';
+import { Text, View } from 'react-native';
 import notificationIcon from '@/assets/images/notification.png';
 import { NotificationButton } from '@/shared/components/ui/notification';
-import { opacity } from 'react-native-reanimated/lib/typescript/Colors';
-import { useHomeFeed } from '@/features/home/hooks/use-home-feed';
-import { ChipTabOption, ChipTabs, SearchBar } from '@/shared/components/ui';
+import {
+  type ChipTabOption,
+  ChipTabs,
+  SearchBar,
+} from '@/shared/components/ui';
+import { HistoryFilter } from '..';
 
 type HistoryHeaderProps = {
   role: UserRole;
-  completed: number;
-  total: number;
   onNotificationPress?: () => void;
   unreadNotifications?: number;
+  filterTab: HistoryFilter;
+  onFilterChange: (filter: HistoryFilter) => void;
+  query: string;
+  onQueryChange: (query: string) => void;
 };
+
 export function HistoryHeader({
   role,
   onNotificationPress,
   unreadNotifications,
+  filterTab,
+  onFilterChange,
+  query,
+  onQueryChange,
 }: HistoryHeaderProps): React.JSX.Element {
-  const getTheme = getThemeColors(role);
-  const getColor = palette;
-  const feed = useHomeFeed();
-  const [filterTab, setFilterTab] = useState<ReportFilter>('all');
-  const [filter, setFilter] = useState(false);
-  type ReportFilter = 'all' | 'mine' | 'supported';
+  const theme = getThemeColors(role);
+  const tabTone =
+    role === USER_ROLE.GURU
+      ? 'teacher'
+      : role === USER_ROLE.STAFF
+      ? 'staff'
+      : role === USER_ROLE.ADMINISTRATOR
+      ? 'admin'
+      : 'primary';
 
-  const REPORT_FILTER_OPTIONS: readonly ChipTabOption<ReportFilter>[] = [
-    { value: 'all', label: 'Semua' },
-    { value: 'mine', label: 'Laporan Saya' },
-    { value: 'supported', label: 'Didukung' },
-  ];
+  const reportFilterOptions: readonly ChipTabOption<HistoryFilter>[] =
+    role === USER_ROLE.SISWA
+      ? [
+          { value: 'all', label: 'Semua' },
+          { value: 'mine', label: 'Laporan Saya' },
+          { value: 'supported', label: 'Didukung' },
+        ]
+      : role === USER_ROLE.GURU
+      ? [
+          { value: 'all', label: 'Semua' },
+          { value: 'mine', label: 'Laporan Saya' },
+          { value: 'recommended', label: 'Direkomendasi' },
+        ]
+      : role === USER_ROLE.STAFF
+      ? [
+          { value: 'all', label: 'Semua' },
+          { value: 'mine', label: 'Laporan Saya' },
+        ]
+      : [];
 
   return (
     <View
       className="w-full gap-5 px-5 pb-5 pt-20"
-      style={{ backgroundColor: getTheme.primary }}
+      style={{ backgroundColor: theme.primary }}
     >
       <View className="flex-row items-center justify-between">
-        <Text
-          className="text-2xl font-bold"
-          style={{ color: getTheme.onPrimary }}
-        >
+        <Text className="text-2xl font-bold" style={{ color: theme.onPrimary }}>
           Riwayat Laporan
         </Text>
 
@@ -54,18 +78,21 @@ export function HistoryHeader({
       </View>
 
       <SearchBar
-        value={feed.query}
-        onChangeText={feed.setQuery}
+        value={query}
+        onChangeText={onQueryChange}
         placeholder="Cari Laporan"
-        onFilterPress={() => setFilter(true)}
-        filterActive={feed.filterActive}
+        filterActive={false}
       />
-      <ChipTabs
-        options={REPORT_FILTER_OPTIONS}
-        value={filterTab}
-        onChange={setFilterTab}
-        accessibilityLabel="Filter laporan"
-      />
+
+      {reportFilterOptions.length > 0 && (
+        <ChipTabs
+          options={reportFilterOptions}
+          value={filterTab}
+          onChange={onFilterChange}
+          accessibilityLabel="Filter laporan"
+          tone={tabTone}
+        />
+      )}
     </View>
   );
 }

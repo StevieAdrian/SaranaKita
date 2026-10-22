@@ -146,12 +146,24 @@ const darkNeutrals: NeutralColors = {
 };
 
 // Badge Color
-const LIGHT_SUCCESS_BADGE = { badgeActive: '#16A34A', badgeActiveSurface: '#DCFCE7' } as const;
-const DARK_SUCCESS_BADGE = { badgeActive: '#4ADE80', badgeActiveSurface: '#052E16' } as const;
+const LIGHT_SUCCESS_BADGE = {
+  badgeActive: '#16A34A',
+  badgeActiveSurface: '#DCFCE7',
+} as const;
+const DARK_SUCCESS_BADGE = {
+  badgeActive: '#4ADE80',
+  badgeActiveSurface: '#052E16',
+} as const;
 
 // Banner Color
-const LIGHT_BLUE_BANNER = { headerGradientStart: '#2563EB', headerGradientEnd: '#1E40AF' } as const;
-const DARK_BLUE_BANNER = { headerGradientStart: '#1D4ED8', headerGradientEnd: '#1E3A8A' } as const;
+const LIGHT_BLUE_BANNER = {
+  headerGradientStart: '#2563EB',
+  headerGradientEnd: '#1E40AF',
+} as const;
+const DARK_BLUE_BANNER = {
+  headerGradientStart: '#1D4ED8',
+  headerGradientEnd: '#1E3A8A',
+} as const;
 
 // Siswa
 export const siswaTheme: ThemeColors = {
@@ -287,5 +299,6 @@ export const palette = {
   success: '#2BA471',
   warning: '#F59E0B',
   brown: '#713F12',
-  greenStatus: '#713F12'
+  greenStatus: '#713F12',
+  blueStatus: '#DBEAFE',
 } as const;

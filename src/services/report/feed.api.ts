@@ -77,6 +77,20 @@ export type ReportNote = {
   readonly created_at: string;
 };
 
+export type ReportEvaluasi = {
+  readonly id: string;
+  readonly report_id: string;
+  readonly evaluator_id: string;
+  readonly rate: number | null;
+  readonly notes: string | null;
+  readonly created_at: string;
+};
+
+export type CreateReportEvaluasiInput = {
+  readonly rate: number;
+  readonly notes?: string;
+};
+
 type QueryValue = string | number | readonly string[] | undefined;
 
 export function toQuery(params: Record<string, QueryValue>): string {
@@ -163,5 +177,25 @@ export function deleteReportNote(
 ): Promise<{ message: string }> {
   return apiClient.delete<{ message: string }>(
     `/reports/${encodeURIComponent(reportId)}/notes`,
+  );
+}
+
+//report evaluasi
+export function createReportEvaluasi(
+  reportId: string,
+  input: CreateReportEvaluasiInput,
+): Promise<{
+  message: string;
+  evaluation: ReportEvaluasi;
+}> {
+  return apiClient.post<{
+    message: string;
+    evaluation: ReportEvaluasi;
+  }>(`/reports/${encodeURIComponent(reportId)}/evaluasi`, input);
+}
+
+export function getReportEvaluasi(reportId: string): Promise<ReportEvaluasi[]> {
+  return apiClient.get<ReportEvaluasi[]>(
+    `/reports/${encodeURIComponent(reportId)}/evaluasi`,
   );
 }
