@@ -1,9 +1,10 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 import { palette } from '@/shared/theme';
 import { ReportThumbnail } from './report-thumbnail';
 import { StatusBadge } from './status-badge';
 import type { ReportStatus } from './report-status';
+import addVotesIcon from '../../../../assets/images/add-vote.png';
 
 export type ReportListCardAction = {
   label: string;
@@ -136,7 +137,8 @@ export function ReportListCard({
 
       <View className="flex-row items-center justify-between border-t border-gray-100 px-4 py-3">
         <Text className="text-sm text-gray-500">
-          <Text className="font-bold text-gray-900">{votes}</Text> Votes{'   '}
+          <Text className="font-bold text-gray-900">{votes}</Text> Votes
+          {'   '}
           <Text className="font-bold text-gray-900">{comments}</Text> Komentar
         </Text>
 
@@ -203,18 +205,28 @@ export function ReportListCard({
                 : 'bg-primary'
             }`}
           >
-            <Text
-              className={`font-semibold ${
-                action.variant === 'muted' ? 'text-primary' : 'text-white'
-              }`}
-              style={
-                isMuted && action.tone === 'teacher'
-                  ? { color: actionColor }
-                  : undefined
-              }
-            >
-              {action.label}
-            </Text>
+            <View className="justify-cente flex flex-row gap-2">
+              {action.label === 'Vote' && (
+                <Image
+                  source={addVotesIcon}
+                  accessibilityLabel="Add Vote"
+                  style={{ width: 18, height: 18 }}
+                  resizeMode="contain"
+                />
+              )}
+              <Text
+                className={`font-semibold ${
+                  action.variant === 'muted' ? 'text-primary' : 'text-white'
+                }`}
+                style={
+                  isMuted && action.tone === 'teacher'
+                    ? { color: actionColor }
+                    : undefined
+                }
+              >
+                {action.label}
+              </Text>
+            </View>
           </Pressable>
         ) : null}
       </View>

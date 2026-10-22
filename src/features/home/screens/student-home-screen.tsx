@@ -25,6 +25,8 @@ import { ReportFilterSheet } from '../components/report-filter-sheet';
 import { useCurrentUser } from '../hooks/use-current-user';
 import { useHomeFeed } from '../hooks/use-home-feed';
 import { toDisplayDate } from '../utils/feed';
+import { useReportNote } from '@/features/report/hooks/use-report-note';
+import { ReportNoteSheet } from '@/features/report/components/report-note-sheet';
 
 const LIST_CONTENT = { paddingBottom: 24 } as const;
 const POPULAR_CONTENT = { gap: 12, paddingHorizontal: 20 } as const;
@@ -39,6 +41,17 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const user = useCurrentUser();
   const feed = useHomeFeed();
+  const {
+    saveNote,
+    removeNote,
+    isSaving,
+    isDeleting,
+    error: noteError,
+  } = useReportNote({
+    onSuccess: async () => {
+      await feed.refresh();
+    },
+  });
   const { vote, recommend } = feed;
   const isTeacher = role === 'guru';
 
@@ -49,6 +62,13 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
   >(null);
   const [recommendationSubmitting, setRecommendationSubmitting] =
     useState(false);
+
+  const [noteSheetVisible, setNoteSheetVisible] = useState(false);
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const [selectedNoteMode, setSelectedNoteMode] = useState<'create' | 'edit'>(
+    'create',
+  );
+  const [selectedInitialNote, setSelectedInitialNote] = useState('');
 
   const navigation = useNavigation();
 
@@ -177,6 +197,34 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
             onEditPress={() => openEdit(item.id)}
             canAddNote={isOwner && !canStillEdit}
             note={item.note}
+            onAddNotePress={() => {
+              setSelectedReportId(item.id);
+              setSelectedNoteMode('create');
+              setSelectedInitialNote('');
+              setNoteSheetVisible(true);
+            }}
+            onEditNotePress={() => {
+              setSelectedReportId(item.id);
+              setSelectedNoteMode('edit');
+              setSelectedInitialNote(item.note?.text ?? '');
+              setNoteSheetVisible(true);
+            }}
+            onDeleteNotePress={() => {
+              Alert.alert(
+                'Hapus Catatan',
+                'Apakah kamu yakin ingin menghapus catatan ini?',
+                [
+                  { text: 'Batal', style: 'cancel' },
+                  {
+                    text: 'Hapus',
+                    style: 'destructive',
+                    onPress: () => {
+                      removeNote(item.id).catch(() => {});
+                    },
+                  },
+                ],
+              );
+            }}
             canStillEdit={canStillEdit}
             remainingTime={remainingTime}
             finalTime={finalTime}
@@ -330,6 +378,20 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
           handleRecommendationSubmit(reason).catch(() => {});
         }}
         onCancel={() => setRecommendationReportId(null)}
+      />
+      <ReportNoteSheet
+        visible={noteSheetVisible}
+        mode={selectedNoteMode}
+        initialNote={selectedInitialNote}
+        onClose={() => setNoteSheetVisible(false)}
+        onSave={async noteText => {
+          if (!selectedReportId) return;
+
+          await saveNote(selectedReportId, noteText, selectedNoteMode);
+
+          setNoteSheetVisible(false);
+        }}
+        buttonColor={isTeacher ? palette.teacherPrimary : palette.primary}
       />
     </View>
   );
