@@ -5,6 +5,7 @@ import { ReportThumbnail } from './report-thumbnail';
 import { StatusBadge } from './status-badge';
 import type { ReportStatus } from './report-status';
 import addVotesIcon from '../../../../assets/images/add-vote.png';
+import { ReportProgress } from './report-progress';
 
 export type ReportListCardAction = {
   label: string;
@@ -45,6 +46,8 @@ export type ReportListCardProps = {
   canStillEdit?: boolean;
   finalTime?: string;
   remainingTime?: string;
+  showFinalizedTime?: boolean;
+  showProgress?: boolean;
 };
 
 export function ReportListCard({
@@ -71,6 +74,8 @@ export function ReportListCard({
   canStillEdit = false,
   finalTime,
   remainingTime = '00:00',
+  showFinalizedTime = false,
+  showProgress = false,
 }: ReportListCardProps): React.JSX.Element {
   const isMuted = action?.variant === 'muted';
   const actionColor =
@@ -80,7 +85,7 @@ export function ReportListCard({
     : reporterName;
 
   return (
-    <View className="overflow-hidden rounded-lg bg-white">
+    <View className="overflow-hidden rounded-lg bg-white py-2">
       <Pressable
         onPress={onPress}
         disabled={!onPress}
@@ -121,19 +126,22 @@ export function ReportListCard({
           </Text>
         </View>
       </Pressable>
-      <View className="border-t border-gray-100 px-4 py-3">
-        <View className="flex-row items-center justify-between gap-2">
-          <Text className="flex-1 text-xs text-gray-400">
-            {canStillEdit
-              ? 'Waktu Tersisa Untuk Mengubah Laporan:'
-              : 'Waktu Laporan Final'}
-          </Text>
+      {showProgress && <ReportProgress status={status} />}
+      {showFinalizedTime && (
+        <View className="border-t border-gray-100 px-4 py-3 mt-5">
+          <View className="flex-row items-center justify-between gap-2">
+            <Text className="flex-1 text-xs text-gray-400">
+              {canStillEdit
+                ? 'Waktu Tersisa Untuk Mengubah Laporan:'
+                : 'Waktu Laporan Final'}
+            </Text>
 
-          <Text className="text-xs text-gray-400">
-            {canStillEdit ? remainingTime : finalTime}
-          </Text>
+            <Text className="text-xs text-gray-400">
+              {canStillEdit ? remainingTime : finalTime}
+            </Text>
+          </View>
         </View>
-      </View>
+      )}
 
       <View className="flex-row items-center justify-between border-t border-gray-100 px-4 py-3">
         <Text className="text-sm text-gray-500">

@@ -12,7 +12,7 @@ export type ChipTabsProps<T extends string> = {
   value: T;
   onChange: (value: T) => void;
   accessibilityLabel?: string;
-  tone?: 'primary' | 'teacher';
+  tone?: 'primary' | 'teacher' | 'staff' | 'admin';
 };
 
 const CONTENT_STYLE = { flexGrow: 1, flexDirection: 'row', gap: 8 } as const;
@@ -34,10 +34,25 @@ export function ChipTabs<T extends string>({
     >
       {options.map(option => {
         const selected = option.value === value;
+
+        //warna blm dibenerin
         const activeColor =
-          tone === 'teacher' ? palette.teacherPrimary : palette.primary;
+          tone === 'teacher'
+            ? palette.teacherPrimary
+            : tone === 'staff'
+            ? palette.primaryDark
+            : tone === 'admin'
+            ? palette.brown
+            : palette.primary;
+
         const activeBackground =
-          tone === 'teacher' ? palette.teacherSoft : palette.infoBackground;
+          tone === 'teacher'
+            ? palette.blueStatus
+            : tone === 'staff'
+            ? palette.blueStatus
+            : tone === 'admin'
+            ? palette.white
+            : palette.blueStatus;
         const activeStyle: ViewStyle | undefined = selected
           ? { borderColor: activeColor, backgroundColor: activeBackground }
           : undefined;
@@ -49,9 +64,7 @@ export function ChipTabs<T extends string>({
             accessibilityState={{ selected }}
             style={activeStyle}
             className={`min-h-[44px] min-w-[96px] items-center justify-center rounded-md border px-4 active:opacity-70 ${
-              selected
-                ? 'border-primary bg-[#DBEAFE]'
-                : 'border-gray-300 bg-white'
+              selected ? '' : 'border-gray-300 bg-white'
             }`}
           >
             <Text
