@@ -127,8 +127,8 @@ export function ReportListCard({
         </View>
       </Pressable>
       {showProgress && <ReportProgress status={status} />}
-      {showFinalizedTime && (
-        <View className="border-t border-gray-100 px-4 py-3 mt-5">
+      
+        <View className="border-t border-gray-100 px-4 py-3 mt-2">
           <View className="flex-row items-center justify-between gap-2">
             <Text className="flex-1 text-xs text-gray-400">
               {canStillEdit
@@ -141,7 +141,7 @@ export function ReportListCard({
             </Text>
           </View>
         </View>
-      )}
+      
 
       <View className="flex-row items-center justify-between border-t border-gray-100 px-4 py-3">
         <Text className="text-sm text-gray-500">
