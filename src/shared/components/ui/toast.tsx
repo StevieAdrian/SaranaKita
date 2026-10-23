@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import checkIcon from '@/assets/images/verified-checkmark.png';
 import crossIcon from '@/assets/images/unverified-crossmark.png';
 
@@ -8,6 +9,7 @@ export type ToastProps = {
   message: string;
   type?: 'success' | 'error';
   duration?: number;
+  topOffset?: number;
   onDismiss?: () => void;
 };
 
@@ -18,10 +20,19 @@ export function Toast({
   message,
   type = 'success',
   duration = 3000,
+  topOffset,
   onDismiss,
 }: ToastProps): React.JSX.Element | null {
+  const insets = useSafeAreaInsets();
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(-20)).current;
+
+  const resolvedTop =
+    topOffset ??
+    Math.max(
+      insets.top,
+      Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 20,
+    ) + 10;
 
   useEffect(() => {
     let hideTimer: ReturnType<typeof setTimeout> | null = null;
@@ -81,6 +92,7 @@ export function Toast({
       style={[
         styles.container,
         {
+          top: resolvedTop,
           opacity,
           transform: [{ translateY }],
         },
@@ -93,13 +105,11 @@ export function Toast({
         accessibilityRole="alert"
         accessibilityLabel={message}
       >
-        <View style={styles.iconCircle}>
-          <Image
-            source={isSuccess ? checkIcon : crossIcon}
-            style={styles.iconImage}
-            resizeMode="contain"
-          />
-        </View>
+        <Image
+          source={isSuccess ? checkIcon : crossIcon}
+          style={styles.iconDirect}
+          resizeMode="contain"
+        />
         <Text style={styles.messageText} numberOfLines={2}>
           {message}
         </Text>
@@ -111,7 +121,6 @@ export function Toast({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 16,
     left: 20,
     right: 20,
     zIndex: 9999,
@@ -132,23 +141,17 @@ const styles = StyleSheet.create({
     elevation: 6,
     gap: 12,
   },
-  iconCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconImage: {
-    width: 12,
-    height: 12,
+  iconDirect: {
+    width: 20,
+    height: 20,
     tintColor: '#FFFFFF',
   },
   messageText: {
     flex: 1,
     fontFamily: fontMedium,
     fontSize: 13.5,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
     fontWeight: Platform.OS === 'ios' ? '500' : undefined,
     color: '#FFFFFF',
   },

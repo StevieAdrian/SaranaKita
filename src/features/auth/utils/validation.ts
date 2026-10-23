@@ -8,15 +8,15 @@ export function validateLoginForm(form: LoginFormState): LoginFormErrors {
   const errors: Record<string, string> = {};
 
   if (!form.email.trim()) {
-    errors.email = 'Email is required.';
+    errors.email = 'Email wajib diisi.';
   } else if (!EMAIL_RE.test(form.email)) {
-    errors.email = 'Enter a valid email address.';
+    errors.email = 'Format email tidak valid.';
   }
 
   if (!form.password) {
-    errors.password = 'Password is required.';
+    errors.password = 'Kata sandi wajib diisi.';
   } else if (form.password.length < 8) {
-    errors.password = 'Password must be at least 8 characters.';
+    errors.password = 'Kata sandi minimal 8 karakter.';
   }
 
   return errors;
@@ -27,53 +27,52 @@ export function validateRegisterForm(form: RegisterFormState): RegisterFormError
 
   const cleanUsername = form.username.trim();
   if (!cleanUsername) {
-    errors.username = 'Username is required.';
+    errors.username = 'Username wajib diisi.';
+  } else if (/\s/.test(form.username)) {
+    errors.username = 'Username tidak boleh mengandung spasi.';
   } else if (cleanUsername.length < 3) {
-    errors.username = 'Username must be at least 3 characters.';
+    errors.username = 'Username minimal 3 karakter.';
   } else if (!USERNAME_RE.test(cleanUsername)) {
-    errors.username = 'Only letters, numbers, and underscores allowed.';
+    errors.username = 'Username hanya boleh menggunakan huruf, angka, dan garis bawah (_).';
   }
 
-  if (!form.firstName.trim()) {
-    errors.firstName = 'First name is required.';
-  }
-
-  if (!form.lastName.trim()) {
-    errors.lastName = 'Last name is required.';
+  const cleanFirst = form.firstName.trim();
+  if (!cleanFirst) {
+    errors.firstName = 'First name wajib diisi.';
   }
 
   const cleanEmail = form.email.trim();
   if (!cleanEmail) {
-    errors.email = 'Email is required.';
+    errors.email = 'Email wajib diisi.';
   } else if (!EMAIL_RE.test(cleanEmail)) {
-    errors.email = 'Enter a valid email address.';
+    errors.email = 'Format email tidak valid.';
   }
 
   if (!form.password) {
-    errors.password = 'Password is required.';
+    errors.password = 'Kata sandi wajib diisi.';
   } else if (form.password.length < 8) {
-    errors.password = 'Password must be at least 8 characters.';
+    errors.password = 'Kata sandi minimal 8 karakter.';
   }
 
   if (!form.confirmPassword) {
-    errors.confirmPassword = 'Confirm your password.';
+    errors.confirmPassword = 'Konfirmasi kata sandi wajib diisi.';
   } else if (form.confirmPassword !== form.password) {
-    errors.confirmPassword = 'Passwords do not match.';
+    errors.confirmPassword = 'Konfirmasi kata sandi tidak cocok.';
   }
 
   const cleanPhone = form.phone.trim();
   if (!cleanPhone) {
-    errors.phone = 'Phone number is required.';
+    errors.phone = 'Nomor telepon wajib diisi.';
   } else if (!PHONE_RE.test(cleanPhone)) {
-    errors.phone = 'Enter a valid phone number.';
+    errors.phone = 'Format nomor telepon tidak valid.';
   }
 
   if (!form.classGrade) {
-    errors.classGrade = 'Class is required.';
+    errors.classGrade = 'Kelas wajib dipilih.';
   }
 
   if (!form.gender) {
-    errors.gender = 'Gender is required.';
+    errors.gender = 'Jenis kelamin wajib dipilih.';
   }
 
   return errors;

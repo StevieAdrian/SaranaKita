@@ -33,7 +33,7 @@ export function useLoginForm(): UseLoginForm {
     } catch (error) {
       const message =
         error instanceof ApiError && error.status === 401
-          ? 'Incorrect email or password.'
+          ? 'Email atau kata sandi salah.'
           : toUserMessage(error);
       setErrors({ form: message });
     } finally {

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { getMySchool } from '@/services/school';
 import {
   createUser,
   deleteUser,
@@ -20,6 +21,7 @@ const EMPTY_SUMMARY: UserSummary = {
 export function useUserManagement() {
   const [users, setUsers] = useState<ManageUser[]>([]);
   const [summary, setSummary] = useState<UserSummary>(EMPTY_SUMMARY);
+  const [schoolName, setSchoolName] = useState<string>('Belum Terhubung Sekolah');
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'siswa' | 'guru' | 'staff'>('all');
@@ -28,16 +30,22 @@ export function useUserManagement() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [usersRes, summaryRes] = await Promise.all([
+      const [usersRes, summaryRes, schoolRes] = await Promise.all([
         getUsers({ limit: 50 }).catch(() => null),
         getUserSummary().catch(() => null),
+        getMySchool().catch(() => null),
       ]);
 
       if (usersRes) {
-        setUsers(usersRes.items);
+        setUsers(usersRes.items.filter((u) => u.role !== 'administrator'));
       }
       if (summaryRes) {
         setSummary(summaryRes);
+      }
+      if (schoolRes?.name) {
+        setSchoolName(schoolRes.name);
+      } else {
+        setSchoolName('Belum Terhubung Sekolah');
       }
     } finally {
       setLoading(false);
@@ -51,6 +59,10 @@ export function useUserManagement() {
   // Filter
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
+      if (user.role === 'administrator') {
+        return false;
+      }
+
       // Role filter
       if (roleFilter !== 'all' && user.role !== roleFilter) {
         return false;
@@ -98,6 +110,7 @@ export function useUserManagement() {
     users: filteredUsers,
     totalCount: users.length,
     summary,
+    schoolName,
     loading,
     searchQuery,
     setSearchQuery,

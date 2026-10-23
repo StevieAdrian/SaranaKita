@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
 import verifiedCheckmark from '@/assets/images/verified-checkmark.png';
 import unverifiedCrossmark from '@/assets/images/unverified-crossmark.png';
 import { authConstants } from '../constants/auth-constants';
@@ -10,6 +10,8 @@ export type UsernameInputProps = Omit<TextInputProps, 'style'> & {
   required?: boolean;
   status?: UsernameStatus;
   errorText?: string;
+  hideLabel?: boolean;
+  wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 export function UsernameInput({
@@ -19,12 +21,14 @@ export function UsernameInput({
   errorText,
   value,
   onChangeText,
+  hideLabel = false,
+  wrapperStyle,
   ...rest
 }: UsernameInputProps): React.JSX.Element {
   const hasError = Boolean(errorText) || status === 'taken' || status === 'invalid';
   const isSuccess = status === 'available';
 
-  const borderColor = hasError
+  const defaultBorderColor = hasError
     ? authConstants.colors.text.error
     : isSuccess
       ? authConstants.colors.text.success
@@ -32,12 +36,14 @@ export function UsernameInput({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
-        {label}
-        {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
-      </Text>
+      {!hideLabel ? (
+        <Text style={styles.label}>
+          {label}
+          {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
+        </Text>
+      ) : null}
 
-      <View style={[styles.inputWrapper, { borderColor }]}>
+      <View style={[styles.inputWrapper, wrapperStyle, { borderColor: defaultBorderColor }]}>
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -86,7 +92,9 @@ const styles = StyleSheet.create({
     gap: authConstants.spacing.labelToInput,
   },
   label: {
-    ...authConstants.typography.label,
+    fontFamily: authConstants.typography.label.fontFamily,
+    fontSize: 14,
+    color: '#171717',
   },
   requiredAsterisk: {
     color: authConstants.colors.text.error,

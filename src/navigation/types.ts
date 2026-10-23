@@ -27,7 +27,7 @@ export type RootStackParamList = {
   ManagementReportDetail: { reportId: string };
   EditReport: { reportId: string };
   ProfileSettings: undefined;
-  UserManagement: undefined;
+  UserManagement: { toastMessage?: string; toastType?: 'success' | 'error' } | undefined;
   AddUser: undefined;
   EditUser: { user: ManageUser };
   NotFound: undefined;

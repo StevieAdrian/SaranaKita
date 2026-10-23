@@ -57,5 +57,5 @@ export function useProfileScreen() {
     load();
   }, [load]);
 
-  return { profile, loading, error, reload: load };
+  return { profile, setProfile, loading, error, reload: load };
 }
