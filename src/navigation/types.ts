@@ -31,10 +31,14 @@ export type RootStackParamList = {
   AddUser: undefined;
   EditUser: { user: ManageUser };
   NotFound: undefined;
+  EvaluationReport: {
+    reportId: string;
+    reportTitle: string;
+  };
 };
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList { }
+    interface RootParamList extends RootStackParamList {}
   }
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, type ImageSourcePropType } from 'react-native';
+import { Image, View, type ImageSourcePropType } from 'react-native';
 import {
   createBottomTabNavigator,
   type BottomTabBarProps,
@@ -16,10 +16,19 @@ import { StatisticScreen } from '@/features/statistic';
 import { ReportHistoryScreen } from '@/features/report';
 import { BottomTabBar } from './components/bottom-tab-bar';
 import type { TabParamList } from './types';
+import { palette } from '@/shared/theme';
+import { adminTheme, staffTheme } from '@/shared/theme/colors';
+import { useCurrentUser } from '@/features/home/hooks/use-current-user';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
 const EmptyScreen = () => null;
+const ROLE_COLORS: Record<string, string> = {
+  siswa: palette.primary,
+  guru: palette.teacherPrimary,
+  staff: staffTheme.primary,
+  administrator: adminTheme.primary,
+};
 
 function tintedIcon(
   source: ImageSourcePropType,
@@ -33,13 +42,26 @@ function tintedIcon(
   );
 }
 
-const createTabIcon: BottomTabNavigationOptions['tabBarIcon'] = () => (
-  <Image source={createIcon} resizeMode="contain" className="h-10 w-10" />
-);
-
-const renderTabBar = (props: BottomTabBarProps) => <BottomTabBar {...props} />;
-
 export function TabNavigator(): React.JSX.Element {
+  const user = useCurrentUser();
+  const createColor = ROLE_COLORS[user?.role ?? ''] ?? palette.primary;
+
+  const createTabIcon: BottomTabNavigationOptions['tabBarIcon'] = () => (
+    <View
+      className="h-10 w-10 items-center justify-center rounded-md"
+      style={{ backgroundColor: createColor }}
+    >
+      <Image
+        source={createIcon}
+        resizeMode="contain"
+        style={{ width: 24, height: 24, tintColor: '#FFFFFF' }}
+      />
+    </View>
+  );
+  const renderTabBar = (props: BottomTabBarProps) => (
+    <BottomTabBar {...props} />
+  );
+
   return (
     <Tab.Navigator tabBar={renderTabBar} screenOptions={{ headerShown: false }}>
       <Tab.Screen

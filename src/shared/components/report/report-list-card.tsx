@@ -1,9 +1,11 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 import { palette } from '@/shared/theme';
 import { ReportThumbnail } from './report-thumbnail';
 import { StatusBadge } from './status-badge';
 import type { ReportStatus } from './report-status';
+import addVotesIcon from '../../../../assets/images/add-vote.png';
+import { ReportProgress } from './report-progress';
 
 export type ReportListCardAction = {
   label: string;
@@ -12,6 +14,12 @@ export type ReportListCardAction = {
   accessibilityLabel?: string;
   disabled?: boolean;
   tone?: 'primary' | 'teacher';
+};
+
+export type ReportNoteData = {
+  id: string;
+  text: string;
+  createdAt: string;
 };
 
 export type ReportListCardProps = {
@@ -30,6 +38,16 @@ export type ReportListCardProps = {
   onPress?: () => void;
   canEdit?: boolean;
   onEditPress?: () => void;
+  canAddNote?: boolean;
+  note?: ReportNoteData | null;
+  onAddNotePress?: () => void;
+  onEditNotePress?: () => void;
+  onDeleteNotePress?: () => void;
+  canStillEdit?: boolean;
+  finalTime?: string;
+  remainingTime?: string;
+  showFinalizedTime?: boolean;
+  showProgress?: boolean;
 };
 
 export function ReportListCard({
@@ -48,6 +66,16 @@ export function ReportListCard({
   onPress,
   canEdit = false,
   onEditPress,
+  canAddNote = false,
+  note = null,
+  onAddNotePress,
+  onEditNotePress,
+  onDeleteNotePress,
+  canStillEdit = false,
+  finalTime,
+  remainingTime = '00:00',
+  showFinalizedTime = false,
+  showProgress = false,
 }: ReportListCardProps): React.JSX.Element {
   const isMuted = action?.variant === 'muted';
   const actionColor =
@@ -57,7 +85,7 @@ export function ReportListCard({
     : reporterName;
 
   return (
-    <View className="overflow-hidden rounded-lg bg-white">
+    <View className="overflow-hidden rounded-lg bg-white py-2">
       <Pressable
         onPress={onPress}
         disabled={!onPress}
@@ -98,12 +126,30 @@ export function ReportListCard({
           </Text>
         </View>
       </Pressable>
+      {showProgress && <ReportProgress status={status} />}
+      
+        <View className="border-t border-gray-100 px-4 py-3 mt-2">
+          <View className="flex-row items-center justify-between gap-2">
+            <Text className="flex-1 text-xs text-gray-400">
+              {canStillEdit
+                ? 'Waktu Tersisa Untuk Mengubah Laporan:'
+                : 'Waktu Laporan Final'}
+            </Text>
+
+            <Text className="text-xs text-gray-400">
+              {canStillEdit ? remainingTime : finalTime}
+            </Text>
+          </View>
+        </View>
+      
 
       <View className="flex-row items-center justify-between border-t border-gray-100 px-4 py-3">
         <Text className="text-sm text-gray-500">
-          <Text className="font-bold text-gray-900">{votes}</Text> Votes{'   '}
+          <Text className="font-bold text-gray-900">{votes}</Text> Votes
+          {'   '}
           <Text className="font-bold text-gray-900">{comments}</Text> Komentar
         </Text>
+
         {canEdit && onEditPress ? (
           <Pressable
             onPress={onEditPress}
@@ -113,6 +159,40 @@ export function ReportListCard({
           >
             <Text className="font-semibold text-primary">Edit Laporan</Text>
           </Pressable>
+        ) : canAddNote ? (
+          <View className="flex-row items-center gap-2">
+            {note ? (
+              <>
+                <Pressable
+                  onPress={onEditNotePress}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Ubah catatan ${title}`}
+                  className="min-h-[44px] justify-center rounded-lg border border-primary bg-white px-3 active:opacity-70"
+                >
+                  <Text className="font-semibold text-primary">
+                    Ubah Catatan
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={onDeleteNotePress}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Hapus catatan ${title}`}
+                  className="min-h-[44px] justify-center rounded-lg bg-red-50 px-3 active:opacity-70"
+                >
+                  <Text className="font-semibold text-red-600">Hapus</Text>
+                </Pressable>
+              </>
+            ) : (
+              <Pressable
+                onPress={onAddNotePress}
+                accessibilityRole="button"
+                accessibilityLabel={`Tambah catatan ${title}`}
+                className="min-h-[44px] justify-center rounded-lg border border-primary bg-white px-4 active:opacity-70"
+              >
+                <Text className="font-semibold text-primary">+ Catatan</Text>
+              </Pressable>
+            )}
+          </View>
         ) : action ? (
           <Pressable
             onPress={action.onPress}
@@ -127,22 +207,34 @@ export function ReportListCard({
                   : undefined
                 : { backgroundColor: actionColor }
             }
-            className={`min-h-[44px] justify-center rounded-lg px-6 active:opacity-70 ${action.variant === 'muted'
-              ? 'border border-primary bg-white'
-              : 'bg-primary'
-              }`}
+            className={`min-h-[44px] justify-center rounded-lg px-6 active:opacity-70 ${
+              action.variant === 'muted'
+                ? 'border border-primary bg-white'
+                : 'bg-primary'
+            }`}
           >
-            <Text
-              className={`font-semibold ${action.variant === 'muted' ? 'text-primary' : 'text-white'
+            <View className="justify-cente flex flex-row gap-2">
+              {action.label === 'Vote' && (
+                <Image
+                  source={addVotesIcon}
+                  accessibilityLabel="Add Vote"
+                  style={{ width: 18, height: 18 }}
+                  resizeMode="contain"
+                />
+              )}
+              <Text
+                className={`font-semibold ${
+                  action.variant === 'muted' ? 'text-primary' : 'text-white'
                 }`}
-              style={
-                isMuted && action.tone === 'teacher'
-                  ? { color: actionColor }
-                  : undefined
-              }
-            >
-              {action.label}
-            </Text>
+                style={
+                  isMuted && action.tone === 'teacher'
+                    ? { color: actionColor }
+                    : undefined
+                }
+              >
+                {action.label}
+              </Text>
+            </View>
           </Pressable>
         ) : null}
       </View>

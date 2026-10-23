@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -25,6 +25,8 @@ import { ReportFilterSheet } from '../components/report-filter-sheet';
 import { useCurrentUser } from '../hooks/use-current-user';
 import { useHomeFeed } from '../hooks/use-home-feed';
 import { toDisplayDate } from '../utils/feed';
+import { useReportNote } from '@/features/report/hooks/use-report-note';
+import { ReportNoteSheet } from '@/features/report/components/report-note-sheet';
 
 const LIST_CONTENT = { paddingBottom: 24 } as const;
 const POPULAR_CONTENT = { gap: 12, paddingHorizontal: 20 } as const;
@@ -39,20 +41,50 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const user = useCurrentUser();
   const feed = useHomeFeed();
+  const {
+    saveNote,
+    removeNote,
+    isSaving,
+    isDeleting,
+    error: noteError,
+  } = useReportNote({
+    onSuccess: async () => {
+      await feed.refresh();
+    },
+  });
   const { vote, recommend } = feed;
   const isTeacher = role === 'guru';
-  useFocusEffect(
-    useCallback(() => {
-      feed.refresh();
-    }, [feed.refresh]),
-  );
+
+  const [now, setNow] = useState(() => Date.now());
   const [filterOpen, setFilterOpen] = useState(false);
   const [recommendationReportId, setRecommendationReportId] = useState<
     string | null
   >(null);
   const [recommendationSubmitting, setRecommendationSubmitting] =
     useState(false);
+
+  const [noteSheetVisible, setNoteSheetVisible] = useState(false);
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const [selectedNoteMode, setSelectedNoteMode] = useState<'create' | 'edit'>(
+    'create',
+  );
+  const [selectedInitialNote, setSelectedInitialNote] = useState('');
+
   const navigation = useNavigation();
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      feed.refresh();
+    }, [feed.refresh]),
+  );
 
   const openEdit = useCallback(
     (reportId: string) => navigation.navigate('EditReport', { reportId }),
@@ -123,15 +155,30 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
 
   const renderReport: ListRenderItem<FeedReport> = useCallback(
     ({ item }) => {
-      const isOwner = item.reporterName === user?.displayName;
+      const isOwner = item.reporter_id === user?.id;
+      const editDeadline = new Date(item.createdAt).getTime() + 15 * 60 * 1000;
 
-      console.log('DEBUG OWNER:', {
-        reportId: item.id,
-        reporterName: item.reporterName,
-        currentUserName: user?.displayName,
-        isOwner,
+      const canStillEdit = now < editDeadline;
+
+      const remainingMs = Math.max(0, editDeadline - now);
+      const remainingSeconds = Math.floor(remainingMs / 1000);
+
+      const remainingTime = [
+        Math.floor(remainingSeconds / 3600),
+        Math.floor((remainingSeconds % 3600) / 60),
+        remainingSeconds % 60,
+      ]
+        .map(value => String(value).padStart(2, '0'))
+        .join(':');
+
+      const finalTime = new Date(editDeadline).toLocaleString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
       });
-
       return (
         <View className="px-5">
           <ReportListCard
@@ -146,8 +193,41 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
             votes={item.votes}
             comments={item.comments}
             onPress={() => openDetail(item.id)}
-            canEdit={isOwner}
+            canEdit={isOwner && canStillEdit}
             onEditPress={() => openEdit(item.id)}
+            canAddNote={isOwner && !canStillEdit}
+            note={item.note}
+            onAddNotePress={() => {
+              setSelectedReportId(item.id);
+              setSelectedNoteMode('create');
+              setSelectedInitialNote('');
+              setNoteSheetVisible(true);
+            }}
+            onEditNotePress={() => {
+              setSelectedReportId(item.id);
+              setSelectedNoteMode('edit');
+              setSelectedInitialNote(item.note?.text ?? '');
+              setNoteSheetVisible(true);
+            }}
+            onDeleteNotePress={() => {
+              Alert.alert(
+                'Hapus Catatan',
+                'Apakah kamu yakin ingin menghapus catatan ini?',
+                [
+                  { text: 'Batal', style: 'cancel' },
+                  {
+                    text: 'Hapus',
+                    style: 'destructive',
+                    onPress: () => {
+                      removeNote(item.id).catch(() => {});
+                    },
+                  },
+                ],
+              );
+            }}
+            canStillEdit={canStillEdit}
+            remainingTime={remainingTime}
+            finalTime={finalTime}
             action={
               isOwner
                 ? undefined
@@ -166,7 +246,7 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
         </View>
       );
     },
-    [handleVote, openDetail, openEdit, user?.displayName],
+    [handleVote, openDetail, openEdit, user?.id, now],
   );
 
   const header = (
@@ -267,7 +347,7 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
         ListFooterComponent={
           feed.loadingMore ? (
             <View className="items-center py-4">
-              <ActivityIndicator color={palette.navy} />
+              <ActivityIndicator color={palette.primary} />
             </View>
           ) : undefined
         }
@@ -298,6 +378,20 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
           handleRecommendationSubmit(reason).catch(() => {});
         }}
         onCancel={() => setRecommendationReportId(null)}
+      />
+      <ReportNoteSheet
+        visible={noteSheetVisible}
+        mode={selectedNoteMode}
+        initialNote={selectedInitialNote}
+        onClose={() => setNoteSheetVisible(false)}
+        onSave={async noteText => {
+          if (!selectedReportId) return;
+
+          await saveNote(selectedReportId, noteText, selectedNoteMode);
+
+          setNoteSheetVisible(false);
+        }}
+        buttonColor={isTeacher ? palette.teacherPrimary : palette.primary}
       />
     </View>
   );

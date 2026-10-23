@@ -2,9 +2,17 @@ import React from 'react';
 import { Pressable, View } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { palette } from '@/shared/theme';
+import { useCurrentUser } from '@/features/home/hooks/use-current-user';
+import { adminTheme, staffTheme } from '@/shared/theme/colors';
 
 const ICON_SIZE = 28;
 const SHADOW = { boxShadow: '0 -4px 12px rgba(15, 23, 42, 0.08)' } as const;
+const ROLE_COLORS: Record<string, string> = {
+  siswa: palette.primary,
+  guru: palette.teacherPrimary,
+  staff: staffTheme.primary,
+  administrator: adminTheme.primary,
+};
 
 export function BottomTabBar({
   state,
@@ -12,6 +20,10 @@ export function BottomTabBar({
   navigation,
   insets,
 }: BottomTabBarProps): React.JSX.Element {
+  const user = useCurrentUser();
+
+  const activeColor = ROLE_COLORS[user?.role ?? ''] ?? palette.navy;
+
   return (
     <View
       accessibilityRole="tablist"
@@ -58,7 +70,7 @@ export function BottomTabBar({
           >
             {options.tabBarIcon?.({
               focused,
-              color: focused ? palette.navy : palette.tabInactive,
+              color: focused ? activeColor : palette.tabInactive,
               size: ICON_SIZE,
             })}
           </Pressable>
