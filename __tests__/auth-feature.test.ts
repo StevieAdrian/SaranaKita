@@ -45,7 +45,6 @@ describe('auth validation', () => {
     const errors = validateRegisterForm(emptyForm);
     expect(errors.username).toBeDefined();
     expect(errors.firstName).toBeDefined();
-    expect(errors.lastName).toBeDefined();
     expect(errors.email).toBeDefined();
     expect(errors.password).toBeDefined();
     expect(errors.phone).toBeDefined();
@@ -66,6 +65,12 @@ describe('auth validation', () => {
     };
 
     expect(hasErrors(validateRegisterForm(validForm))).toBe(false);
+
+    const formWithoutLastName: RegisterFormState = {
+      ...validForm,
+      lastName: '',
+    };
+    expect(hasErrors(validateRegisterForm(formWithoutLastName))).toBe(false);
   });
 
   it('requires gender to be explicitly selected', () => {
@@ -83,7 +88,7 @@ describe('auth validation', () => {
     };
 
     const errors = validateRegisterForm(formWithoutGender);
-    expect(errors.gender).toBe('Gender is required.');
+    expect(errors.gender).toBe('Jenis kelamin wajib dipilih.');
     expect(hasErrors(errors)).toBe(true);
   });
 });

@@ -14,6 +14,8 @@ export type DateOfBirthFieldProps = {
   onChange: (date: Date) => void;
   errorText?: string;
   required?: boolean;
+  label?: string;
+  hideLabel?: boolean;
 };
 
 export function DateOfBirthField({
@@ -21,6 +23,8 @@ export function DateOfBirthField({
   onChange,
   errorText,
   required = true,
+  label = 'Date of Birth',
+  hideLabel = false,
 }: DateOfBirthFieldProps): React.JSX.Element {
   const [iosOpen, setIosOpen] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -54,10 +58,12 @@ export function DateOfBirthField({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
-        Date of Birth
-        {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
-      </Text>
+      {!hideLabel ? (
+        <Text style={styles.label}>
+          {label}
+          {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
+        </Text>
+      ) : null}
 
       <TouchableOpacity
         activeOpacity={0.8}
@@ -109,7 +115,9 @@ const styles = StyleSheet.create({
     gap: authConstants.spacing.labelToInput,
   },
   label: {
-    ...authConstants.typography.label,
+    fontFamily: authConstants.typography.label.fontFamily,
+    fontSize: 14,
+    color: '#171717',
   },
   requiredAsterisk: {
     color: authConstants.colors.text.error,

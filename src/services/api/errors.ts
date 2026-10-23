@@ -27,10 +27,10 @@ export class TimeoutError extends Error {
 
 export function toUserMessage(error: unknown): string {
   if (error instanceof TimeoutError) {
-    return 'The request took too long. Please try again.';
+    return 'Permintaan membutuhkan waktu terlalu lama. Silakan coba lagi.';
   }
   if (error instanceof NetworkError) {
-    return 'No connection. Check your internet and try again.';
+    return 'Tidak ada koneksi internet. Silakan periksa jaringan Anda dan coba lagi.';
   }
   if (error instanceof ApiError) {
     const apiMessage = getApiMessage(error.body);
@@ -38,14 +38,14 @@ export function toUserMessage(error: unknown): string {
       return apiMessage;
     }
     if (error.status === 401 || error.status === 403) {
-      return 'Your session has expired. Please sign in again.';
+      return 'Sesi Anda telah berakhir. Silakan login kembali.';
     }
     if (error.status >= 500) {
-      return 'Something went wrong on our side. Please try again later.';
+      return 'Terjadi kesalahan pada sistem kami. Silakan coba lagi nanti.';
     }
-    return 'We could not complete that request.';
+    return 'Gagal memproses permintaan.';
   }
-  return 'An unexpected error occurred.';
+  return 'Terjadi kesalahan yang tidak terduga.';
 }
 
 function getApiMessage(body: unknown): string | null {

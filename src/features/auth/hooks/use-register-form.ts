@@ -33,11 +33,54 @@ export function useRegisterForm() {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const trimmed = username.trim();
-    if (!trimmed || trimmed.length < 3) {
+    if (!username) {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
       setUsernameStatus('idle');
       return;
     }
+
+    if (/\s/.test(username)) {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      setUsernameStatus('invalid');
+      setErrors((prev) => ({
+        ...prev,
+        username: 'Username tidak boleh mengandung spasi.',
+      }));
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      setUsernameStatus('invalid');
+      setErrors((prev) => ({
+        ...prev,
+        username: 'Username hanya boleh menggunakan huruf, angka, dan garis bawah (_).',
+      }));
+      return;
+    }
+
+    if (username.length < 3) {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      setUsernameStatus('idle');
+      return;
+    }
+
+    setErrors((prev) => {
+      if (prev.username && prev.username !== 'Username sudah digunakan.') {
+        const copy = { ...prev };
+        delete copy.username;
+        return copy;
+      }
+      return prev;
+    });
 
     setUsernameStatus('checking');
 
@@ -47,7 +90,7 @@ export function useRegisterForm() {
 
     debounceTimerRef.current = setTimeout(async () => {
       try {
-        const res = await authClient.checkUsername(trimmed);
+        const res = await authClient.checkUsername(username.toLowerCase());
         if (res.available) {
           setUsernameStatus('available');
           setErrors((prev) => ({ ...prev, username: undefined }));

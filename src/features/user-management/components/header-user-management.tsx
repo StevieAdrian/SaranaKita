@@ -1,19 +1,24 @@
 import React from 'react';
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Image, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import filterIcon from '@/assets/images/filter.png';
 import leftArrow from '@/assets/images/left-arrow.png';
 import searchIcon from '@/assets/images/search.png';
 import { useRole } from '@/shared/context/theme-context';
-import { hitSlop, radius, spacing } from '@/shared/theme';
+import { hitSlop } from '@/shared/theme';
+import { SummaryCard, type UserCountMetric } from './summary-card';
+import { userFonts } from '../utils/constants';
+
+const ROLE_CHIPS: readonly {
+  key: 'all' | 'siswa' | 'guru' | 'staff';
+  label: string;
+}[] = [
+    { key: 'all', label: 'Semua' },
+    { key: 'siswa', label: 'Siswa' },
+    { key: 'guru', label: 'Guru' },
+    { key: 'staff', label: 'Staff' },
+  ];
 
 export type HeaderUserManagementProps = {
   totalUsers?: number;
@@ -22,187 +27,280 @@ export type HeaderUserManagementProps = {
   onSearchChange: (query: string) => void;
   onPressFilter: () => void;
   activeFilterCount?: number;
+  roleFilter: 'all' | 'siswa' | 'guru' | 'staff';
+  onRoleFilterChange: (role: 'all' | 'siswa' | 'guru' | 'staff') => void;
+  summary?: {
+    siswa: UserCountMetric;
+    guru: UserCountMetric;
+    staff: UserCountMetric;
+  };
 };
 
 export function HeaderUserManagement({
   totalUsers = 0,
-  schoolName = 'Jakarta',
+  schoolName = 'Belum Terhubung Sekolah',
   searchQuery,
   onSearchChange,
   onPressFilter,
   activeFilterCount = 0,
+  roleFilter,
+  onRoleFilterChange,
+  summary,
 }: HeaderUserManagementProps): React.JSX.Element {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { theme } = useRole();
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: theme.primary,
-          paddingTop: insets.top + spacing.sm,
-        },
-      ]}
-    >
-      {/* Header Card */}
-      <View style={styles.topRow}>
-        <Pressable
-          onPress={() => navigation.goBack()}
-          hitSlop={hitSlop}
-          accessibilityRole="button"
-          accessibilityLabel="Kembali"
-          style={styles.backButton}
-        >
-          <Image
-            source={leftArrow}
-            resizeMode="contain"
-            style={[styles.backIcon, { tintColor: theme.onPrimary }]}
-          />
-        </Pressable>
-
-        <View style={styles.titleContainer}>
-          <Text
-            accessibilityRole="header"
-            style={[styles.title, { color: theme.onPrimary }]}
+    <View style={styles.wrapper}>
+      <View
+        style={[
+          styles.primaryHeader,
+          {
+            backgroundColor: theme.primary,
+            paddingTop: insets.top + 12,
+          },
+        ]}
+      >
+        {/* Header */}
+        <View style={styles.topBar}>
+          <Pressable
+            onPress={() => (navigation as any).navigate('Main', { screen: 'Profile' })}
+            hitSlop={hitSlop}
+            accessibilityRole="button"
+            accessibilityLabel="Kembali"
+            style={styles.backButton}
           >
-            Manajemen Pengguna
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.textInactiveOnPrimary }]}>
-            {schoolName} · {totalUsers} pengguna
-          </Text>
+            <Image
+              source={leftArrow}
+              resizeMode="contain"
+              style={[styles.backIcon, { tintColor: theme.onPrimary }]}
+            />
+          </Pressable>
+
+          <View style={styles.titleCol}>
+            <Text
+              accessibilityRole="header"
+              style={[styles.headerTitle, { color: theme.onPrimary }]}
+            >
+              Manajemen Pengguna
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              {schoolName} · {totalUsers} pengguna
+            </Text>
+          </View>
+        </View>
+
+        {/* Card Jumlah Pengguna */}
+        <View style={styles.summaryContainer}>
+          <SummaryCard
+            siswa={summary?.siswa}
+            guru={summary?.guru}
+            staff={summary?.staff}
+          />
         </View>
       </View>
 
-      {/* Search & Filter */}
-      <View style={styles.searchRow}>
-        <View
-          style={[
-            styles.searchField,
-            {
-              backgroundColor: theme.surface,
-              borderColor: theme.borderInput,
-            },
-          ]}
-        >
-          <Image
-            source={searchIcon}
-            resizeMode="contain"
-            style={[styles.searchIcon, { tintColor: theme.textSecondary }]}
-          />
-          <TextInput
-            value={searchQuery}
-            onChangeText={onSearchChange}
-            placeholder="Cari pengguna..."
-            placeholderTextColor={theme.textPlaceholder}
-            style={[styles.searchInput, { color: theme.textHeading }]}
-            accessibilityLabel="Cari pengguna"
-          />
-        </View>
+      {/* Search Bar */}
+      <View style={styles.whiteSection}>
+        <View style={styles.searchRow}>
+          <View style={styles.searchField}>
+            <TextInput
+              value={searchQuery}
+              onChangeText={onSearchChange}
+              placeholder="Cari Nama"
+              placeholderTextColor="#979797"
+              style={styles.searchInput}
+              accessibilityLabel="Cari nama pengguna"
+            />
+            <Image
+              source={searchIcon}
+              resizeMode="contain"
+              style={styles.searchIcon}
+            />
+          </View>
 
-        <Pressable
-          onPress={onPressFilter}
-          accessibilityRole="button"
-          accessibilityLabel="Filter status pengguna"
-          style={({ pressed }) => [
-            styles.filterButton,
-            {
-              backgroundColor: theme.surface,
-              borderColor: activeFilterCount > 0 ? theme.primary : theme.borderInput,
-            },
-            pressed && styles.pressed,
-          ]}
-        >
-          <Image
-            source={filterIcon}
-            resizeMode="contain"
+          {/* Filter */}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={onPressFilter}
+            accessibilityRole="button"
+            accessibilityLabel="Filter status pengguna"
             style={[
-              styles.filterIcon,
-              {
-                tintColor: activeFilterCount > 0 ? theme.primary : theme.textHeading,
-              },
+              styles.filterButton,
+              activeFilterCount > 0 && { borderColor: theme.primary },
             ]}
-          />
-          {activeFilterCount > 0 ? (
-            <View
+          >
+            <Image
+              source={filterIcon}
+              resizeMode="contain"
               style={[
-                styles.filterBadge,
-                { backgroundColor: theme.primary },
+                styles.filterIcon,
+                {
+                  tintColor:
+                    activeFilterCount > 0 ? theme.primary : '#737373',
+                },
               ]}
             />
-          ) : null}
-        </Pressable>
+            {activeFilterCount > 0 ? (
+              <View
+                style={[
+                  styles.filterBadge,
+                  { backgroundColor: theme.primary },
+                ]}
+              />
+            ) : null}
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.chipsRow}>
+          {ROLE_CHIPS.map((chip) => {
+            const isSelected = roleFilter === chip.key;
+            return (
+              <Pressable
+                key={chip.key}
+                onPress={() => onRoleFilterChange(chip.key)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
+                style={[
+                  styles.chip,
+                  isSelected
+                    ? [
+                      styles.chipSelected,
+                      {
+                        backgroundColor:
+                          theme.primary === '#112D71'
+                            ? '#DBEAFE'
+                            : 'rgba(54, 7, 7, 0.1)',
+                        borderColor:
+                          theme.primary === '#112D71'
+                            ? '#2563EB'
+                            : theme.primary,
+                      },
+                    ]
+                    : styles.chipUnselected,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.chipText,
+                    isSelected
+                      ? [
+                        styles.chipTextSelected,
+                        {
+                          color:
+                            theme.primary === '#112D71'
+                              ? '#2563EB'
+                              : theme.primary,
+                        },
+                      ]
+                      : styles.chipTextUnselected,
+                  ]}
+                >
+                  {chip.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.md,
-    elevation: 4,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
+  wrapper: {
+    width: '100%',
   },
-  topRow: {
+  primaryHeader: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  topBar: {
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
+    position: 'relative',
     justifyContent: 'center',
   },
-  backIcon: {
-    width: 22,
-    height: 22,
-  },
-  titleContainer: {
-    flex: 1,
+  backButton: {
+    position: 'absolute',
+    left: 0,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
-    marginRight: 40,
+    justifyContent: 'center',
+    zIndex: 1,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
+  backIcon: {
+    width: 14,
+    height: 24,
   },
-  subtitle: {
+  titleCol: {
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  headerTitle: {
+    fontFamily: userFonts.semiBold,
+    fontSize: 24,
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  headerSubtitle: {
+    fontFamily: userFonts.regular,
     fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
     marginTop: 2,
+  },
+  summaryContainer: {
+    marginTop: 14,
+  },
+  whiteSection: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: 8,
   },
   searchField: {
     flex: 1,
+    height: 40,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#94A3B8',
+    borderRadius: 5,
     flexDirection: 'row',
     alignItems: 'center',
-    height: 44,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.sm,
-  },
-  searchIcon: {
-    width: 18,
-    height: 18,
-    marginRight: spacing.xs,
+    paddingHorizontal: 12,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontFamily: userFonts.regular,
+    fontSize: 12,
+    color: '#1E1E1E',
     paddingVertical: 0,
   },
+  searchIcon: {
+    width: 16,
+    height: 16,
+    tintColor: '#979797',
+    marginLeft: 6,
+  },
   filterButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
+    width: 40,
+    height: 40,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
+    borderColor: '#94A3B8',
+    borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -213,13 +311,40 @@ const styles = StyleSheet.create({
   },
   filterBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 6,
+    right: 6,
     width: 8,
     height: 8,
     borderRadius: 4,
   },
+  chipsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 12,
+  },
+  chip: {
+    flex: 1,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 5,
+    borderWidth: 1,
+  },
+  chipSelected: {},
+  chipUnselected: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#94A3B8',
+  },
+  chipText: {
+    fontFamily: userFonts.medium,
+    fontSize: 12,
+  },
+  chipTextSelected: {},
+  chipTextUnselected: {
+    color: '#94A3B8',
+  },
   pressed: {
-    opacity: 0.8,
+    opacity: 0.7,
   },
 });

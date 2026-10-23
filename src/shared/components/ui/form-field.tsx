@@ -18,7 +18,7 @@ export function FormField({
   children,
 }: FormFieldProps): React.JSX.Element {
   return (
-    <View className="gap-2">
+    <View style={styles.container} className="gap-2">
       <Text style={styles.label} className="text-base text-gray-900">
         {label}
         {required ? <Text style={styles.asterisk}> *</Text> : null}
@@ -34,15 +34,25 @@ export function FormField({
 }
 
 const styles = StyleSheet.create({
+  container: {
+    gap: 6,
+  },
   label: {
     fontFamily: fontMedium,
+    fontSize: 16,
+    lineHeight: 22,
+    color: '#171717',
   },
   asterisk: {
     fontFamily: fontMedium,
+    fontSize: 16,
     color: '#EF4444',
   },
   error: {
     fontFamily: fontRegular,
+    fontSize: 12,
+    lineHeight: 16,
     color: '#EF4444',
+    marginTop: 2,
   },
 });

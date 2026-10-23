@@ -9,6 +9,8 @@ export type GenderRadioFieldProps = {
   onChange: (value: Gender) => void;
   errorText?: string;
   required?: boolean;
+  label?: string;
+  hideLabel?: boolean;
 };
 
 export function GenderRadioField({
@@ -16,13 +18,17 @@ export function GenderRadioField({
   onChange,
   errorText,
   required = true,
+  label = 'Gender',
+  hideLabel = false,
 }: GenderRadioFieldProps): React.JSX.Element {
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
-        Gender
-        {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
-      </Text>
+      {!hideLabel ? (
+        <Text style={styles.label}>
+          {label}
+          {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
+        </Text>
+      ) : null}
 
       <View style={styles.radioRow} accessibilityRole="radiogroup">
         {GENDER_OPTIONS.map((option) => {
@@ -74,7 +80,9 @@ const styles = StyleSheet.create({
     gap: authConstants.spacing.labelToInput,
   },
   label: {
-    ...authConstants.typography.label,
+    fontFamily: authConstants.typography.label.fontFamily,
+    fontSize: 14,
+    color: '#171717',
   },
   requiredAsterisk: {
     color: authConstants.colors.text.error,

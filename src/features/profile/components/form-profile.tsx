@@ -11,6 +11,8 @@ import vectorEdit from '@/assets/images/vector-edit.png';
 import womanDefault from '@/assets/images/woman-default.png';
 
 export type ProfileFormData = {
+  firstName?: string;
+  lastName?: string;
   fullName: string;
   email: string;
   phone: string;
@@ -33,6 +35,19 @@ function genderLabel(val?: string | null): string {
   return 'Laki-Laki';
 }
 
+function parseName(fullName?: string, first?: string, last?: string): { firstName: string; lastName: string } {
+  if (first !== undefined || last !== undefined) {
+    return { firstName: first ?? '', lastName: last ?? '' };
+  }
+  const clean = (fullName ?? '').trim();
+  if (!clean) return { firstName: '', lastName: '' };
+  const parts = clean.split(/\s+/);
+  return {
+    firstName: parts[0] ?? '',
+    lastName: parts.length > 1 ? parts.slice(1).join(' ') : '',
+  };
+}
+
 export function FormProfile({
   initialData,
   onSubmit,
@@ -40,7 +55,9 @@ export function FormProfile({
 }: FormProfileProps): React.JSX.Element {
   const { theme } = useRole();
 
-  const [fullName, setFullName] = useState(initialData?.fullName ?? '');
+  const initialNames = parseName(initialData?.fullName, initialData?.firstName, initialData?.lastName);
+  const [firstName, setFirstName] = useState(initialNames.firstName);
+  const [lastName, setLastName] = useState(initialNames.lastName);
   const [email, setEmail] = useState(initialData?.email ?? '');
   const [phone, setPhone] = useState(initialData?.phone ?? '');
   const [birthDate, setBirthDate] = useState<Date>(() => {
@@ -65,7 +82,12 @@ export function FormProfile({
   });
 
   useEffect(() => {
-    if (initialData?.fullName) setFullName(initialData.fullName);
+    if (loading) return;
+    if (initialData?.fullName || initialData?.firstName !== undefined) {
+      const names = parseName(initialData.fullName, initialData.firstName, initialData.lastName);
+      setFirstName(names.firstName);
+      setLastName(names.lastName);
+    }
     if (initialData?.email) setEmail(initialData.email);
     if (initialData?.phone !== undefined) setPhone(initialData.phone);
     if (initialData?.birthDate) {
@@ -74,8 +96,20 @@ export function FormProfile({
     }
     if (initialData?.gender) setGender(genderLabel(initialData.gender));
     if (initialData?.avatarUrl !== undefined) setAvatarUrl(initialData.avatarUrl ?? null);
-  }, [initialData]);
+  }, [
+    initialData?.fullName,
+    initialData?.firstName,
+    initialData?.lastName,
+    initialData?.email,
+    initialData?.phone,
+    initialData?.birthDate,
+    initialData?.gender,
+    initialData?.avatarUrl,
+    loading,
+  ]);
 
+  const initialFirst = initialNames.firstName.trim();
+  const initialLast = initialNames.lastName.trim();
   const initialPhone = (initialData?.phone ?? '').trim();
   const initialDobStr = initialData?.birthDate
     ? toIsoDate(new Date(initialData.birthDate))
@@ -86,6 +120,8 @@ export function FormProfile({
   const currentDobStr = toIsoDate(birthDate);
 
   const isDirty =
+    firstName.trim() !== initialFirst ||
+    lastName.trim() !== initialLast ||
     phone.trim() !== initialPhone ||
     currentDobStr !== initialDobStr ||
     gender !== initialGender ||
@@ -96,7 +132,13 @@ export function FormProfile({
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
-    if (!phone.trim()) errs.phone = 'Nomor Telepon wajib diisi.';
+    const cleanFirst = firstName.trim();
+    if (!cleanFirst) {
+      errs.firstName = 'First name wajib diisi.';
+    }
+    if (!phone.trim()) {
+      errs.phone = 'Nomor Telepon wajib diisi.';
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -155,10 +197,16 @@ export function FormProfile({
 
   const handleConfirmSave = async () => {
     try {
+      const combinedFullName = lastName.trim()
+        ? `${firstName.trim()} ${lastName.trim()}`
+        : firstName.trim();
+
       await onSubmit({
-        fullName,
+        firstName: firstName.trim(),
+        lastName: lastName.trim() || undefined,
+        fullName: combinedFullName,
         email,
-        phone,
+        phone: phone.trim(),
         birthDate: toIsoDate(birthDate),
         gender,
         avatarUrl,
@@ -251,15 +299,49 @@ export function FormProfile({
 
         {/* Form Card */}
         <BaseCard style={styles.formCard}>
-          <FormField label="Full Name" required>
-            <Input
-              value={fullName}
-              editable={false}
-              placeholder="Masukkan nama lengkap"
-              autoCapitalize="words"
-              accessibilityState={{ disabled: true }}
-            />
-          </FormField>
+          {/* First Name & Last Name */}
+          <View style={styles.gridRow}>
+            <View style={styles.gridCol}>
+              <FormField label="First Name" required error={errors.firstName}>
+                <Input
+                  value={firstName}
+                  onChangeText={(text) => {
+                    setFirstName(text);
+                    if (errors.firstName) {
+                      setErrors((prev) => {
+                        const copy = { ...prev };
+                        delete copy.firstName;
+                        return copy;
+                      });
+                    }
+                  }}
+                  placeholder="Doe"
+                  hasError={Boolean(errors.firstName)}
+                  autoCapitalize="words"
+                />
+              </FormField>
+            </View>
+            <View style={styles.gridCol}>
+              <FormField label="Last Name" error={errors.lastName}>
+                <Input
+                  value={lastName}
+                  onChangeText={(text) => {
+                    setLastName(text);
+                    if (errors.lastName) {
+                      setErrors((prev) => {
+                        const copy = { ...prev };
+                        delete copy.lastName;
+                        return copy;
+                      });
+                    }
+                  }}
+                  placeholder="Doe"
+                  hasError={Boolean(errors.lastName)}
+                  autoCapitalize="words"
+                />
+              </FormField>
+            </View>
+          </View>
 
           <FormField label="Email" required>
             <Input
@@ -408,6 +490,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
+  },
+  gridRow: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  gridCol: {
+    flex: 1,
   },
   saveButton: {
     height: 48,

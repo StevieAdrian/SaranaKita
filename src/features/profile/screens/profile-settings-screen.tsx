@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,21 +17,44 @@ export function ProfileSettingsScreen(): React.JSX.Element {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { theme } = useRole();
-  const { profile, reload } = useProfileScreen();
+  const { profile, setProfile, reload } = useProfileScreen();
 
   const [activeTab, setActiveTab] = useState<ProfileTab>('Ubah Profile');
   const [submitting, setSubmitting] = useState(false);
 
+  const initialProfileData = useMemo<Partial<ProfileFormData>>(() => ({
+    fullName: profile.fullName,
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    email: profile.email,
+    phone: profile.phone,
+    birthDate: profile.birthDate,
+    gender: profile.gender,
+    avatarUrl: profile.avatarUrl,
+  }), [
+    profile.fullName,
+    profile.firstName,
+    profile.lastName,
+    profile.email,
+    profile.phone,
+    profile.birthDate,
+    profile.gender,
+    profile.avatarUrl,
+  ]);
+
   const handleUpdateProfile = async (data: ProfileFormData) => {
     setSubmitting(true);
     try {
-      await updateFullProfile({
+      const updated = await updateFullProfile({
+        fullName: data.fullName,
+        firstName: data.firstName,
+        lastName: data.lastName,
         phone: data.phone,
         birthDate: data.birthDate,
         gender: data.gender,
         avatarUrl: data.avatarUrl,
       });
-      await reload();
+      setProfile(updated);
     } finally {
       setSubmitting(false);
     }
@@ -40,10 +63,10 @@ export function ProfileSettingsScreen(): React.JSX.Element {
   const handleUpdateSchool = async (data: { classOrPosition: string }) => {
     setSubmitting(true);
     try {
-      await updateFullProfile({
+      const updated = await updateFullProfile({
         classOrPosition: data.classOrPosition,
       });
-      await reload();
+      setProfile(updated);
     } finally {
       setSubmitting(false);
     }
@@ -106,14 +129,7 @@ export function ProfileSettingsScreen(): React.JSX.Element {
       <View style={styles.content}>
         {activeTab === 'Ubah Profile' ? (
           <FormProfile
-            initialData={{
-              fullName: profile.fullName,
-              email: profile.email,
-              phone: profile.phone,
-              birthDate: profile.birthDate,
-              gender: profile.gender,
-              avatarUrl: profile.avatarUrl,
-            }}
+            initialData={initialProfileData}
             onSubmit={handleUpdateProfile}
             loading={submitting}
           />

@@ -92,7 +92,6 @@ export function RegisterScreen(): React.JSX.Element {
               <View style={styles.flex}>
                 <TextField
                   label="Last Name"
-                  required
                   value={lastName}
                   onChangeText={setLastName}
                   placeholder="Doe"

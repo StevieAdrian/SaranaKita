@@ -27,6 +27,8 @@ export type Profile = {
 
 export type UpdateProfileInput = {
   readonly fullName?: string;
+  readonly firstName?: string;
+  readonly lastName?: string;
   readonly avatarUrl?: string | null;
   readonly phone?: string;
   readonly birthDate?: string;
@@ -38,6 +40,8 @@ export type FullProfile = {
   readonly id: string;
   readonly email: string;
   readonly fullName: string;
+  readonly firstName?: string;
+  readonly lastName?: string;
   readonly role: string | null;
   readonly phone: string;
   readonly birthDate: string;

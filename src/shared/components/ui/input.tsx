@@ -31,7 +31,7 @@ export function Input({
         .filter(Boolean)
         .join(' ')}
       style={[
-        { fontFamily: fontRegular },
+        { fontFamily: fontRegular, fontSize: 14, color: '#1E1E1E' },
         !isEditable && {
           backgroundColor: 'rgba(0, 0, 0, 0.2)',
           color: '#1E1E1E',
