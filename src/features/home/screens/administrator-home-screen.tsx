@@ -18,13 +18,16 @@ import repairIcon from '@/assets/images/repair.png';
 import {
   REPORT_STATUS,
   type FeedReport,
-  type ReportStatus,
 } from '@/services/report';
 import { USER_ROLE } from '@/services/auth';
 import { ReportThumbnail, StatusBadge } from '@/shared/components/report';
 import { REPORT_STATUS_META } from '@/shared/components/report/report-status';
 import { getThemeColors } from '@/shared/theme';
 import { HomeHeader } from '../components/home-header';
+import {
+  REPORT_STATUS_ROWS,
+  ReportStatusSummary,
+} from '../components/report-status-summary';
 import { useAdminDashboard } from '../hooks/use-admin-dashboard';
 import {
   useAdminReportList,
@@ -33,38 +36,6 @@ import {
 import { toDisplayDate } from '../utils/feed';
 
 const ADMIN_PRIMARY = getThemeColors(USER_ROLE.ADMINISTRATOR).primary;
-
-const STATUS_ROWS: readonly {
-  status: ReportStatus;
-  label: string;
-  color: string;
-}[] = [
-  {
-    status: REPORT_STATUS.WAITING_VERIFICATION,
-    label: REPORT_STATUS_META[REPORT_STATUS.WAITING_VERIFICATION].label,
-    color: '#2563EB',
-  },
-  {
-    status: REPORT_STATUS.IN_REVIEW,
-    label: REPORT_STATUS_META[REPORT_STATUS.IN_REVIEW].label,
-    color: '#F59E0B',
-  },
-  {
-    status: REPORT_STATUS.IN_REPAIR,
-    label: REPORT_STATUS_META[REPORT_STATUS.IN_REPAIR].label,
-    color: '#9A3412',
-  },
-  {
-    status: REPORT_STATUS.REJECTED,
-    label: REPORT_STATUS_META[REPORT_STATUS.REJECTED].label,
-    color: '#B91C1C',
-  },
-  {
-    status: REPORT_STATUS.DONE,
-    label: REPORT_STATUS_META[REPORT_STATUS.DONE].label,
-    color: '#15803D',
-  },
-];
 
 function CountTile({
   count,
@@ -203,8 +174,13 @@ export function AdministratorHomeScreen({
     statusCounts[REPORT_STATUS.WAITING_VERIFICATION] +
     statusCounts[REPORT_STATUS.IN_REVIEW] +
     statusCounts[REPORT_STATUS.IN_REPAIR];
-  const totalForPercent = dashboard.totalReports;
-  const filterLabel = reportFilter === 'all' ? 'Semua Laporan' : reportFilter === 'action_required' ? 'Perlu Tindakan' : STATUS_ROWS.find(row => row.status === reportFilter)?.label ?? 'Semua Laporan';
+  const filterLabel =
+    reportFilter === 'all'
+      ? 'Semua Laporan'
+      : reportFilter === 'action_required'
+        ? 'Perlu Tindakan'
+        : REPORT_STATUS_ROWS.find(row => row.status === reportFilter)?.label ??
+          'Semua Laporan';
 
   return (
     <View className="flex-1 bg-[#ECF3FD]">
@@ -238,66 +214,16 @@ export function AdministratorHomeScreen({
               </Text>
             </View>
           </View>
-          <View className="gap-3 rounded-lg bg-white/10 p-4">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-sm font-semibold text-white">
-                {dashboard.totalReports} Laporan Masuk
-              </Text>
-              <Text className="text-[10px] text-white/80">
-                Data terakhir: {toDisplayDate(dashboard.generatedAt)}
-              </Text>
-            </View>
-            <View className="h-2 flex-row overflow-hidden rounded-full bg-white/10">
-              {STATUS_ROWS.map((row: (typeof STATUS_ROWS)[number]) => {
-                const { status, color } = row;
-                const percent =
-                  totalForPercent > 0
-                    ? (statusCounts[status] / totalForPercent) * 100
-                    : 0;
-                return percent > 0 ? (
-                  <View
-                    key={status}
-                    style={{ width: `${percent}%`, backgroundColor: color }}
-                  />
-                ) : null;
-              })}
-            </View>
-            <View className="gap-2">
-              {STATUS_ROWS.map((row: (typeof STATUS_ROWS)[number]) => {
-                const { status, label, color } = row;
-                const count = statusCounts[status];
-                const percent =
-                  totalForPercent > 0
-                    ? Math.round((count / totalForPercent) * 100)
-                    : 0;
-                return (
-                  <Pressable
-                    key={status}
-                    onPress={() => setReportFilter(status)}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: reportFilter === status }}
-                    className={`flex-row items-center justify-between rounded px-1 py-0.5 ${
-                      reportFilter === status ? 'bg-white/10' : ''
-                    }`}
-                  >
-                    <View className="flex-1 flex-row items-center gap-2">
-                      <View
-                        className="h-2 w-2 rounded-full"
-                        style={{ backgroundColor: color }}
-                      />
-                      <Text className="text-xs text-white">{label}</Text>
-                    </View>
-                    <Text className="w-8 text-center text-xs text-white">
-                      {count}
-                    </Text>
-                    <Text className="w-9 text-right text-xs text-white">
-                      {percent}%
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
+          <ReportStatusSummary
+            dashboard={dashboard}
+            variant="administrator"
+            selectedStatus={
+              reportFilter === 'all' || reportFilter === 'action_required'
+                ? undefined
+                : reportFilter
+            }
+            onStatusPress={setReportFilter}
+          />
         </View>
 
         <View className="gap-6 px-5 pt-3">
