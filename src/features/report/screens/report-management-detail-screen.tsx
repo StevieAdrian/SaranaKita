@@ -31,7 +31,7 @@ import {
   ReportProgress,
   REPORT_PROGRESS,
 } from '@/shared/components/report';
-import { BottomSheet } from '@/shared/components/ui';
+import { BottomSheet, ModalSuccess } from '@/shared/components/ui';
 import { getThemeColors, palette } from '@/shared/theme';
 import { ReportGallery } from '../components/report-gallery';
 import {
@@ -118,6 +118,10 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
     useState(false);
   const [rejectionConfirmationOpen, setRejectionConfirmationOpen] =
     useState(false);
+  const [successModal, setSuccessModal] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
   const {
     report,
     loading,
@@ -136,7 +140,23 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
     const message = await changeStatus({ statusName });
     if (message) {
       Alert.alert('Gagal mengubah status', message);
+      return;
     }
+
+    const isVerification = statusName === REPORT_STATUS_NAME.IN_REVIEW;
+    const isRejection = statusName === REPORT_STATUS_NAME.REJECTED;
+    const successTitle = isVerification
+      ? 'Verifikasi Berhasil'
+      : isRejection
+        ? 'Laporan Ditolak'
+        : 'Status Berhasil Diperbarui';
+    const successMessage = isVerification
+      ? 'Laporan berhasil diverifikasi.'
+      : isRejection
+        ? 'Laporan berhasil ditolak.'
+        : `Status laporan berhasil diubah menjadi ${statusName}.`;
+
+    setSuccessModal({ title: successTitle, message: successMessage });
   };
 
   const handleReject = () => {
@@ -562,6 +582,18 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
           );
         })}
       </BottomSheet>
+
+      <ModalSuccess
+        visible={successModal !== null}
+        title={successModal?.title ?? ''}
+        message={successModal?.message ?? ''}
+        buttonLabel="Kembali ke Beranda"
+        buttonColor={primaryColor}
+        onConfirm={() => {
+          setSuccessModal(null);
+          navigation.navigate('Main', { screen: 'Home' });
+        }}
+      />
     </View>
   );
 }

@@ -39,6 +39,9 @@ export type ReportDetail = {
   readonly comments: number;
   readonly recommendations: number;
   readonly votedByMe: boolean;
+  readonly verifiedBy: string | null;
+  readonly rejectedBy: string | null;
+  readonly updatedBy: string | null;
   readonly recommendedByMe: boolean;
   readonly timeline: readonly ReportTimelineEvent[];
 };

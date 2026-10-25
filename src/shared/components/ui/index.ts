@@ -11,6 +11,7 @@ export {
 export { DatePicker, type DatePickerProps } from './date-picker';
 export { FormField, type FormFieldProps } from './form-field';
 export { Input, type InputProps } from './input';
+export { ModalSuccess, type ModalSuccessProps } from './modal-success';
 export { PhotoPicker, type PhotoPickerProps, type PickedPhoto } from './photo-picker';
 export {
   RadioGroup,
