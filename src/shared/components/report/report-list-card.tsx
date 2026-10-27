@@ -127,21 +127,20 @@ export function ReportListCard({
         </View>
       </Pressable>
       {showProgress && <ReportProgress status={status} />}
-      
-        <View className="border-t border-gray-100 px-4 py-3 mt-2">
-          <View className="flex-row items-center justify-between gap-2">
-            <Text className="flex-1 text-xs text-gray-400">
-              {canStillEdit
-                ? 'Waktu Tersisa Untuk Mengubah Laporan:'
-                : 'Waktu Laporan Final'}
-            </Text>
 
-            <Text className="text-xs text-gray-400">
-              {canStillEdit ? remainingTime : finalTime}
-            </Text>
-          </View>
+      <View className="mt-2 border-t border-gray-100 px-4 py-3">
+        <View className="flex-row items-center justify-between gap-2">
+          <Text className="flex-1 text-xs text-gray-400">
+            {canStillEdit
+              ? 'Waktu Tersisa Untuk Mengubah Laporan:'
+              : 'Waktu Laporan Final'}
+          </Text>
+
+          <Text className="text-xs text-gray-400">
+            {canStillEdit ? remainingTime : finalTime}
+          </Text>
         </View>
-      
+      </View>
 
       <View className="flex-row items-center justify-between border-t border-gray-100 px-4 py-3">
         <Text className="text-sm text-gray-500">
