@@ -12,7 +12,7 @@ export function ProfileScreen(): React.JSX.Element {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText variant="h1">Profile</ThemedText>
+      <ThemedText variant="h1">Profil</ThemedText>
 
       {loading ? (
         <ActivityIndicator />
@@ -21,7 +21,7 @@ export function ProfileScreen(): React.JSX.Element {
           <ThemedText variant="body" muted>
             {error}
           </ThemedText>
-          <Button title="Retry" variant="secondary" onPress={reload} />
+          <Button title="Coba Lagi" variant="secondary" onPress={reload} />
         </View>
       ) : profile ? (
         <View style={styles.block}>
@@ -33,7 +33,7 @@ export function ProfileScreen(): React.JSX.Element {
       ) : null}
 
       <Button
-        title="Sign out"
+        title="Keluar"
         variant="secondary"
         onPress={authClient.signOut}
       />

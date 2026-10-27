@@ -23,6 +23,7 @@ function report(overrides: Partial<FeedReport> & { id: string }): FeedReport {
     recommendations: 0,
     votedByMe: false,
     recommendedByMe: false,
+    note: null,
     ...overrides,
   };
 }

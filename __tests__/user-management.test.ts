@@ -48,12 +48,11 @@ describe('user-management permissions and constants', () => {
         role: 'guru',
         isVerified: true,
         createdAt: '2026-01-02',
-        status: 'pending',
+        status: 'inactive',
         classOrPosition: 'Guru Fisika',
       },
     ];
 
-    // Search
     const searchMatch = mockUsers.filter(
       (u) =>
         u.fullName?.toLowerCase().includes('jelly') ||
@@ -62,7 +61,6 @@ describe('user-management permissions and constants', () => {
     expect(searchMatch).toHaveLength(1);
     expect(searchMatch[0]?.id).toBe('2');
 
-    // Role filter
     const siswaUsers = mockUsers.filter((u) => u.role === 'siswa');
     expect(siswaUsers).toHaveLength(1);
     expect(siswaUsers[0]?.id).toBe('1');

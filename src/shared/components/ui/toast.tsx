@@ -3,11 +3,12 @@ import { Animated, Image, Platform, StatusBar, StyleSheet, Text, TouchableOpacit
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import checkIcon from '@/assets/images/verified-checkmark.png';
 import crossIcon from '@/assets/images/unverified-crossmark.png';
+import infoIcon from '@/assets/images/info-circle.png';
 
 export type ToastProps = {
   visible: boolean;
   message: string;
-  type?: 'success' | 'error';
+  type?: 'success' | 'error' | 'info';
   duration?: number;
   topOffset?: number;
   onDismiss?: () => void;
@@ -83,8 +84,10 @@ export function Toast({
     return null;
   }
 
-  const isSuccess = type === 'success';
-  const bgColor = isSuccess ? '#10B981' : '#EF4444';
+  const bgColor =
+    type === 'success' ? '#10B981' : type === 'info' ? '#2563EB' : '#EF4444';
+  const iconSource =
+    type === 'error' ? crossIcon : type === 'info' ? infoIcon : checkIcon;
 
   return (
     <Animated.View
@@ -106,7 +109,7 @@ export function Toast({
         accessibilityLabel={message}
       >
         <Image
-          source={isSuccess ? checkIcon : crossIcon}
+          source={iconSource}
           style={styles.iconDirect}
           resizeMode="contain"
         />

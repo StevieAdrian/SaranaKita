@@ -1,14 +1,20 @@
-import React from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { TextField } from '@/shared/components/ui/text-field';
+import { Toast } from '@/shared/components/ui';
 import { AuthDivider, AuthHeader, ClassSelectField, DateOfBirthField, GenderRadioField, GoogleButton, UsernameInput } from '../components';
 import { authConstants } from '../constants/auth-constants';
 import { useRegisterForm } from '../hooks/use-register-form';
 
 export function RegisterScreen(): React.JSX.Element {
   const navigation = useNavigation<any>();
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({ visible: false, message: '', type: 'info' });
   const {
     username,
     firstName,
@@ -41,7 +47,11 @@ export function RegisterScreen(): React.JSX.Element {
   };
 
   const handleGooglePress = () => {
-    Alert.alert('Google Sign-Up', 'Fitur Google Sign-Up segera hadir.');
+    setToast({
+      visible: true,
+      message: 'Fitur Google Sign-Up segera hadir.',
+      type: 'info',
+    });
   };
 
   return (
@@ -59,8 +69,8 @@ export function RegisterScreen(): React.JSX.Element {
           {/* Header */}
           <View style={styles.centerBlock}>
             <AuthHeader
-              title="Get Started Now"
-              subtitle="Create an account and start your healthy journey together."
+              title="Mulai Sekarang"
+              subtitle="Buat akun dan wujudkan sekolah yang lebih baik."
             />
           </View>
 
@@ -73,35 +83,31 @@ export function RegisterScreen(): React.JSX.Element {
               status={usernameStatus}
               errorText={errors.username}
               required
+              labelStyle={styles.label}
             />
 
-            <View style={styles.row}>
-              <View style={styles.flex}>
-                <TextField
-                  label="First Name"
-                  required
-                  value={firstName}
-                  onChangeText={setFirstName}
-                  placeholder="Doe"
-                  placeholderTextColor={authConstants.typography.inputPlaceholder.color}
-                  errorText={errors.firstName}
-                  labelStyle={styles.label}
-                  style={styles.input}
-                />
-              </View>
-              <View style={styles.flex}>
-                <TextField
-                  label="Last Name"
-                  value={lastName}
-                  onChangeText={setLastName}
-                  placeholder="Doe"
-                  placeholderTextColor={authConstants.typography.inputPlaceholder.color}
-                  errorText={errors.lastName}
-                  labelStyle={styles.label}
-                  style={styles.input}
-                />
-              </View>
-            </View>
+            <TextField
+              label="Nama Depan"
+              required
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder="John"
+              placeholderTextColor={authConstants.typography.inputPlaceholder.color}
+              errorText={errors.firstName}
+              labelStyle={styles.label}
+              style={styles.input}
+            />
+
+            <TextField
+              label="Nama Belakang"
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder="Doe"
+              placeholderTextColor={authConstants.typography.inputPlaceholder.color}
+              errorText={errors.lastName}
+              labelStyle={styles.label}
+              style={styles.input}
+            />
 
             <TextField
               label="Email"
@@ -119,7 +125,7 @@ export function RegisterScreen(): React.JSX.Element {
             />
 
             <TextField
-              label="Password"
+              label="Kata Sandi"
               required
               value={password}
               onChangeText={setPassword}
@@ -132,7 +138,7 @@ export function RegisterScreen(): React.JSX.Element {
             />
 
             <TextField
-              label="Confirm Password"
+              label="Konfirmasi Kata Sandi"
               required
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -145,11 +151,11 @@ export function RegisterScreen(): React.JSX.Element {
             />
 
             <TextField
-              label="Phone Number"
+              label="Nomor Telepon"
               required
               value={phone}
               onChangeText={setPhone}
-              placeholder="087223627139"
+              placeholder="08xxxxxxxxxx"
               placeholderTextColor={authConstants.typography.inputPlaceholder.color}
               keyboardType="phone-pad"
               errorText={errors.phone}
@@ -158,24 +164,30 @@ export function RegisterScreen(): React.JSX.Element {
             />
 
             <DateOfBirthField
+              label="Tanggal Lahir"
               value={dateOfBirth}
               onChange={setDateOfBirth}
               errorText={errors.dateOfBirth}
               required
+              labelStyle={styles.label}
             />
 
             <ClassSelectField
+              label="Kelas"
               value={classGrade || null}
               onChange={setClassGrade}
               errorText={errors.classGrade}
               required
+              labelStyle={styles.label}
             />
 
             <GenderRadioField
+              label="Jenis Kelamin"
               value={gender}
               onChange={setGender}
               errorText={errors.gender}
               required
+              labelStyle={styles.label}
             />
 
             {errors.form ? (
@@ -190,21 +202,21 @@ export function RegisterScreen(): React.JSX.Element {
               disabled={submitting}
               activeOpacity={0.8}
               accessibilityRole="button"
-              accessibilityLabel="Continue"
+              accessibilityLabel="Lanjutkan"
               style={[
                 styles.continueButton,
                 submitting && styles.buttonDisabled,
               ]}
             >
               {submitting ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator color={authConstants.colors.text.light} size="small" />
               ) : (
-                <Text style={styles.continueButtonText}>Continue</Text>
+                <Text style={styles.continueButtonText}>Lanjutkan</Text>
               )}
             </TouchableOpacity>
 
             <View style={styles.loginRow}>
-              <Text style={styles.loginText}>Already have an account? </Text>
+              <Text style={styles.loginText}>Sudah punya akun? </Text>
               <Pressable
                 onPress={handleLoginPress}
                 accessibilityRole="link"
@@ -216,11 +228,18 @@ export function RegisterScreen(): React.JSX.Element {
           </View>
 
           <View style={styles.bottomBlock}>
-            <AuthDivider text="Or Continue With" />
+            <AuthDivider text="Atau lanjutkan dengan" />
             <GoogleButton onPress={handleGooglePress} label="Google" />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onDismiss={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 }
@@ -262,11 +281,6 @@ const styles = StyleSheet.create({
     maxWidth: 369,
     alignSelf: 'center',
   },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-    width: '100%',
-  },
   label: {
     fontFamily: authConstants.typography.label.fontFamily,
     fontSize: 16,
@@ -298,7 +312,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   buttonDisabled: {
-    opacity: 0.6,
+    backgroundColor: authConstants.colors.ui.buttonDisabled,
   },
   continueButtonText: {
     fontFamily: authConstants.typography.buttonText.fontFamily,

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { authClient } from '@/services/auth';
 import { ApiError, toUserMessage } from '@/services/api';
 import type { LoginFormErrors } from '../types';
@@ -15,6 +16,7 @@ export type UseLoginForm = {
 };
 
 export function useLoginForm(): UseLoginForm {
+  const navigation = useNavigation<any>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<LoginFormErrors>({});
@@ -30,7 +32,30 @@ export function useLoginForm(): UseLoginForm {
     setSubmitting(true);
     try {
       await authClient.signIn({ email, password });
-    } catch (error) {
+    } catch (error: any) {
+      if (error instanceof ApiError) {
+        const body: any = error.body;
+        const msg = (error.message || '').toLowerCase();
+        const bodyMsg = (typeof body?.message === 'string' ? body.message : '').toLowerCase();
+        const isUnverified =
+          body?.code === 'EMAIL_NOT_VERIFIED' ||
+          body?.error === 'EMAIL_NOT_VERIFIED' ||
+          msg.includes('belum diverifikasi') ||
+          msg.includes('email not confirmed') ||
+          bodyMsg.includes('belum diverifikasi') ||
+          bodyMsg.includes('email not confirmed');
+
+        if (isUnverified) {
+          const targetEmail = body?.email || email.trim().toLowerCase();
+          navigation.navigate('OtpVerification', {
+            email: targetEmail,
+            mode: 'signup',
+            from: 'login',
+          });
+          return;
+        }
+      }
+
       const message =
         error instanceof ApiError && error.status === 401
           ? 'Email atau kata sandi salah.'
@@ -39,7 +64,7 @@ export function useLoginForm(): UseLoginForm {
     } finally {
       setSubmitting(false);
     }
-  }, [email, password]);
+  }, [email, password, navigation]);
 
   return {
     email,

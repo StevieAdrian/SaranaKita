@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Image, Platform, Pressable, Text } from 'react-native';
+import { Image, Keyboard, Platform, Pressable, Text } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import calendarSignupLogo from '@/assets/images/calender-signup-logo.png';
+import { KEYBOARD_DISMISS_DELAY_MS } from '@/shared/constants';
 import { palette } from '@/shared/theme';
 import { formatDisplayDate } from '@/shared/utils/date';
 import { BottomSheet } from './bottom-sheet';
@@ -31,20 +32,41 @@ export function DatePicker({
   const display = formatDisplayDate(value);
 
   const open = () => {
-    if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({
-        value,
-        mode: 'date',
-        minimumDate,
-        maximumDate,
-        positiveButton: { label: 'OK', textColor: '#2563EB' },
-        negativeButton: { label: 'Batal', textColor: '#2563EB' },
-        onValueChange: (_event, date) => onChange(date),
-      });
-      return;
-    }
-    setDraft(value);
-    setIosOpen(true);
+    Keyboard.dismiss();
+    setTimeout(() => {
+      const safeDate =
+        value instanceof Date && !isNaN(value.getTime())
+          ? value
+          : new Date(2005, 0, 1);
+
+      if (Platform.OS === 'android') {
+        try {
+          DateTimePickerAndroid.open({
+            value: safeDate,
+            mode: 'date',
+            minimumDate,
+            maximumDate,
+            positiveButton: { label: 'OK', textColor: '#2563EB' },
+            negativeButton: { label: 'Batal', textColor: '#2563EB' },
+            onValueChange: (_event, date) => {
+              if (date) {
+                onChange(date);
+              }
+            },
+            onChange: (_event, date) => {
+              if (date) {
+                onChange(date);
+              }
+            },
+          });
+        } catch (err) {
+          console.warn('DateTimePicker error:', err);
+        }
+        return;
+      }
+      setDraft(safeDate);
+      setIosOpen(true);
+    }, KEYBOARD_DISMISS_DELAY_MS);
   };
 
   const confirmIos = () => {
@@ -63,8 +85,8 @@ export function DatePicker({
       >
         <Text
           numberOfLines={1}
-          style={{ fontFamily: 'Poppins-Regular' }}
-          className="flex-1 text-base text-gray-900"
+          style={{ fontFamily: 'Poppins-Regular', fontSize: 14, color: '#1E1E1E' }}
+          className="flex-1"
         >
           {display}
         </Text>

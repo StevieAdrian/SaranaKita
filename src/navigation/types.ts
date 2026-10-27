@@ -7,6 +7,13 @@ export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
   RegisterProfile?: RegisterProfileRouteParams;
+  OtpVerification: {
+    email: string;
+    mode?: 'signup' | 'reset-password';
+    from?: 'register' | 'login' | 'forgot-password';
+  };
+  ForgotPassword: undefined;
+  ResetPassword: { email: string };
   Loading?: { message?: string };
   NotFound?: undefined;
 };
@@ -39,6 +46,6 @@ export type RootStackParamList = {
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends RootStackParamList { }
   }
 }

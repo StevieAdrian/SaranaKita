@@ -231,6 +231,22 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
             action={
               isOwner
                 ? undefined
+                : isTeacher
+                ? {
+                    label: item.recommendedByMe
+                      ? 'Direkomendasikan'
+                      : 'Rekomendasi',
+                    variant: item.recommendedByMe ? 'muted' : 'solid',
+                    tone: 'teacher',
+                    accessibilityLabel: item.recommendedByMe
+                      ? `Batalkan rekomendasi untuk ${item.title}`
+                      : `Rekomendasikan ${item.title}`,
+                    onPress: () => {
+                      handleRecommendation(item.id, item.recommendedByMe).catch(
+                        () => {},
+                      );
+                    },
+                  }
                 : {
                     label: item.votedByMe ? 'Voted' : 'Vote',
                     variant: item.votedByMe ? 'muted' : 'solid',
@@ -246,7 +262,15 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
         </View>
       );
     },
-    [handleVote, openDetail, openEdit, user?.id, now],
+    [
+      handleVote,
+      handleRecommendation,
+      isTeacher,
+      openDetail,
+      openEdit,
+      user?.id,
+      now,
+    ],
   );
 
   const header = (

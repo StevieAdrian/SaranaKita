@@ -72,8 +72,9 @@ async function request<T>(path: string, options: InternalOptions = {}): Promise<
   }
 
   let response: Response;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   try {
-    response = await fetch(`${Env.apiBaseUrl}${path}`, {
+    response = await fetch(`${Env.apiBaseUrl}${normalizedPath}`, {
       ...rest,
       headers: finalHeaders,
       signal: controller.signal,

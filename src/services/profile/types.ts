@@ -11,6 +11,8 @@ export type ContributionStats = {
   readonly reportsCreated: number;
   readonly votesCount: number;
   readonly recommendationsCount: number;
+  readonly reportsRejected?: number;
+  readonly reportsVerified?: number;
   readonly 'Menunggu Verifikasi': number;
   readonly 'Dalam Pemeriksaan': number;
   readonly 'Dalam Perbaikan': number;

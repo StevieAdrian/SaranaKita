@@ -1,28 +1,50 @@
-import React, { useCallback, useRef } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, type TextInputInstance } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, type TextInputInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { TextField } from '@/shared/components/ui/text-field';
+import { Toast } from '@/shared/components/ui';
 import { AuthDivider, AuthHeader, GoogleButton } from '../components';
 import { authConstants } from '../constants/auth-constants';
 import { useLoginForm } from '../hooks/use-login-form';
 
 export function LoginScreen(): React.JSX.Element {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { email, password, errors, submitting, setEmail, setPassword, submit } =
     useLoginForm();
   const passwordRef = useRef<TextInputInstance>(null);
 
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({ visible: false, message: '', type: 'info' });
+
+  React.useEffect(() => {
+    if (route.params?.toastMessage) {
+      setToast({
+        visible: true,
+        message: route.params.toastMessage,
+        type: route.params.toastType ?? 'success',
+      });
+    }
+  }, [route.params?.toastMessage, route.params?.toastType]);
+
   const onForgotPassword = useCallback(() => {
-    Alert.alert('Forgot Password', 'Fitur reset kata sandi segera hadir.');
-  }, []);
+    navigation.navigate('ForgotPassword');
+  }, [navigation]);
 
   const onSignUp = useCallback(() => {
     navigation.navigate('Register');
   }, [navigation]);
 
   const onGoogle = useCallback(() => {
-    Alert.alert('Google Sign-In', 'Fitur Google Sign-In segera hadir.');
+    setToast({
+      visible: true,
+      message: 'Fitur Google Sign-In segera hadir.',
+      type: 'info',
+    });
   }, []);
 
   return (
@@ -40,8 +62,8 @@ export function LoginScreen(): React.JSX.Element {
           {/* Header */}
           <View style={styles.centerBlock}>
             <AuthHeader
-              title="Welcome Back!"
-              subtitle="Let’s continue your healthy journey with us."
+              title="Selamat Datang!"
+              subtitle="Masuk dan lanjutkan upaya mewujudkan sekolah yang lebih baik."
             />
           </View>
 
@@ -69,7 +91,7 @@ export function LoginScreen(): React.JSX.Element {
 
             <TextField
               ref={passwordRef}
-              label="Password"
+              label="Kata Sandi"
               required
               value={password}
               onChangeText={setPassword}
@@ -88,10 +110,10 @@ export function LoginScreen(): React.JSX.Element {
             <Pressable
               onPress={onForgotPassword}
               accessibilityRole="link"
-              accessibilityLabel="Forgot Password?"
+              accessibilityLabel="Lupa Kata Sandi?"
               style={styles.forgot}
             >
-              <Text style={styles.linkText}>Forgot Password?</Text>
+              <Text style={styles.linkText}>Lupa Kata Sandi?</Text>
             </Pressable>
 
             {errors.form ? (
@@ -106,7 +128,7 @@ export function LoginScreen(): React.JSX.Element {
               disabled={submitting}
               activeOpacity={0.8}
               accessibilityRole="button"
-              accessibilityLabel="Continue"
+              accessibilityLabel="Masuk"
               style={[
                 styles.continueButton,
                 submitting && styles.buttonDisabled,
@@ -115,30 +137,37 @@ export function LoginScreen(): React.JSX.Element {
               {submitting ? (
                 <ActivityIndicator color={authConstants.colors.text.light} size="small" />
               ) : (
-                <Text style={styles.continueButtonText}>Continue</Text>
+                <Text style={styles.continueButtonText}>Masuk</Text>
               )}
             </TouchableOpacity>
 
             <View style={styles.signUpRow}>
-              <Text style={styles.signUpText}>Haven’t create an account? </Text>
+              <Text style={styles.signUpText}>Belum punya akun? </Text>
               <Pressable
                 onPress={onSignUp}
                 accessibilityRole="link"
-                accessibilityLabel="Sign Up"
+                accessibilityLabel="Daftar"
               >
-                <Text style={styles.linkText}>Sign Up</Text>
+                <Text style={styles.linkText}>Daftar</Text>
               </Pressable>
             </View>
           </View>
 
           <View style={styles.bottomBlock}>
-            <AuthDivider text="Or Continue With" />
+            <AuthDivider text="Atau lanjutkan dengan" />
 
             {/* Google Button */}
             <GoogleButton onPress={onGoogle} label="Google" />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onDismiss={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 }
@@ -225,7 +254,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.99 }],
   },
   buttonDisabled: {
-    opacity: 0.6,
+    backgroundColor: authConstants.colors.ui.buttonDisabled,
   },
   continueButtonText: {
     fontFamily: authConstants.typography.buttonText.fontFamily,
