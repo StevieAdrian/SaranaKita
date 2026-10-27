@@ -26,6 +26,8 @@ function createEmptyProfile(): FullProfile {
       reportsCreated: 0,
       votesCount: 0,
       recommendationsCount: 0,
+      reportsRejected: 0,
+      reportsVerified: 0,
       'Menunggu Verifikasi': 0,
       'Dalam Pemeriksaan': 0,
       'Dalam Perbaikan': 0,
@@ -35,8 +37,30 @@ function createEmptyProfile(): FullProfile {
   };
 }
 
+let cachedProfile: FullProfile | null = null;
+const subscribers = new Set<(p: FullProfile) => void>();
+
+export function notifyProfileUpdated(profile: FullProfile): void {
+  cachedProfile = profile;
+  subscribers.forEach((sub) => {
+    try {
+      sub(profile);
+    } catch { }
+  });
+}
+
+export async function reloadSharedProfile(): Promise<FullProfile | null> {
+  try {
+    const data = await getFullProfile();
+    notifyProfileUpdated(data);
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 export function useProfileScreen() {
-  const [profile, setProfile] = useState<FullProfile>(createEmptyProfile);
+  const [profile, setProfile] = useState<FullProfile>(() => cachedProfile ?? createEmptyProfile());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +69,7 @@ export function useProfileScreen() {
     setError(null);
     try {
       const data = await getFullProfile();
+      notifyProfileUpdated(data);
       setProfile(data);
     } catch (err: any) {
       setError(err?.message || 'Gagal memuat profil pengguna.');
@@ -54,8 +79,29 @@ export function useProfileScreen() {
   }, []);
 
   useEffect(() => {
+    const subscriber = (next: FullProfile) => {
+      setProfile(next);
+    };
+    subscribers.add(subscriber);
+    return () => {
+      subscribers.delete(subscriber);
+    };
+  }, []);
+
+  useEffect(() => {
     load();
   }, [load]);
 
-  return { profile, setProfile, loading, error, reload: load };
+  const handleSetProfile = useCallback(
+    (next: FullProfile | ((prev: FullProfile) => FullProfile)) => {
+      setProfile((prev) => {
+        const resolved = typeof next === 'function' ? next(prev) : next;
+        notifyProfileUpdated(resolved);
+        return resolved;
+      });
+    },
+    [],
+  );
+
+  return { profile, setProfile: handleSetProfile, loading, error, reload: load };
 }

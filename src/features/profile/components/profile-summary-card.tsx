@@ -39,7 +39,7 @@ export function ProfileSummaryCard({
               style={styles.avatarImage}
               resizeMode="cover"
               accessibilityRole="image"
-              accessibilityLabel="Profile Avatar"
+              accessibilityLabel="Foto Profil"
             />
           ) : (
             <Image
@@ -47,7 +47,7 @@ export function ProfileSummaryCard({
               style={styles.defaultAvatarImage}
               resizeMode="contain"
               accessibilityRole="image"
-              accessibilityLabel="Profile Avatar"
+              accessibilityLabel="Foto Profil"
             />
           )}
         </View>

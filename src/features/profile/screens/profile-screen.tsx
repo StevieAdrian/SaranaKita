@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useRole } from '@/shared/context/theme-context';
 import { ButtonManageProfile } from '../components/button-manage-profile';
@@ -10,11 +10,18 @@ import { HeaderCardProfile } from '../components/header-card-profile';
 import { LogoutCard } from '../components/logout-card';
 import { ProfileSummaryCard } from '../components/profile-summary-card';
 import { useProfileScreen } from '../hooks/use-profile-screen';
+import { formatRoleTitle, profileColors } from '../utils/constants';
 
 export function ProfileScreen(): React.JSX.Element {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { theme, currentRole } = useRole();
   const { profile, loading, reload } = useProfileScreen();
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload]),
+  );
 
   const handleEditProfile = () => {
     navigation.navigate('ProfileSettings');
@@ -24,20 +31,12 @@ export function ProfileScreen(): React.JSX.Element {
     navigation.navigate('UserManagement');
   };
 
-  const isGuru = currentRole === 'guru';
-  const roleTitle = isGuru
-    ? (profile.classOrPosition || 'Guru')
-    : currentRole === 'staff'
-      ? (profile.classOrPosition || 'Staff')
-      : currentRole === 'administrator'
-        ? 'Administrator'
-        : (profile.classOrPosition ? `Kelas ${profile.classOrPosition}` : 'Siswa');
-
+  const roleTitle = formatRoleTitle(currentRole, profile.classOrPosition);
   const schoolText = profile.schoolInfo.name ? ` · ${profile.schoolInfo.name}` : '';
   const subtitle = `${roleTitle}${schoolText}`;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.backgroundSubtle || '#F0F6FF' }]}>
+    <View style={[styles.container, { backgroundColor: theme.backgroundSubtle || profileColors.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -78,10 +77,12 @@ export function ProfileScreen(): React.JSX.Element {
           role={currentRole}
           reportsCreated={profile.stats.reportsCreated}
           votesOrRecommendations={
-            isGuru
+            currentRole === 'guru'
               ? profile.stats.recommendationsCount
               : profile.stats.votesCount
           }
+          reportsRejected={profile.stats.reportsRejected}
+          reportsVerified={profile.stats.reportsVerified}
           {...{
             'Menunggu Verifikasi': profile.stats['Menunggu Verifikasi'],
             'Dalam Pemeriksaan': profile.stats['Dalam Pemeriksaan'],

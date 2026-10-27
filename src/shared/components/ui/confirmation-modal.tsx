@@ -56,6 +56,26 @@ export function ConfirmationModal({
   const confirmTextColor = '#FFFFFF';
   const iconTintColor = isDanger ? '#EF4444' : (confirmColor ?? theme.primary);
 
+  const canDismissRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (visible) {
+      canDismissRef.current = false;
+      const timer = setTimeout(() => {
+        canDismissRef.current = true;
+      }, 250);
+      return () => clearTimeout(timer);
+    } else {
+      canDismissRef.current = false;
+    }
+  }, [visible]);
+
+  const handleBackdropPress = () => {
+    if (!loading && canDismissRef.current) {
+      onCancel();
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -66,7 +86,7 @@ export function ConfirmationModal({
       onRequestClose={loading ? () => { } : onCancel}
     >
       <View style={[styles.overlay, isBottomSheet && styles.overlayBottomSheet]}>
-        <TouchableWithoutFeedback onPress={loading ? undefined : onCancel}>
+        <TouchableWithoutFeedback onPress={handleBackdropPress}>
           <View style={styles.backdrop} />
         </TouchableWithoutFeedback>
 

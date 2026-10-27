@@ -134,7 +134,7 @@ export function FormProfile({
     const errs: Record<string, string> = {};
     const cleanFirst = firstName.trim();
     if (!cleanFirst) {
-      errs.firstName = 'First name wajib diisi.';
+      errs.firstName = 'Nama depan wajib diisi.';
     }
     if (!phone.trim()) {
       errs.phone = 'Nomor Telepon wajib diisi.';
@@ -263,7 +263,7 @@ export function FormProfile({
                   style={styles.avatarImage}
                   resizeMode="cover"
                   accessibilityRole="image"
-                  accessibilityLabel="Profile Avatar"
+                  accessibilityLabel="Foto Profil"
                 />
               ) : (
                 <Image
@@ -271,7 +271,7 @@ export function FormProfile({
                   style={styles.defaultAvatarImage}
                   resizeMode="contain"
                   accessibilityRole="image"
-                  accessibilityLabel="Profile Avatar"
+                  accessibilityLabel="Foto Profil"
                 />
               )}
             </Pressable>
@@ -299,10 +299,10 @@ export function FormProfile({
 
         {/* Form Card */}
         <BaseCard style={styles.formCard}>
-          {/* First Name & Last Name */}
+          {/* Nama Depan & Nama Belakang */}
           <View style={styles.gridRow}>
             <View style={styles.gridCol}>
-              <FormField label="First Name" required error={errors.firstName}>
+              <FormField label="Nama Depan" required error={errors.firstName}>
                 <Input
                   value={firstName}
                   onChangeText={(text) => {
@@ -315,14 +315,14 @@ export function FormProfile({
                       });
                     }
                   }}
-                  placeholder="Doe"
+                  placeholder="John"
                   hasError={Boolean(errors.firstName)}
                   autoCapitalize="words"
                 />
               </FormField>
             </View>
             <View style={styles.gridCol}>
-              <FormField label="Last Name" error={errors.lastName}>
+              <FormField label="Nama Belakang" error={errors.lastName}>
                 <Input
                   value={lastName}
                   onChangeText={(text) => {
@@ -347,7 +347,7 @@ export function FormProfile({
             <Input
               value={email}
               editable={false}
-              placeholder="nama@email.com"
+              placeholder="johndoe@gmail.com"
               keyboardType="email-address"
               autoCapitalize="none"
               accessibilityState={{ disabled: true }}
@@ -371,7 +371,7 @@ export function FormProfile({
             />
           </FormField>
 
-          <FormField label="Gender" required>
+          <FormField label="Jenis Kelamin" required>
             <RadioGroup
               options={GENDER_OPTIONS}
               value={gender}

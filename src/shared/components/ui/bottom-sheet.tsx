@@ -17,12 +17,26 @@ export function BottomSheet({
 }: BottomSheetProps): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(0)).current;
+  const canDismissRef = useRef(false);
 
   useEffect(() => {
     if (visible) {
       translateY.setValue(0);
+      canDismissRef.current = false;
+      const timer = setTimeout(() => {
+        canDismissRef.current = true;
+      }, 250);
+      return () => clearTimeout(timer);
+    } else {
+      canDismissRef.current = false;
     }
   }, [visible, translateY]);
+
+  const handleBackdropPress = () => {
+    if (canDismissRef.current) {
+      onClose();
+    }
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -66,7 +80,7 @@ export function BottomSheet({
       <View style={styles.overlay}>
         <Pressable
           style={styles.backdrop}
-          onPress={onClose}
+          onPress={handleBackdropPress}
           accessibilityRole="button"
           accessibilityLabel="Tutup"
         />

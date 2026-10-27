@@ -20,7 +20,7 @@ export function GoogleButton({
       onPressIn={() => setPressed(true)}
       onPressOut={() => setPressed(false)}
       accessibilityRole="button"
-      accessibilityLabel={`Continue with ${label}`}
+      accessibilityLabel={`Lanjutkan dengan ${label}`}
       style={[styles.button, pressed && styles.pressed]}
     >
       <Image

@@ -2,7 +2,7 @@ import React from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { BaseCard } from '@/shared/components/ui';
 import { useRole } from '@/shared/context/theme-context';
-import { profileFonts } from '../utils/constants';
+import { profileColors, profileFonts } from '../utils/constants';
 
 export type SchoolDetail = {
   name: string;
@@ -68,10 +68,10 @@ export function CardSchoolInformation({
               idx === fields.length - 1 && styles.lastFieldItem,
             ]}
           >
-            <Text style={[styles.fieldLabel, { color: theme.textMuted || '#94A3B8' }]}>
+            <Text style={[styles.fieldLabel, { color: theme.textMuted || profileColors.text.subtle }]}>
               {field.label}
             </Text>
-            <Text style={[styles.fieldValue, { color: theme.textBody || '#374151' }]}>
+            <Text style={[styles.fieldValue, { color: theme.textBody || profileColors.text.body }]}>
               {field.value}
             </Text>
           </View>
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     padding: 0,
     borderRadius: 6,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: profileColors.cardBg,
     elevation: 2,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },

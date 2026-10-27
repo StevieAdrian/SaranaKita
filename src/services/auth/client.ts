@@ -44,7 +44,7 @@ async function applySession(response: SessionResponse): Promise<AuthUser> {
 async function signIn(credentials: SignInCredentials): Promise<AuthUser> {
   const response = await apiClient.post<SessionResponse>(
     '/auth/sign-in',
-    credentials,  
+    credentials,
     { skipAuth: true },
   );
   return applySession(response);
@@ -134,6 +134,36 @@ async function register(payload: unknown): Promise<AuthUser> {
   return applySession(response);
 }
 
+async function forgotPassword(email: string): Promise<{ success: boolean; message: string }> {
+  return apiClient.post<{ success: boolean; message: string }>(
+    '/auth/forgot-password',
+    { email },
+    { skipAuth: true },
+  );
+}
+
+async function resetPassword(payload: {
+  email: string;
+  newPassword: string;
+}): Promise<{ success: boolean; message: string }> {
+  return apiClient.post<{ success: boolean; message: string }>(
+    '/auth/reset-password',
+    payload,
+    { skipAuth: true },
+  );
+}
+
+async function resendOtp(
+  email: string,
+  type: 'signup' | 'recovery' = 'signup',
+): Promise<{ success: boolean; message: string }> {
+  return apiClient.post<{ success: boolean; message: string }>(
+    '/auth/resend-otp',
+    { email, type },
+    { skipAuth: true },
+  );
+}
+
 export const authClient = {
   signIn,
   signOut,
@@ -145,5 +175,7 @@ export const authClient = {
   checkUsername,
   checkEmail,
   register,
+  forgotPassword,
+  resetPassword,
+  resendOtp,
 };
-

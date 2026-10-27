@@ -40,17 +40,17 @@ export function FormPassword({
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
     if (!currentPassword) {
-      errs.currentPassword = 'Password sekarang wajib diisi.';
+      errs.currentPassword = 'Kata sandi sekarang wajib diisi.';
     }
     if (!newPassword) {
-      errs.newPassword = 'Password baru wajib diisi.';
+      errs.newPassword = 'Kata sandi baru wajib diisi.';
     } else if (newPassword.length < 8) {
-      errs.newPassword = 'Password baru minimal 8 karakter.';
+      errs.newPassword = 'Kata sandi baru minimal 8 karakter.';
     }
     if (!confirmPassword) {
-      errs.confirmPassword = 'Konfirmasi password baru wajib diisi.';
+      errs.confirmPassword = 'Konfirmasi kata sandi baru wajib diisi.';
     } else if (confirmPassword !== newPassword) {
-      errs.confirmPassword = 'Konfirmasi password tidak cocok.';
+      errs.confirmPassword = 'Konfirmasi kata sandi tidak cocok.';
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -101,7 +101,7 @@ export function FormPassword({
           {/* Password Sekarang */}
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>
-              Password Sekarang<Text style={styles.asterisk}>*</Text>
+              Kata Sandi Sekarang<Text style={styles.asterisk}>*</Text>
             </Text>
             <TextInput
               value={currentPassword}
@@ -127,7 +127,7 @@ export function FormPassword({
           {/* Password Baru */}
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>
-              Password Baru<Text style={styles.asterisk}>*</Text>
+              Kata Sandi Baru<Text style={styles.asterisk}>*</Text>
             </Text>
             <TextInput
               value={newPassword}
@@ -153,7 +153,7 @@ export function FormPassword({
           {/* Konfirmasi Password Baru */}
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>
-              Konfirmasi Password Baru<Text style={styles.asterisk}>*</Text>
+              Konfirmasi Kata Sandi Baru<Text style={styles.asterisk}>*</Text>
             </Text>
             <TextInput
               value={confirmPassword}

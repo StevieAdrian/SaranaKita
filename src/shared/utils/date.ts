@@ -13,10 +13,10 @@ export function toIsoDate(date: Date): string {
 }
 
 export function formatDisplayDate(date: Date, now: Date = new Date()): string {
-  const formatted = date.toLocaleDateString('en-GB', {
+  const formatted = date.toLocaleDateString('id-ID', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
-  return isSameDay(date, now) ? `Today, ${formatted}` : formatted;
+  return isSameDay(date, now) ? `Hari ini, ${formatted}` : formatted;
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { userFonts } from '../utils/constants';
+import { userFonts, userManagementColors } from '../utils/constants';
 
 export type UserCountMetric = {
   total: number;
@@ -23,20 +23,20 @@ export function SummaryCard({
     {
       title: 'Siswa',
       data: siswa,
-      badgeBg: 'rgba(37, 99, 235, 0.13)',
-      badgeText: '#112D71',
+      badgeBg: userManagementColors.badges.summary.siswa.bg,
+      badgeText: userManagementColors.badges.summary.siswa.text,
     },
     {
       title: 'Guru',
       data: guru,
-      badgeBg: 'rgba(245, 158, 11, 0.12)',
-      badgeText: '#D97706',
+      badgeBg: userManagementColors.badges.summary.guru.bg,
+      badgeText: userManagementColors.badges.summary.guru.text,
     },
     {
       title: 'Staff',
       data: staff,
-      badgeBg: 'rgba(22, 101, 52, 0.12)',
-      badgeText: '#166534',
+      badgeBg: userManagementColors.badges.summary.staff.bg,
+      badgeText: userManagementColors.badges.summary.staff.text,
     },
   ];
 

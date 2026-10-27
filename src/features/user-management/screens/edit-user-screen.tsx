@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
+import { authClient } from '@/services/auth';
 import type { ManageUser } from '@/services/users';
+import { reloadSharedProfile } from '@/features/profile';
 import { useRole } from '@/shared/context/theme-context';
 import { FormUser, type UserFormData } from '../components/form-user';
 import { UserFormHeader } from '../components/user-form-header';
@@ -36,6 +38,10 @@ export function EditUserScreen(): React.JSX.Element {
         gender: data.gender ?? undefined,
         avatarUrl: data.avatarUrl,
       });
+      if (user.id === authClient.getState().user?.id) {
+        reloadSharedProfile().catch(() => { });
+        authClient.restore().catch(() => { });
+      }
       navigation.dispatch(
         CommonActions.reset({
           index: 1,
@@ -86,7 +92,7 @@ export function EditUserScreen(): React.JSX.Element {
             status: user?.status ?? 'active',
             avatarUrl: user?.avatarUrl,
             phone: user?.phone ?? '',
-            gender: (user?.gender as any) ?? 'Male',
+            gender: (user?.gender as any) ?? 'Laki-Laki',
             dateOfBirth: user?.dateOfBirth ?? undefined,
           }}
           onSubmit={handleSubmit}

@@ -8,7 +8,7 @@ export type ManageUser = {
   readonly createdAt: string;
   readonly classOrPosition?: string | null;
   readonly avatarUrl?: string | null;
-  readonly status?: 'active' | 'pending' | 'inactive';
+  readonly status?: 'active' | 'inactive';
   readonly isActive?: boolean;
   readonly firstName?: string | null;
   readonly lastName?: string | null;

@@ -38,7 +38,7 @@ export function validateRegisterForm(form: RegisterFormState): RegisterFormError
 
   const cleanFirst = form.firstName.trim();
   if (!cleanFirst) {
-    errors.firstName = 'First name wajib diisi.';
+    errors.firstName = 'Nama depan wajib diisi.';
   }
 
   const cleanEmail = form.email.trim();

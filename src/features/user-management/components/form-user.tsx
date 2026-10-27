@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { PHONE_RE } from '@/features/auth/utils/validation';
 import { ClassSelectField, DateOfBirthField, GenderRadioField, UsernameInput, type Gender, type PickedPhoto, type UsernameStatus } from '@/features/auth';
@@ -10,7 +10,8 @@ import { BaseCard, BottomSheet, ConfirmationModal, FormField, Input, Toast } fro
 import { useRole } from '@/shared/context/theme-context';
 import { spacing } from '@/shared/theme';
 import { toIsoDate } from '@/shared/utils/date';
-import { userFonts } from '../utils/constants';
+import { ROLE_OPTIONS_DATA, STATUS_OPTIONS_DATA, userFonts } from '../utils/constants';
+import { SelectOptionCard } from './select-option-card';
 import addPhotoIcon from '@/assets/images/add-photo.png';
 import leftArrow from '@/assets/images/left-arrow.png';
 import maleDefault from '@/assets/images/male-default.png';
@@ -47,84 +48,6 @@ const MAX_PHOTO_SIZE_BYTES = 5 * 1024 * 1024;
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type RoleOptionItem = {
-  value: 'siswa' | 'guru' | 'staff';
-  label: string;
-  description: string;
-  dotColor: string;
-  selectedBg: string;
-  selectedBorder: string;
-  radioColor: string;
-  selectedTitleColor: string;
-};
-
-const ROLE_OPTIONS_DATA: readonly RoleOptionItem[] = [
-  {
-    value: 'siswa',
-    label: 'Siswa',
-    description: 'Pengguna murid atau peserta didik',
-    dotColor: '#3B82F6',
-    selectedBg: '#EFF6FF',
-    selectedBorder: '#3B82F6',
-    radioColor: '#3B82F6',
-    selectedTitleColor: '#1D4ED8',
-  },
-  {
-    value: 'guru',
-    label: 'Guru',
-    description: 'Tenaga pendidik atau guru pengajar',
-    dotColor: '#8B5CF6',
-    selectedBg: '#F5F3FF',
-    selectedBorder: '#8B5CF6',
-    radioColor: '#8B5CF6',
-    selectedTitleColor: '#6D28D9',
-  },
-  {
-    value: 'staff',
-    label: 'Staff',
-    description: 'Tenaga kependidikan atau staf operasional',
-    dotColor: '#10B981',
-    selectedBg: '#ECFDF5',
-    selectedBorder: '#10B981',
-    radioColor: '#10B981',
-    selectedTitleColor: '#047857',
-  },
-];
-
-type StatusOptionItem = {
-  value: 'active' | 'inactive';
-  label: string;
-  description: string;
-  dotColor: string;
-  selectedBg: string;
-  selectedBorder: string;
-  radioColor: string;
-  selectedTitleColor: string;
-};
-
-const STATUS_OPTIONS_DATA: readonly StatusOptionItem[] = [
-  {
-    value: 'active',
-    label: 'Aktif',
-    description: 'Akun aktif dan dapat masuk ke aplikasi',
-    dotColor: '#34C759',
-    selectedBg: '#F0FDF4',
-    selectedBorder: '#34C759',
-    radioColor: '#34C759',
-    selectedTitleColor: '#166534',
-  },
-  {
-    value: 'inactive',
-    label: 'Nonaktif',
-    description: 'Akun dinonaktifkan sementara dari sistem',
-    dotColor: '#EF4444',
-    selectedBg: '#FEF2F2',
-    selectedBorder: '#EF4444',
-    radioColor: '#EF4444',
-    selectedTitleColor: '#991B1B',
-  },
-];
-
 function parseInitialDob(dateStr?: string | null): Date {
   if (!dateStr) return DEFAULT_DOB;
   const parsed = new Date(dateStr);
@@ -132,9 +55,9 @@ function parseInitialDob(dateStr?: string | null): Date {
 }
 
 function parseInitialGender(g?: string | null): Gender {
-  if (!g) return 'Male';
+  if (!g) return 'Laki-Laki';
   const lower = g.trim().toLowerCase();
-  return lower === 'female' || lower === 'perempuan' ? 'Female' : 'Male';
+  return lower === 'female' || lower === 'perempuan' ? 'Perempuan' : 'Laki-Laki';
 }
 
 export function FormUser({
@@ -399,10 +322,11 @@ export function FormUser({
       if (result.didCancel) return;
 
       if (result.errorCode) {
-        Alert.alert(
-          'Gagal Memilih Foto',
-          result.errorMessage ?? 'Silakan coba lagi.',
-        );
+        setToast({
+          visible: true,
+          message: result.errorMessage ?? 'Gagal memilih foto. Silakan coba lagi.',
+          type: 'error',
+        });
         return;
       }
 
@@ -410,7 +334,11 @@ export function FormUser({
       if (!asset?.uri) return;
 
       if (asset.fileSize && asset.fileSize > MAX_PHOTO_SIZE_BYTES) {
-        Alert.alert('Foto Terlalu Besar', 'Ukuran foto maksimal adalah 5 MB.');
+        setToast({
+          visible: true,
+          message: 'Ukuran foto maksimal adalah 5 MB.',
+          type: 'error',
+        });
         return;
       }
 
@@ -421,7 +349,11 @@ export function FormUser({
         fileSize: asset.fileSize,
       });
     } catch {
-      Alert.alert('Gagal Memilih Foto', 'Terjadi kesalahan saat membuka galeri.');
+      setToast({
+        visible: true,
+        message: 'Terjadi kesalahan saat membuka galeri.',
+        type: 'error',
+      });
     }
   };
 
@@ -441,7 +373,7 @@ export function FormUser({
 
     const cleanFirst = firstName.trim();
     if (!cleanFirst) {
-      errs.firstName = 'First name wajib diisi.';
+      errs.firstName = 'Nama depan wajib diisi.';
     }
 
     if (!isEdit) {
@@ -642,15 +574,19 @@ export function FormUser({
                     style={styles.avatarImage}
                     resizeMode="cover"
                     accessibilityRole="image"
-                    accessibilityLabel="Profile Avatar"
+                    accessibilityLabel="Foto Profil"
                   />
                 ) : (
                   <Image
-                    source={gender === 'Female' ? womanDefault : maleDefault}
+                    source={
+                      gender === 'Perempuan'
+                        ? womanDefault
+                        : maleDefault
+                    }
                     style={styles.defaultAvatarImage}
                     resizeMode="contain"
                     accessibilityRole="image"
-                    accessibilityLabel="Profile Avatar"
+                    accessibilityLabel="Foto Profil"
                   />
                 )}
               </TouchableOpacity>
@@ -674,11 +610,11 @@ export function FormUser({
           </View>
         ) : null}
 
-        {/* Foto Profile */}
+        {/* Foto Profil */}
         <BaseCard style={styles.formCard}>
           {!isEdit ? (
             <View style={styles.photoContainer}>
-              <Text style={styles.photoSectionTitle}>Foto Profile</Text>
+              <Text style={styles.photoSectionTitle}>Foto Profil</Text>
               {photoUri ? (
                 <View style={styles.photoPreviewBox}>
                   <Image
@@ -709,7 +645,7 @@ export function FormUser({
                   activeOpacity={0.7}
                   style={styles.photoUploadBox}
                   accessibilityRole="button"
-                  accessibilityLabel="Tambahkan Foto Profile"
+                  accessibilityLabel="Tambahkan Foto Profil"
                 >
                   <Image
                     source={addPhotoIcon}
@@ -728,7 +664,7 @@ export function FormUser({
           {/* Name */}
           <View style={styles.gridRow}>
             <View style={styles.gridCol}>
-              <FormField label="First Name" required error={errors.firstName}>
+              <FormField label="Nama Depan" required error={errors.firstName}>
                 <Input
                   value={firstName}
                   onChangeText={(text) => {
@@ -748,7 +684,7 @@ export function FormUser({
               </FormField>
             </View>
             <View style={styles.gridCol}>
-              <FormField label="Last Name" error={errors.lastName}>
+              <FormField label="Nama Belakang" error={errors.lastName}>
                 <Input
                   value={lastName}
                   onChangeText={(text) => {
@@ -850,14 +786,14 @@ export function FormUser({
                   });
                 }
               }}
-              placeholder="087223627139"
+              placeholder="08xxxxxxxxxx"
               keyboardType="phone-pad"
               hasError={Boolean(errors.phone)}
             />
           </FormField>
 
-          {/* DOB */}
-          <FormField label="Date of Birth" error={errors.dateOfBirth}>
+          {/* Tanggal Lahir */}
+          <FormField label="Tanggal Lahir" error={errors.dateOfBirth}>
             <DateOfBirthField
               hideLabel
               value={dateOfBirth}
@@ -866,8 +802,8 @@ export function FormUser({
             />
           </FormField>
 
-          {/* Gender */}
-          <FormField label="Gender" error={errors.gender}>
+          {/* Jenis Kelamin */}
+          <FormField label="Jenis Kelamin" error={errors.gender}>
             <GenderRadioField
               hideLabel
               value={gender}
@@ -1051,85 +987,35 @@ export function FormUser({
           title="Pilih Role Pengguna"
         >
           <View style={styles.sheetOptionsList}>
-            {ROLE_OPTIONS_DATA.map((item) => {
-              const isSelected = role === item.value;
-              return (
-                <TouchableOpacity
-                  key={item.value}
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    const nextRole = item.value;
-                    setRole(nextRole);
-                    setRoleSheetVisible(false);
-                    setErrors((prev) => {
-                      const copy = { ...prev };
-                      delete copy.role;
-                      delete copy.classOrPosition;
-                      return copy;
-                    });
-                    if (nextRole === 'siswa' && !classOrPosition.includes('-')) {
-                      setClassOrPosition('');
-                    } else if (nextRole !== 'siswa' && classOrPosition.includes('-')) {
-                      setClassOrPosition('');
-                    }
-                  }}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: isSelected }}
-                  accessibilityLabel={item.label}
-                  style={[
-                    styles.sheetOptionCard,
-                    isSelected
-                      ? [
-                        styles.sheetOptionCardSelected,
-                        {
-                          backgroundColor: item.selectedBg,
-                          borderColor: item.selectedBorder,
-                        },
-                      ]
-                      : styles.sheetOptionCardUnselected,
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.sheetStatusDot,
-                      { backgroundColor: item.dotColor },
-                    ]}
-                  />
-
-                  <View style={styles.sheetTextCol}>
-                    <Text
-                      style={[
-                        styles.sheetOptionLabel,
-                        isSelected && { color: item.selectedTitleColor },
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
-                    <Text style={styles.sheetOptionDesc}>
-                      {item.description}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={[
-                      styles.radioOuter,
-                      isSelected
-                        ? { borderColor: item.radioColor }
-                        : styles.radioOuterUnselected,
-                    ]}
-                  >
-                    {isSelected ? (
-                      <View
-                        style={[
-                          styles.radioInner,
-                          { backgroundColor: item.radioColor },
-                        ]}
-                      />
-                    ) : null}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+            {ROLE_OPTIONS_DATA.map((item) => (
+              <SelectOptionCard
+                key={item.value}
+                label={item.label}
+                description={item.description}
+                dotColor={item.dotColor}
+                selectedBg={item.selectedBg}
+                selectedBorder={item.selectedBorder}
+                radioColor={item.radioColor}
+                selectedTitleColor={item.selectedTitleColor}
+                isSelected={role === item.value}
+                onPress={() => {
+                  const nextRole = item.value;
+                  setRole(nextRole);
+                  setRoleSheetVisible(false);
+                  setErrors((prev) => {
+                    const copy = { ...prev };
+                    delete copy.role;
+                    delete copy.classOrPosition;
+                    return copy;
+                  });
+                  if (nextRole === 'siswa' && !classOrPosition.includes('-')) {
+                    setClassOrPosition('');
+                  } else if (nextRole !== 'siswa' && classOrPosition.includes('-')) {
+                    setClassOrPosition('');
+                  }
+                }}
+              />
+            ))}
           </View>
         </BottomSheet>
 
@@ -1139,73 +1025,23 @@ export function FormUser({
           title="Pilih Status Akun"
         >
           <View style={styles.sheetOptionsList}>
-            {STATUS_OPTIONS_DATA.map((item) => {
-              const isSelected = status === item.value;
-              return (
-                <TouchableOpacity
-                  key={item.value}
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    setStatus(item.value);
-                    setStatusSheetVisible(false);
-                  }}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: isSelected }}
-                  accessibilityLabel={item.label}
-                  style={[
-                    styles.sheetOptionCard,
-                    isSelected
-                      ? [
-                        styles.sheetOptionCardSelected,
-                        {
-                          backgroundColor: item.selectedBg,
-                          borderColor: item.selectedBorder,
-                        },
-                      ]
-                      : styles.sheetOptionCardUnselected,
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.sheetStatusDot,
-                      { backgroundColor: item.dotColor },
-                    ]}
-                  />
-
-                  <View style={styles.sheetTextCol}>
-                    <Text
-                      style={[
-                        styles.sheetOptionLabel,
-                        isSelected && { color: item.selectedTitleColor },
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
-                    <Text style={styles.sheetOptionDesc}>
-                      {item.description}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={[
-                      styles.radioOuter,
-                      isSelected
-                        ? { borderColor: item.radioColor }
-                        : styles.radioOuterUnselected,
-                    ]}
-                  >
-                    {isSelected ? (
-                      <View
-                        style={[
-                          styles.radioInner,
-                          { backgroundColor: item.radioColor },
-                        ]}
-                      />
-                    ) : null}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+            {STATUS_OPTIONS_DATA.map((item) => (
+              <SelectOptionCard
+                key={item.value}
+                label={item.label}
+                description={item.description}
+                dotColor={item.dotColor}
+                selectedBg={item.selectedBg}
+                selectedBorder={item.selectedBorder}
+                radioColor={item.radioColor}
+                selectedTitleColor={item.selectedTitleColor}
+                isSelected={status === item.value}
+                onPress={() => {
+                  setStatus(item.value);
+                  setStatusSheetVisible(false);
+                }}
+              />
+            ))}
           </View>
         </BottomSheet>
 
@@ -1253,10 +1089,10 @@ const styles = StyleSheet.create({
   },
   photoSectionTitle: {
     fontFamily: userFonts.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 22,
     color: '#171717',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   photoUploadBox: {
     width: '100%',
@@ -1479,60 +1315,5 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingBottom: 24,
     gap: 8,
-  },
-  sheetOptionCard: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 9,
-    borderWidth: 1,
-  },
-  sheetOptionCardSelected: {
-    borderWidth: 1.5,
-  },
-  sheetOptionCardUnselected: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E5E7EB',
-  },
-  sheetStatusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  sheetTextCol: {
-    flex: 1,
-    marginLeft: 10,
-    marginRight: 8,
-  },
-  sheetOptionLabel: {
-    fontFamily: userFonts.semiBold,
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#111827',
-  },
-  sheetOptionDesc: {
-    fontFamily: userFonts.regular,
-    fontSize: 11,
-    lineHeight: 15,
-    color: '#64748B',
-    marginTop: 1,
-  },
-  radioOuter: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioOuterUnselected: {
-    borderColor: '#D1D5DB',
-  },
-  radioInner: {
-    width: 9,
-    height: 9,
-    borderRadius: 4.5,
   },
 });

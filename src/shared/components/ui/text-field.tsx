@@ -46,7 +46,7 @@ export function TextField({
       </Text>
       <TextInput
         ref={ref}
-        accessibilityLabel={required ? `${label}, required` : label}
+        accessibilityLabel={required ? `${label}, wajib` : label}
         accessibilityHint={hasError ? errorText : undefined}
         placeholderTextColor={theme.colors.textMuted}
         style={[

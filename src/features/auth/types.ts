@@ -11,7 +11,7 @@ export type LoginFormErrors = {
   readonly form?: string;
 };
 
-export type Gender = 'Laki-Laki' | 'Perempuan' | 'Male' | 'Female';
+export type Gender = 'Laki-Laki' | 'Perempuan';
 
 export type UsernameStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
 
@@ -65,6 +65,12 @@ export type RegisterProfileRouteParams = {
   readonly dateOfBirth: string;
   readonly classGrade: string;
   readonly gender?: Gender | null;
+};
+
+export type OtpScreenRouteParams = {
+  readonly email: string;
+  readonly mode?: 'signup' | 'reset-password';
+  readonly from?: 'register' | 'login' | 'forgot-password';
 };
 
 export type Session = AuthState;
