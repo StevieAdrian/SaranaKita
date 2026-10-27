@@ -24,6 +24,20 @@ const STATUS_COLORS: Record<ReportStatus, string> = {
   [REPORT_STATUS.DONE]: palette.greenStatus,
 };
 
+function formatActivityDate(value: string): string {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 export function RecentActivities({
   role,
   activities,
@@ -79,12 +93,19 @@ export function RecentActivities({
                   className="text-[11px]"
                   style={{ color: colors.textSecondary }}
                 >
+                  {activity.description}
+                </Text>
+
+                <Text
+                  className="text-[11px]"
+                  style={{ color: colors.textSecondary }}
+                >
                   {REPORT_STATUS_NAME_BY_STATUS[activity.status]}
                 </Text>
               </View>
 
               <Text className="text-[11px]" style={{ color: colors.textMuted }}>
-                {activity.date}
+                {formatActivityDate(activity.date)}
               </Text>
             </View>
           ))
