@@ -172,7 +172,7 @@ async function restore(): Promise<void> {
       setState({ status: 'unauthenticated', user: null });
     } else {
       if (__DEV__) {
-        console.warn('[authClient.restore] Gagal verifikasi sesi karena kendala jaringan:', error);
+        console.warn('[authClient.restore] Gagal verifikasi sesi karena kendala jaringan:', err);
       }
       if (cachedUser) {
         setState({ status: 'authenticated', user: cachedUser });

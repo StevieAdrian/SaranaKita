@@ -4,7 +4,7 @@ import { ConfirmationModal, Toast } from '@/shared/components/ui';
 import { ClassSelectField } from '@/features/auth/components';
 import { useRole } from '@/shared/context/theme-context';
 import { spacing } from '@/shared/theme';
-import { CLASS_OPTIONS, profileFonts } from '../utils/constants';
+import { profileFonts } from '../utils/constants';
 
 export type SchoolFormData = {
   schoolName: string;

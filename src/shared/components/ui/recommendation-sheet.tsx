@@ -33,7 +33,8 @@ export function RecommendationSheet({
   onSubmit,
   onCancel,
 }: RecommendationSheetProps): React.JSX.Element {
-  const { theme } = useRole();
+  const { theme, scheme } = useRole();
+  const isDark = scheme === 'dark';
   const [reason, setReason] = useState('');
 
   useEffect(() => {
@@ -107,9 +108,13 @@ export function RecommendationSheet({
         />
         <Button
           title="Batal"
+          variant="secondary"
           disabled={loading}
           onPress={handleCancel}
-          style={CANCEL_BUTTON}
+          style={[
+            CANCEL_BUTTON,
+            { backgroundColor: isDark ? theme.borderSubtle : palette.teacherSoft },
+          ]}
         />
       </View>
     </BottomSheet>

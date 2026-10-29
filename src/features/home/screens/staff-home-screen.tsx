@@ -23,6 +23,7 @@ import { ReportStatusSummary } from '../components/report-status-summary';
 import { useAdminDashboard } from '../hooks/use-admin-dashboard';
 import { useCurrentUser } from '../hooks/use-current-user';
 import { toDisplayDate } from '../utils/feed';
+import { useRole } from '@/shared/context/theme-context';
 
 const STAFF_PRIMARY = getThemeColors(USER_ROLE.STAFF).primary;
 const ACTION_COLOR = '#A51920';
@@ -34,26 +35,28 @@ function UrgentReportCard({
   report: FeedReport;
   onPress: () => void;
 }): React.JSX.Element {
+  const { theme } = useRole();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Buka laporan ${report.title}`}
-      className="flex-row gap-2 rounded-lg bg-white p-3 active:opacity-80"
+      style={{ backgroundColor: theme.surface }}
+      className="flex-row gap-2 rounded-lg p-3 active:opacity-80"
     >
       <ReportThumbnail uri={report.imageUrl} className="h-20 w-20 rounded-md" />
       <View className="flex-1 gap-1">
-        <Text numberOfLines={1} className="text-sm font-bold text-gray-900">
+        <Text numberOfLines={1} style={{ color: theme.textHeading }} className="text-sm font-bold">
           {report.title}
         </Text>
-        <Text numberOfLines={1} className="text-xs text-gray-500">
+        <Text numberOfLines={1} style={{ color: theme.textSecondary }} className="text-xs">
           {report.reporterName} · {toDisplayDate(report.createdAt)}
         </Text>
         <StatusBadge status={report.status} size="sm" />
-        <Text className="text-xs text-gray-600">
-          <Text className="font-bold text-gray-900">{report.votes}</Text>
+        <Text style={{ color: theme.textSecondary }} className="text-xs">
+          <Text style={{ color: theme.textHeading }} className="font-bold">{report.votes}</Text>
           {'  '}Votes{'   '}
-          <Text className="font-bold text-gray-900">{report.comments}</Text>
+          <Text style={{ color: theme.textHeading }} className="font-bold">{report.comments}</Text>
           {'  '}Komentar
         </Text>
       </View>
@@ -119,8 +122,9 @@ export function StaffHomeScreen(): React.JSX.Element {
   );
   const openReportHistory = () => navigation.navigate('ReportHistory');
 
+  const { theme } = useRole();
   return (
-    <View className="flex-1 bg-[#ECF3FD]">
+    <View style={{ backgroundColor: theme.background }} className="flex-1">
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -188,7 +192,7 @@ export function StaffHomeScreen(): React.JSX.Element {
 
           <View className="gap-3">
             <View className="flex-row items-center justify-between">
-              <Text className="text-base font-bold text-gray-900">
+              <Text style={{ color: theme.textHeading }} className="text-base font-bold">
                 Perlu Tindakan Segera
               </Text>
               <Pressable
@@ -221,10 +225,10 @@ export function StaffHomeScreen(): React.JSX.Element {
           </View>
 
           <View className="gap-3">
-            <Text className="text-base font-bold text-gray-900">
+            <Text style={{ color: theme.textHeading }} className="text-base font-bold">
               Laporan Per Kategori
             </Text>
-            <View className="gap-4 rounded-lg bg-white p-4">
+            <View style={{ backgroundColor: theme.surface }} className="gap-4 rounded-lg p-4">
               {dashboard.categories.map(category => (
                 <View
                   key={category.id}
@@ -232,11 +236,11 @@ export function StaffHomeScreen(): React.JSX.Element {
                 >
                   <Text
                     numberOfLines={1}
-                    className="w-20 text-xs text-gray-700"
+                    style={{ color: theme.textSecondary }} className="w-20 text-xs"
                   >
                     {category.name}
                   </Text>
-                  <View className="h-2 flex-1 overflow-hidden rounded-full bg-gray-100">
+                  <View style={{ backgroundColor: theme.borderSubtle }} className="h-2 flex-1 overflow-hidden rounded-full">
                     <View
                       className="h-full rounded-full"
                       style={{
@@ -245,7 +249,7 @@ export function StaffHomeScreen(): React.JSX.Element {
                       }}
                     />
                   </View>
-                  <Text className="w-5 text-right text-xs text-gray-600">
+                  <Text style={{ color: theme.textMuted }} className="w-5 text-right text-xs">
                     {category.count}
                   </Text>
                 </View>

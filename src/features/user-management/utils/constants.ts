@@ -1,3 +1,4 @@
+import { Appearance } from 'react-native';
 import { fontFamilies, palette } from '@/shared/theme';
 import type { RadioOption, SelectOption } from '@/shared/components/ui';
 
@@ -50,8 +51,6 @@ export const USER_STATUS_OPTIONS: readonly SelectOption[] = [
   { value: 'active', label: 'Aktif' },
   { value: 'inactive', label: 'Nonaktif' },
 ] as const;
-
-import { Appearance } from 'react-native';
 
 export function getUserManagementColors(scheme?: 'light' | 'dark' | null) {
   const isDark = (scheme ?? Appearance.getColorScheme()) === 'dark';

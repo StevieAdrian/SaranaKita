@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -24,15 +23,16 @@ import {
   REPORT_STATUS,
   REPORT_STATUS_NAME,
   REPORT_STATUS_NAMES,
-  type ReportStatus,
   type UpdateReportStatusName,
 } from '@/services/report';
 import {
   ReportProgress,
   REPORT_PROGRESS,
 } from '@/shared/components/report';
-import { BottomSheet } from '@/shared/components/ui';
+import { BottomSheet, Toast } from '@/shared/components/ui';
 import { getThemeColors, palette } from '@/shared/theme';
+import { useRole } from '@/shared/context/theme-context';
+import { NotFoundScreen } from '@/features/auth/screens/transitions';
 import { ReportGallery } from '../components/report-gallery';
 import {
   ReporterCard,
@@ -109,6 +109,7 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
   const route = useRoute<ManagementDetailRoute>();
   const insets = useSafeAreaInsets();
   const { user } = useSession();
+  const { theme } = useRole();
   const primaryColor =
     user?.role === USER_ROLE.STAFF
       ? getThemeColors(USER_ROLE.STAFF).primary
@@ -118,10 +119,20 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
     useState(false);
   const [rejectionConfirmationOpen, setRejectionConfirmationOpen] =
     useState(false);
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    visible: false,
+    message: '',
+    type: 'error',
+  });
   const {
     report,
     loading,
     error,
+    isNotFound,
     comments,
     commentsError,
     changingStatus,
@@ -135,7 +146,17 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
     setStatusSheetOpen(false);
     const message = await changeStatus({ statusName });
     if (message) {
-      Alert.alert('Gagal mengubah status', message);
+      setToast({
+        visible: true,
+        message,
+        type: 'error',
+      });
+    } else {
+      setToast({
+        visible: true,
+        message: 'Status laporan berhasil diperbarui.',
+        type: 'success',
+      });
     }
   };
 
@@ -149,12 +170,12 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
 
   const confirmVerification = () => {
     setVerificationConfirmationOpen(false);
-    updateStatus(REPORT_STATUS_NAME.IN_REVIEW).catch(() => {});
+    updateStatus(REPORT_STATUS_NAME.IN_REVIEW).catch(() => { });
   };
 
   const confirmRejection = () => {
     setRejectionConfirmationOpen(false);
-    updateStatus(REPORT_STATUS_NAME.REJECTED).catch(() => {});
+    updateStatus(REPORT_STATUS_NAME.REJECTED).catch(() => { });
   };
 
   const header = (
@@ -167,12 +188,21 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
 
   if (loading && !report) {
     return (
-      <View className="flex-1 bg-white">
+      <View className="flex-1" style={{ backgroundColor: theme.surface }}>
         {header}
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={primaryColor} />
         </View>
       </View>
+    );
+  }
+
+  if (!loading && (isNotFound || (!report && error?.toLowerCase().includes('tidak ditemukan')))) {
+    return (
+      <NotFoundScreen
+        navigation={navigation}
+        message="Laporan tidak ditemukan."
+      />
     );
   }
 
@@ -212,12 +242,12 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
         }}
       >
         <ReportGallery imageUrls={report.imageUrls} title={report.title} />
-        <View className="-mt-5 gap-4 rounded-t-3xl bg-white px-5 pt-5">
+        <View className="-mt-5 gap-4 rounded-t-3xl px-5 pt-5" style={{ backgroundColor: theme.surface }}>
           <View className="gap-3">
             <View className="flex-row items-start gap-3">
               <Text
                 accessibilityRole="header"
-                className="flex-1 text-xl font-bold leading-6 text-[#172033]"
+                style={{ color: theme.textHeading }} className="flex-1 text-xl font-bold leading-6"
               >
                 {report.title}
               </Text>
@@ -541,20 +571,18 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
           return (
             <Pressable
               key={statusName}
-              onPress={() => updateStatus(statusName).catch(() => {})}
+              onPress={() => updateStatus(statusName).catch(() => { })}
               disabled={changingStatus}
               accessibilityRole="button"
               accessibilityState={{ selected }}
-              className={`min-h-[48px] justify-center rounded-lg px-3 ${
-                selected ? 'bg-[#FEF3C7]' : ''
-              }`}
+              className={`min-h-[48px] justify-center rounded-lg px-3 ${selected ? 'bg-[#FEF3C7]' : ''
+                }`}
             >
               <Text
-                className={`text-sm ${
-                  selected
-                    ? 'font-semibold text-[#854D0E]'
-                    : 'text-gray-800'
-                }`}
+                className={`text-sm ${selected
+                  ? 'font-semibold text-[#854D0E]'
+                  : 'text-gray-800'
+                  }`}
               >
                 {statusName}
               </Text>
@@ -562,6 +590,13 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
           );
         })}
       </BottomSheet>
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onDismiss={() => setToast(prev => ({ ...prev, visible: false }))}
+      />
     </View>
   );
 }

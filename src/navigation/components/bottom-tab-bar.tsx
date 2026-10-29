@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { palette } from '@/shared/theme';
 import { useCurrentUser } from '@/features/home/hooks/use-current-user';
@@ -7,6 +7,7 @@ import { adminTheme, staffTheme } from '@/shared/theme/colors';
 import { useRole } from '@/shared/context/theme-context';
 
 const ICON_SIZE = 28;
+const SHADOW = { boxShadow: '0 -4px 12px rgba(15, 23, 42, 0.08)' } as const;
 const ROLE_COLORS: Record<string, string> = {
   siswa: palette.primary,
   guru: palette.teacherPrimary,
@@ -20,20 +21,23 @@ export function BottomTabBar({
   navigation,
   insets,
 }: BottomTabBarProps): React.JSX.Element {
-  const { theme } = useRole();
+  const { theme, scheme } = useRole();
+  const isDark = scheme === 'dark';
   const user = useCurrentUser();
 
   const activeColor = ROLE_COLORS[user?.role ?? ''] ?? theme.primary;
+  const inactiveColor = isDark ? theme.iconInactive : palette.tabInactive;
 
   return (
     <View
       accessibilityRole="tablist"
       className="flex-row items-center rounded-t-[32px] px-4 pt-4"
       style={[
-        styles.bar,
+        !isDark && SHADOW,
         {
-          backgroundColor: theme.surface,
-          shadowColor: theme.shadowColor,
+          backgroundColor: isDark ? theme.surface : '#FFFFFF',
+          borderTopWidth: isDark ? 1 : 0,
+          borderTopColor: isDark ? theme.borderSubtle : 'transparent',
           paddingBottom: Math.max(insets.bottom, 12),
         },
       ]}
@@ -78,7 +82,7 @@ export function BottomTabBar({
           >
             {options.tabBarIcon?.({
               focused,
-              color: focused ? activeColor : theme.iconInactive,
+              color: focused ? activeColor : inactiveColor,
               size: ICON_SIZE,
             })}
           </Pressable>
@@ -87,12 +91,3 @@ export function BottomTabBar({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  bar: {
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-});

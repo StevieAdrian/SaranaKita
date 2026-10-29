@@ -106,7 +106,7 @@ export function DatePicker({
           <DateTimePicker
             value={draft}
             mode="date"
-            display="spinner"
+            display="inline"
             minimumDate={minimumDate}
             maximumDate={maximumDate}
             themeVariant={scheme}

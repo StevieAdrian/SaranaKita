@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -15,9 +14,11 @@ import type { FeedReport } from '@/services/report';
 import { PopularReportCard, ReportListCard } from '@/shared/components/report';
 import {
   ChipTabs,
+  ConfirmationModal,
   RecommendationSheet,
   SearchBar,
   SectionHeader,
+  Toast,
 } from '@/shared/components/ui';
 import { palette } from '@/shared/theme';
 import { HomeHeader } from '../components/home-header';
@@ -44,9 +45,7 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
   const {
     saveNote,
     removeNote,
-    isSaving,
     isDeleting,
-    error: noteError,
   } = useReportNote({
     onSuccess: async () => {
       await feed.refresh();
@@ -69,6 +68,18 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
     'create',
   );
   const [selectedInitialNote, setSelectedInitialNote] = useState('');
+  const [deleteNoteReportId, setDeleteNoteReportId] = useState<string | null>(
+    null,
+  );
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    visible: false,
+    message: '',
+    type: 'error',
+  });
 
   const navigation = useNavigation();
 
@@ -100,7 +111,11 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
     async (id: string) => {
       const message = await vote(id);
       if (message) {
-        Alert.alert('Gagal menyimpan vote', message);
+        setToast({
+          visible: true,
+          message,
+          type: 'error',
+        });
       }
     },
     [vote],
@@ -113,7 +128,13 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
         return;
       }
       const message = await recommend(id);
-      if (message) Alert.alert('Gagal menyimpan rekomendasi', message);
+      if (message) {
+        setToast({
+          visible: true,
+          message,
+          type: 'error',
+        });
+      }
     },
     [recommend],
   );
@@ -126,17 +147,45 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
       setRecommendationSubmitting(true);
       try {
         const message = await recommend(recommendationReportId, reason);
+        setRecommendationReportId(null);
         if (message) {
-          Alert.alert('Gagal menyimpan rekomendasi', message);
+          setToast({
+            visible: true,
+            message,
+            type: 'error',
+          });
           return;
         }
-        setRecommendationReportId(null);
       } finally {
         setRecommendationSubmitting(false);
       }
     },
     [recommend, recommendationReportId, recommendationSubmitting],
   );
+
+  const handleConfirmDeleteNote = useCallback(async () => {
+    if (!deleteNoteReportId) return;
+    const reportId = deleteNoteReportId;
+    try {
+      await removeNote(reportId);
+      setDeleteNoteReportId(null);
+      setToast({
+        visible: true,
+        message: 'Catatan berhasil dihapus.',
+        type: 'success',
+      });
+    } catch (err) {
+      setDeleteNoteReportId(null);
+      setToast({
+        visible: true,
+        message:
+          err instanceof Error
+            ? err.message
+            : 'Gagal menghapus catatan. Silakan coba lagi.',
+        type: 'error',
+      });
+    }
+  }, [deleteNoteReportId, removeNote]);
 
   const renderPopular: ListRenderItem<FeedReport> = useCallback(
     ({ item }) => (
@@ -210,20 +259,7 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
               setNoteSheetVisible(true);
             }}
             onDeleteNotePress={() => {
-              Alert.alert(
-                'Hapus Catatan',
-                'Apakah kamu yakin ingin menghapus catatan ini?',
-                [
-                  { text: 'Batal', style: 'cancel' },
-                  {
-                    text: 'Hapus',
-                    style: 'destructive',
-                    onPress: () => {
-                      removeNote(item.id).catch(() => {});
-                    },
-                  },
-                ],
-              );
+              setDeleteNoteReportId(item.id);
             }}
             canStillEdit={canStillEdit}
             remainingTime={remainingTime}
@@ -232,7 +268,7 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
               isOwner
                 ? undefined
                 : isTeacher
-                ? {
+                  ? {
                     label: item.recommendedByMe
                       ? 'Direkomendasikan'
                       : 'Rekomendasi',
@@ -243,18 +279,18 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
                       : `Rekomendasikan ${item.title}`,
                     onPress: () => {
                       handleRecommendation(item.id, item.recommendedByMe).catch(
-                        () => {},
+                        () => { },
                       );
                     },
                   }
-                : {
+                  : {
                     label: item.votedByMe ? 'Voted' : 'Vote',
                     variant: item.votedByMe ? 'muted' : 'solid',
                     accessibilityLabel: item.votedByMe
                       ? `Batalkan vote untuk ${item.title}`
                       : `Vote ${item.title}`,
                     onPress: () => {
-                      handleVote(item.id).catch(() => {});
+                      handleVote(item.id).catch(() => { });
                     },
                   }
             }
@@ -399,7 +435,7 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
         visible={recommendationReportId !== null}
         loading={recommendationSubmitting}
         onSubmit={reason => {
-          handleRecommendationSubmit(reason).catch(() => {});
+          handleRecommendationSubmit(reason).catch(() => { });
         }}
         onCancel={() => setRecommendationReportId(null)}
       />
@@ -414,8 +450,35 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
           await saveNote(selectedReportId, noteText, selectedNoteMode);
 
           setNoteSheetVisible(false);
+          setToast({
+            visible: true,
+            message:
+              selectedNoteMode === 'create'
+                ? 'Catatan berhasil ditambahkan.'
+                : 'Catatan berhasil diperbarui.',
+            type: 'success',
+          });
         }}
         buttonColor={isTeacher ? palette.teacherPrimary : palette.primary}
+      />
+      <ConfirmationModal
+        visible={deleteNoteReportId !== null}
+        title="Hapus Catatan?"
+        message="Apakah kamu yakin ingin menghapus catatan ini?"
+        confirmLabel="Ya, Hapus"
+        cancelLabel="Batal"
+        tone="danger"
+        loading={isDeleting}
+        onConfirm={() => {
+          handleConfirmDeleteNote().catch(() => { });
+        }}
+        onCancel={() => setDeleteNoteReportId(null)}
+      />
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onDismiss={() => setToast(prev => ({ ...prev, visible: false }))}
       />
     </View>
   );

@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Modal, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { fontFamilies } from '@/shared/theme';
+import { useRole } from '@/shared/context/theme-context';
 
 export type BottomSheetProps = {
   visible: boolean;
@@ -15,6 +17,7 @@ export function BottomSheet({
   title,
   children,
 }: BottomSheetProps): React.JSX.Element {
+  const { theme } = useRole();
   const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(0)).current;
   const canDismissRef = useRef(false);
@@ -88,6 +91,8 @@ export function BottomSheet({
           style={[
             styles.sheet,
             {
+              backgroundColor: theme.surface,
+              shadowColor: theme.shadowColor,
               paddingBottom: Math.max(insets.bottom, 16) + 12,
               transform: [{ translateY }],
             },
@@ -95,11 +100,11 @@ export function BottomSheet({
         >
           <View {...panResponder.panHandlers} style={styles.header}>
             <View style={styles.handleContainer}>
-              <View style={styles.handleBar} />
+              <View style={[styles.handleBar, { backgroundColor: theme.borderControl }]} />
             </View>
             {title ? (
               <View style={styles.titleContainer}>
-                <Text style={styles.titleText}>
+                <Text style={[styles.titleText, { color: theme.textHeading }]}>
                   {title}
                 </Text>
               </View>
@@ -127,11 +132,9 @@ const styles = StyleSheet.create({
   },
   sheet: {
     maxHeight: '85%',
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 16,
-    shadowColor: '#000000',
     shadowOffset: { width: 0, height: -3 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -153,7 +156,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 99,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   titleContainer: {
     width: '100%',
@@ -163,11 +165,10 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   titleText: {
-    fontFamily: 'Poppins-Bold',
+    fontFamily: fontFamilies.bold,
     fontSize: 18,
     lineHeight: 27,
     fontWeight: Platform.OS === 'ios' ? '700' : undefined,
-    color: '#0F172A',
     textAlign: 'left',
   },
 });
