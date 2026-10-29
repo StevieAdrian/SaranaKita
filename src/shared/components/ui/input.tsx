@@ -1,6 +1,6 @@
 import React from 'react';
 import { TextInput, type TextInputProps } from 'react-native';
-import { palette } from '@/shared/theme';
+import { useRole } from '@/shared/context/theme-context';
 
 const fontRegular = 'Poppins-Regular';
 
@@ -14,29 +14,29 @@ export function Input({
   className,
   ...rest
 }: InputProps): React.JSX.Element {
+  const { theme } = useRole();
   const isEditable = rest.editable !== false;
 
   return (
     <TextInput
-      placeholderTextColor={palette.gray500}
+      placeholderTextColor={theme.textPlaceholder}
       multiline={multiline}
       textAlignVertical={multiline ? 'top' : 'center'}
       className={[
         'rounded-lg border px-4 text-base',
-        isEditable ? 'bg-field text-gray-900 border-field-border' : 'border-transparent',
         multiline ? 'min-h-[110px] py-3' : 'h-12',
-        hasError ? 'border-red-500' : '',
         className,
       ]
         .filter(Boolean)
         .join(' ')}
       style={[
-        { fontFamily: fontRegular, fontSize: 14, color: '#1E1E1E' },
-        !isEditable && {
-          backgroundColor: 'rgba(0, 0, 0, 0.2)',
-          color: '#1E1E1E',
-          borderColor: 'transparent',
-          borderWidth: 0,
+        {
+          fontFamily: fontRegular,
+          fontSize: 14,
+          color: theme.textInput,
+          backgroundColor: isEditable ? theme.surfaceInput : theme.overlayDisabled,
+          borderColor: hasError ? theme.danger : (isEditable ? theme.borderInput : 'transparent'),
+          borderWidth: isEditable ? 1 : 0,
         },
         rest.style,
       ]}

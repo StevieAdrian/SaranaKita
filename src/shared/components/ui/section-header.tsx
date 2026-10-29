@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { hitSlop } from '@/shared/theme';
+import { useRole } from '@/shared/context/theme-context';
 
 export type SectionHeaderProps = {
   title: string;
@@ -13,13 +14,16 @@ export function SectionHeader({
   actionLabel = 'Lihat Semua',
   onActionPress,
 }: SectionHeaderProps): React.JSX.Element {
+  const { theme } = useRole();
+
   return (
     <View className="flex-row items-center justify-between">
       <Text
         accessibilityRole="header"
-        className="text-xl font-bold text-gray-900"
+        style={{ color: theme.textHeading }}
+        className="text-xl font-bold"
       >
-        {title} 
+        {title}
       </Text>
       {onActionPress ? (
         <Pressable
@@ -29,7 +33,7 @@ export function SectionHeader({
           accessibilityLabel={`${actionLabel} ${title}`}
           className="min-h-[44px] justify-center active:opacity-60"
         >
-          <Text className="text-sm font-medium text-gray-900">
+          <Text style={{ color: theme.textHeading }} className="text-sm font-medium">
             {actionLabel}
           </Text>
         </Pressable>

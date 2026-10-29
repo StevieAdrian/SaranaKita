@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Image, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, Platform, StatusBar, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import checkIcon from '@/assets/images/verified-checkmark.png';
 import crossIcon from '@/assets/images/unverified-crossmark.png';

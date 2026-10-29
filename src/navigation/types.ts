@@ -16,7 +16,7 @@ export type AuthStackParamList = {
   ForgotPassword: undefined;
   ResetPassword: { email: string };
   Loading?: { message?: string };
-  NotFound?: undefined;
+  NotFound?: { title?: string; message?: string };
 };
 
 export type TabParamList = {
@@ -38,7 +38,7 @@ export type RootStackParamList = {
   UserManagement: { toastMessage?: string; toastType?: 'success' | 'error' } | undefined;
   AddUser: undefined;
   EditUser: { user: ManageUser };
-  NotFound: undefined;
+  NotFound?: { title?: string; message?: string };
   EvaluationReport: {
     reportId: string;
     reportTitle: string;
