@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
-import { authClient } from '@/services/auth';
+import { authClient, supabase } from '@/services/auth';
+import { toUserMessage } from '@/services/api';
 import { TextField } from '@/shared/components/ui/text-field';
 import { ConfirmationModal, Toast } from '@/shared/components/ui';
 import { authConstants } from '../constants/auth-constants';
+import { validateConfirmPasswordValue, validatePasswordValue } from '../utils/validation';
 import type { AuthStackParamList } from '@/navigation/types';
 import leftArrow from '@/assets/images/left-arrow.png';
 import logo from '@/assets/images/logo-saranakita.png';
@@ -39,16 +41,18 @@ export function ResetPasswordScreen(): React.JSX.Element {
   const validate = (): boolean => {
     const errs: { newPassword?: string; confirmPassword?: string } = {};
 
-    if (!newPassword.trim()) {
-      errs.newPassword = 'Kata sandi baru wajib diisi.';
-    } else if (newPassword.length < 8) {
-      errs.newPassword = 'Kata sandi minimal 8 karakter.';
+    const newPassErr = validatePasswordValue(newPassword, 'Kata sandi baru');
+    if (newPassErr) {
+      errs.newPassword = newPassErr;
     }
 
-    if (!confirmPassword.trim()) {
-      errs.confirmPassword = 'Konfirmasi kata sandi wajib diisi.';
-    } else if (confirmPassword !== newPassword) {
-      errs.confirmPassword = 'Konfirmasi kata sandi tidak cocok.';
+    const confirmPassErr = validateConfirmPasswordValue(
+      newPassword,
+      confirmPassword,
+      'Konfirmasi kata sandi baru',
+    );
+    if (confirmPassErr) {
+      errs.confirmPassword = confirmPassErr;
     }
 
     setErrors(errs);
@@ -67,6 +71,10 @@ export function ResetPasswordScreen(): React.JSX.Element {
     setSubmitting(true);
 
     try {
+      try {
+        await supabase.auth.updateUser({ password: newPassword });
+      } catch { }
+
       await authClient.resetPassword({
         email,
         newPassword,
@@ -88,13 +96,9 @@ export function ResetPasswordScreen(): React.JSX.Element {
         ],
       });
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        'Gagal memperbarui kata sandi. Silakan coba beberapa saat lagi.';
       setToast({
         visible: true,
-        message: msg,
+        message: toUserMessage(err) || 'Gagal memperbarui kata sandi. Silakan coba beberapa saat lagi.',
         type: 'error',
       });
     } finally {
@@ -102,7 +106,7 @@ export function ResetPasswordScreen(): React.JSX.Element {
     }
   };
 
-  const isFormValid = newPassword.trim().length >= 8 && confirmPassword.trim().length >= 8;
+  const isFormValid = Boolean(newPassword.trim() && confirmPassword.trim());
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>

@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import checkIcon from '@/assets/images/check.png';
 import leftArrow from '@/assets/images/left-arrow.png';
 import { USER_ROLE } from '@/services/auth';
-import { useSession } from '@/features/auth';
+import { useSession } from '@/features/auth/hooks/use-session';
 import {
   REPORT_STATUS_BY_NAME,
   REPORT_STATUS_NAME_BY_STATUS,

@@ -36,17 +36,26 @@ export function useLoginForm(): UseLoginForm {
       if (error instanceof ApiError) {
         const body: any = error.body;
         const msg = (error.message || '').toLowerCase();
-        const bodyMsg = (typeof body?.message === 'string' ? body.message : '').toLowerCase();
-        const isUnverified =
+        const bodyMsg = (
+          typeof body?.error?.message === 'string'
+            ? body.error.message
+            : typeof body?.message === 'string'
+              ? body.message
+              : ''
+        ).toLowerCase();
+        const isPendingOtpVerification =
           body?.code === 'EMAIL_NOT_VERIFIED' ||
           body?.error === 'EMAIL_NOT_VERIFIED' ||
-          msg.includes('belum diverifikasi') ||
+          body?.error?.code === 'EMAIL_NOT_VERIFIED' ||
+          msg.includes('kode otp') ||
           msg.includes('email not confirmed') ||
-          bodyMsg.includes('belum diverifikasi') ||
+          bodyMsg.includes('kode otp') ||
           bodyMsg.includes('email not confirmed');
 
-        if (isUnverified) {
-          const targetEmail = body?.email || email.trim().toLowerCase();
+        if (isPendingOtpVerification) {
+          const targetEmail =
+            body?.error?.email || body?.email || email.trim().toLowerCase();
+          await authClient.resendOtp(targetEmail, 'signup').catch(() => { });
           navigation.navigate('OtpVerification', {
             email: targetEmail,
             mode: 'signup',
@@ -56,10 +65,19 @@ export function useLoginForm(): UseLoginForm {
         }
       }
 
+      const userMsg = toUserMessage(error);
+      const lowerMsg = userMsg.toLowerCase();
+      const isAccountStatusError =
+        lowerMsg.includes('dinonaktifkan') ||
+        lowerMsg.includes('dihapus') ||
+        lowerMsg.includes('tidak aktif') ||
+        lowerMsg.includes('belum diverifikasi');
+
       const message =
-        error instanceof ApiError && error.status === 401
+        error instanceof ApiError && error.status === 401 && !isAccountStatusError
           ? 'Email atau kata sandi salah.'
-          : toUserMessage(error);
+          : userMsg;
+      setPassword('');
       setErrors({ form: message });
     } finally {
       setSubmitting(false);

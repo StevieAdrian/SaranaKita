@@ -1,21 +1,30 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, BackHandler, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { authClient } from '@/services/auth';
+import { toUserMessage } from '@/services/api';
 import { TextField } from '@/shared/components/ui/text-field';
 import { Toast } from '@/shared/components/ui';
 import { AuthDivider, AuthHeader, ClassSelectField, DateOfBirthField, GenderRadioField, GoogleButton, UsernameInput } from '../components';
 import { authConstants } from '../constants/auth-constants';
 import { useRegisterForm } from '../hooks/use-register-form';
+import { checkUserProfileComplete, signInWithGoogle, statusCodes } from '../services/google-auth';
 
 export function RegisterScreen(): React.JSX.Element {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const routeParams = route.params;
+
   const [toast, setToast] = useState<{
     visible: boolean;
     message: string;
     type: 'success' | 'error' | 'info';
   }>({ visible: false, message: '', type: 'info' });
+  const [googleLoading, setGoogleLoading] = useState(false);
+
   const {
+    isGoogleAuth,
     username,
     firstName,
     lastName,
@@ -40,18 +49,73 @@ export function RegisterScreen(): React.JSX.Element {
     setClassGrade,
     setGender,
     submit,
-  } = useRegisterForm();
+  } = useRegisterForm(routeParams);
+
+  useEffect(() => {
+    if (!isGoogleAuth) return;
+
+    const onBackPress = () => {
+      if (!navigation.isFocused()) {
+        return false;
+      }
+      authClient.signOut().catch(() => { });
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+      return true;
+    };
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, [isGoogleAuth, navigation]);
 
   const handleLoginPress = () => {
-    navigation.navigate('Login');
+    if (isGoogleAuth) {
+      authClient.signOut().catch(() => { });
+    }
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
   };
 
-  const handleGooglePress = () => {
-    setToast({
-      visible: true,
-      message: 'Fitur Google Sign-Up segera hadir.',
-      type: 'info',
-    });
+  const handleGooglePress = async () => {
+    setGoogleLoading(true);
+    try {
+      const { authData, userEmail, userFullName } = await signInWithGoogle();
+      const userId = authData.session.user.id;
+
+      const { isComplete, userData } = await checkUserProfileComplete(userId, authData.session.access_token);
+      if (!isComplete) {
+        navigation.replace('SignUp', {
+          isGoogleAuth: true,
+          email: userEmail,
+          fullName: userFullName,
+        });
+      } else {
+        await authClient.applySupabaseSession(authData.session, userData);
+      }
+    } catch (err: any) {
+      authClient.signOut().catch(() => { });
+      if (err?.code === statusCodes?.SIGN_IN_CANCELLED) return;
+      if (err?.code === statusCodes?.IN_PROGRESS) return;
+      if (err?.code === statusCodes?.PLAY_SERVICES_NOT_AVAILABLE) {
+        setToast({
+          visible: true,
+          message: 'Layanan Google Play tidak tersedia pada perangkat ini.',
+          type: 'error',
+        });
+        return;
+      }
+      setToast({
+        visible: true,
+        message: toUserMessage(err) || 'Gagal mendaftar dengan Google.',
+        type: 'error',
+      });
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   return (
@@ -69,8 +133,12 @@ export function RegisterScreen(): React.JSX.Element {
           {/* Header */}
           <View style={styles.centerBlock}>
             <AuthHeader
-              title="Mulai Sekarang"
-              subtitle="Buat akun dan wujudkan sekolah yang lebih baik."
+              title={isGoogleAuth ? 'Lengkapi Profil' : 'Mulai Sekarang'}
+              subtitle={
+                isGoogleAuth
+                  ? 'Buat kata sandi dan lengkapi data profil untuk mengaktifkan akun Anda.'
+                  : 'Buat akun dan wujudkan sekolah yang lebih baik.'
+              }
             />
           </View>
 
@@ -119,9 +187,11 @@ export function RegisterScreen(): React.JSX.Element {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              editable={!isGoogleAuth}
+              accessibilityState={isGoogleAuth ? { disabled: true } : undefined}
               errorText={errors.email}
               labelStyle={styles.label}
-              style={styles.input}
+              style={[styles.input, isGoogleAuth && styles.inputDisabled]}
             />
 
             <TextField
@@ -227,10 +297,17 @@ export function RegisterScreen(): React.JSX.Element {
             </View>
           </View>
 
-          <View style={styles.bottomBlock}>
-            <AuthDivider text="Atau lanjutkan dengan" />
-            <GoogleButton onPress={handleGooglePress} label="Google" />
-          </View>
+          {!isGoogleAuth ? (
+            <View style={styles.bottomBlock}>
+              <AuthDivider text="Atau lanjutkan dengan" />
+              <GoogleButton
+                onPress={handleGooglePress}
+                label="Google"
+                disabled={submitting || googleLoading}
+                loading={googleLoading}
+              />
+            </View>
+          ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -296,6 +373,10 @@ const styles = StyleSheet.create({
     fontFamily: authConstants.typography.inputText.fontFamily,
     fontSize: 14,
     color: authConstants.colors.text.dark,
+  },
+  inputDisabled: {
+    backgroundColor: '#F1F5F9',
+    opacity: 0.8,
   },
   formError: {
     color: authConstants.colors.text.error,

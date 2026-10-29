@@ -3,9 +3,11 @@ import { ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform, Scr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { authClient } from '@/services/auth';
+import { toUserMessage } from '@/services/api';
 import { TextField } from '@/shared/components/ui/text-field';
 import { Toast } from '@/shared/components/ui';
 import { authConstants } from '../constants/auth-constants';
+import { validateEmailValue } from '../utils/validation';
 import leftArrow from '@/assets/images/left-arrow.png';
 import logo from '@/assets/images/logo-saranakita.png';
 
@@ -29,14 +31,9 @@ export function ForgotPasswordScreen(): React.JSX.Element {
   });
 
   const validateEmail = (value: string): boolean => {
-    const trimmed = value.trim();
-    if (!trimmed) {
-      setError('Email wajib diisi.');
-      return false;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmed)) {
-      setError('Format email tidak valid.');
+    const emailError = validateEmailValue(value);
+    if (emailError) {
+      setError(emailError);
       return false;
     }
     setError(null);
@@ -57,13 +54,9 @@ export function ForgotPasswordScreen(): React.JSX.Element {
         from: 'forgot-password',
       });
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        'Gagal mengirim kode OTP. Pastikan email Anda benar.';
       setToast({
         visible: true,
-        message: msg,
+        message: toUserMessage(err) || 'Gagal mengirim kode OTP. Pastikan email Anda benar.',
         type: 'error',
       });
     } finally {

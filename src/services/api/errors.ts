@@ -122,30 +122,78 @@ export function translateApiMessage(rawMessage: string): string {
   ) {
     return 'Koneksi internet bermasalah. Silakan periksa jaringan Anda.';
   }
+  if (
+    lower.includes('invalid input syntax') ||
+    lower.includes('type uuid') ||
+    lower.includes('syntax error') ||
+    lower.includes('relation') ||
+    lower.includes('column') ||
+    lower.includes('query failed')
+  ) {
+    return 'Format data yang dimasukkan tidak valid. Silakan periksa kembali.';
+  }
+  if (
+    lower.includes('row-level security') ||
+    lower.includes('violates') ||
+    lower.includes('foreign key constraint') ||
+    lower.includes('permission denied') ||
+    lower.includes('internal server error') ||
+    lower.includes('database error')
+  ) {
+    return 'Gagal memproses pendaftaran. Silakan coba beberapa saat lagi.';
+  }
+  if (
+    lower.includes('duplicate key') ||
+    lower.includes('unique constraint')
+  ) {
+    return 'Username atau email yang Anda masukkan sudah digunakan.';
+  }
+  if (lower === 'bad request') {
+    return 'Permintaan tidak valid. Silakan periksa kembali formulir Anda.';
+  }
 
   return rawMessage;
 }
 
 function getApiMessage(body: unknown): string | null {
-  if (typeof body !== 'object' || body === null || !('error' in body)) {
+  if (typeof body !== 'object' || body === null) {
     return null;
   }
-  const error = body.error;
-  if (typeof error === 'string' && error.trim()) {
-    return error;
+
+  if ('message' in body) {
+    const message = (body as { message: unknown }).message;
+    if (typeof message === 'string' && message.trim()) {
+      return message;
+    }
+    if (Array.isArray(message)) {
+      const messages = message.filter(
+        (item): item is string => typeof item === 'string' && item.trim().length > 0,
+      );
+      if (messages.length > 0) {
+        return messages.join('\n');
+      }
+    }
   }
-  if (typeof error !== 'object' || error === null || !('message' in error)) {
-    return null;
+
+  if ('error' in body) {
+    const error = (body as { error: unknown }).error;
+    if (typeof error === 'string' && error.trim()) {
+      return error;
+    }
+    if (typeof error !== 'object' || error === null || !('message' in error)) {
+      return null;
+    }
+    const message = (error as { message: unknown }).message;
+    if (typeof message === 'string' && message.trim()) {
+      return message;
+    }
+    if (Array.isArray(message)) {
+      const messages = message.filter(
+        (item): item is string => typeof item === 'string' && item.trim().length > 0,
+      );
+      return messages.length ? messages.join('\n') : null;
+    }
   }
-  const message = error.message;
-  if (typeof message === 'string' && message.trim()) {
-    return message;
-  }
-  if (Array.isArray(message)) {
-    const messages = message.filter(
-      (item): item is string => typeof item === 'string' && item.trim().length > 0,
-    );
-    return messages.length ? messages.join('\n') : null;
-  }
+
   return null;
 }

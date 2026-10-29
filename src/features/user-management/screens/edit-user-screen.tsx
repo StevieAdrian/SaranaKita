@@ -32,7 +32,6 @@ export function EditUserScreen(): React.JSX.Element {
         classOrPosition: data.classOrPosition,
         status: data.status,
         isActive: data.isActive !== undefined ? data.isActive : data.status === 'active',
-        password: data.password,
         phone: data.phone,
         dateOfBirth: data.dateOfBirth,
         gender: data.gender ?? undefined,

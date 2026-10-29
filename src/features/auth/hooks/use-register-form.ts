@@ -1,30 +1,49 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { authClient } from '@/services/auth';
+import { toUserMessage } from '@/services/api';
 import { toIsoDate } from '@/shared/utils/date';
 import { hasErrors, validateRegisterForm } from '../utils/validation';
 import type {
   Gender,
   RegisterFormErrors,
   RegisterFormState,
+  RegisterRouteParams,
   UsernameStatus,
 } from '../types';
 
 const INITIAL_DATE = new Date(2005, 0, 1);
 
-export function useRegisterForm() {
+export function useRegisterForm(routeParams?: RegisterRouteParams) {
   const navigation = useNavigation<any>();
 
+  const isGoogleAuth = Boolean(routeParams?.isGoogleAuth);
+  const initialEmail = routeParams?.email || '';
+  const nameParts = (routeParams?.fullName || '').trim().split(/\s+/);
+  const initialFirst = nameParts[0] || '';
+  const initialLast = nameParts.slice(1).join(' ') || '';
+
   const [username, setUsername] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState(initialFirst);
+  const [lastName, setLastName] = useState(initialLast);
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState<Date>(INITIAL_DATE);
   const [classGrade, setClassGrade] = useState<string>('');
   const [gender, setGender] = useState<Gender | null>(null);
+
+  useEffect(() => {
+    if (routeParams?.email) {
+      setEmail(routeParams.email);
+    }
+    if (routeParams?.fullName) {
+      const parts = routeParams.fullName.trim().split(/\s+/);
+      if (parts[0]) setFirstName(parts[0]);
+      setLastName(parts.length > 1 ? parts.slice(1).join(' ') : '');
+    }
+  }, [routeParams?.email, routeParams?.fullName]);
 
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle');
   const [errors, setErrors] = useState<RegisterFormErrors>({});
@@ -139,16 +158,32 @@ export function useRegisterForm() {
     setErrors({});
 
     try {
-      try {
-        const emailCheck = await authClient.checkEmail(email.trim());
-        if (!emailCheck.available) {
-          setErrors({ email: 'Email sudah terdaftar. Silakan login.' });
-          setSubmitting(false);
-          return;
-        }
-      } catch { }
+      if (usernameStatus !== 'available') {
+        try {
+          const usernameCheck = await authClient.checkUsername(username.trim().toLowerCase());
+          if (!usernameCheck.available) {
+            setUsernameStatus('taken');
+            setErrors({ username: 'Username sudah digunakan.' });
+            setSubmitting(false);
+            return;
+          }
+          setUsernameStatus('available');
+        } catch { }
+      }
+
+      if (!isGoogleAuth) {
+        try {
+          const emailCheck = await authClient.checkEmail(email.trim());
+          if (!emailCheck.available) {
+            setErrors({ email: 'Email sudah terdaftar. Silakan login.' });
+            setSubmitting(false);
+            return;
+          }
+        } catch { }
+      }
 
       navigation.navigate('RegisterProfile', {
+        isGoogleAuth,
         username: username.trim(),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -160,7 +195,7 @@ export function useRegisterForm() {
         gender,
       });
     } catch (err: any) {
-      setErrors({ form: err?.message ?? 'Gagal memproses pendaftaran.' });
+      setErrors({ form: toUserMessage(err) });
     } finally {
       setSubmitting(false);
     }
@@ -176,10 +211,12 @@ export function useRegisterForm() {
     classGrade,
     gender,
     usernameStatus,
+    isGoogleAuth,
     navigation,
   ]);
 
   return {
+    isGoogleAuth,
     username,
     firstName,
     lastName,

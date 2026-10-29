@@ -1,7 +1,8 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { NotFoundScreen, useSession } from '@/features/auth';
+import { useSession } from '@/features/auth/hooks/use-session';
+import { NotFoundScreen } from '@/features/auth/screens/transitions';
 import { ProfileSettingsScreen } from '@/features/profile';
 import {
   CreateReportScreen,

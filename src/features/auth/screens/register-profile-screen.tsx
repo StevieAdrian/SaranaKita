@@ -42,6 +42,8 @@ export function RegisterProfileScreen(): React.JSX.Element {
     };
   }, []);
 
+  const isGoogleAuth = Boolean(params?.isGoogleAuth);
+
   const fullName =
     [params?.firstName, params?.lastName].filter(Boolean).join(' ').trim() ||
     params?.username ||
@@ -71,6 +73,21 @@ export function RegisterProfileScreen(): React.JSX.Element {
         }
       }
 
+      if (isGoogleAuth) {
+        await authClient.completeGoogleProfile({
+          username: params.username.trim().toLowerCase(),
+          password: params.password,
+          firstName: (params.firstName || '').trim(),
+          lastName: (params.lastName || '').trim() || undefined,
+          phone: (params.phone || '').trim(),
+          dateOfBirth: params.dateOfBirth,
+          class: params.classGrade,
+          gender: params.gender || 'Laki-Laki',
+          avatarUrl,
+        });
+        return;
+      }
+
       try {
         await authClient.register({
           username: params.username,
@@ -90,10 +107,17 @@ export function RegisterProfileScreen(): React.JSX.Element {
           from: 'register',
         });
       } catch (regErr: any) {
-        const bodyCode = regErr?.body?.code || regErr?.body?.error;
+        const bodyCode =
+          regErr?.body?.code ||
+          regErr?.body?.error?.code ||
+          regErr?.body?.error;
         const msg = (regErr?.message || '').toLowerCase();
         const bodyMsg = (
-          typeof regErr?.body?.message === 'string' ? regErr.body.message : ''
+          typeof regErr?.body?.error?.message === 'string'
+            ? regErr.body.error.message
+            : typeof regErr?.body?.message === 'string'
+              ? regErr.body.message
+              : ''
         ).toLowerCase();
 
         const isUnverified =
@@ -214,7 +238,9 @@ export function RegisterProfileScreen(): React.JSX.Element {
               {submitting ? (
                 <ActivityIndicator color={authConstants.colors.text.light} size="small" />
               ) : (
-                <Text style={styles.registerButtonText}>Daftar Akun</Text>
+                <Text style={styles.registerButtonText}>
+                  Daftar Akun
+                </Text>
               )}
             </TouchableOpacity>
           </View>

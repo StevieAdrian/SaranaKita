@@ -7,7 +7,7 @@ import calendarSignupLogo from '@/assets/images/calender-signup-logo.png';
 import { BottomSheet } from '@/shared/components/ui/bottom-sheet';
 import { Button } from '@/shared/components/ui/button';
 import { KEYBOARD_DISMISS_DELAY_MS } from '@/shared/constants';
-import { formatDisplayDate } from '@/shared/utils/date';
+import { formatDisplayDate, getDefaultDateOfBirth } from '@/shared/utils/date';
 import { authConstants } from '../constants/auth-constants';
 
 export type DateOfBirthFieldProps = {
@@ -40,7 +40,7 @@ export function DateOfBirthField({
       const safeDate =
         value instanceof Date && !isNaN(value.getTime())
           ? value
-          : new Date(2005, 0, 1);
+          : getDefaultDateOfBirth();
 
       if (Platform.OS === 'android') {
         try {

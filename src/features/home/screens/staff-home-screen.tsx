@@ -63,7 +63,7 @@ function UrgentReportCard({
 
 export function StaffHomeScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const user = useCurrentUser();
   const { dashboard, loading, refreshing, error, refresh } =
     useAdminDashboard();

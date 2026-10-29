@@ -9,6 +9,12 @@ export { authConstants } from './constants';
 export { useSession } from './hooks/use-session';
 export { useLoginForm } from './hooks/use-login-form';
 export { useRegisterForm } from './hooks/use-register-form';
+export {
+  checkUserProfileComplete,
+  signInWithGoogle,
+  configureGoogleSignIn,
+  statusCodes,
+} from './services/google-auth';
 export * from './components';
 export type {
   Gender,
@@ -19,7 +25,7 @@ export type {
   RegisterFormState,
   RegisterPayload,
   RegisterProfileRouteParams,
+  RegisterRouteParams,
   Session,
   UsernameStatus,
 } from './types';
-
