@@ -85,6 +85,8 @@ export function LoginScreen(): React.JSX.Element {
     }
   }, [navigation]);
 
+  const hasFormError = Boolean(errors.form);
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <StatusBar barStyle="light-content" />
@@ -124,7 +126,7 @@ export function LoginScreen(): React.JSX.Element {
               submitBehavior="submit"
               errorText={errors.email}
               labelStyle={styles.label}
-              style={styles.input}
+              style={[styles.input, hasFormError && styles.inputError]}
             />
 
             <TextField
@@ -133,7 +135,7 @@ export function LoginScreen(): React.JSX.Element {
               required
               value={password}
               onChangeText={setPassword}
-              placeholder="••••••••••"
+              placeholder={hasFormError ? '' : '••••••••••'}
               placeholderTextColor={authConstants.typography.inputPlaceholder.color}
               secureTextEntry
               autoComplete="password"
@@ -142,7 +144,7 @@ export function LoginScreen(): React.JSX.Element {
               onSubmitEditing={submit}
               errorText={errors.password}
               labelStyle={styles.label}
-              style={styles.input}
+              style={[styles.input, hasFormError && styles.inputError]}
             />
 
             <Pressable
@@ -155,9 +157,12 @@ export function LoginScreen(): React.JSX.Element {
             </Pressable>
 
             {errors.form ? (
-              <Text style={styles.formError} accessibilityLiveRegion="polite">
-                {errors.form}
-              </Text>
+              <View style={styles.formErrorRow} accessibilityLiveRegion="polite">
+                <View style={styles.formErrorIconBadge}>
+                  <Text style={styles.formErrorIconText}>!</Text>
+                </View>
+                <Text style={styles.formError}>{errors.form}</Text>
+              </View>
             ) : null}
 
             {/* Button */}
@@ -268,6 +273,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: authConstants.colors.text.dark,
   },
+  inputError: {
+    borderColor: '#EF4444',
+  },
   forgot: {
     alignSelf: 'flex-end',
     marginTop: -6,
@@ -278,10 +286,37 @@ const styles = StyleSheet.create({
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
     fontFamily: authConstants.typography.link.fontFamily,
   },
-  formError: {
-    color: authConstants.colors.text.error,
-    fontSize: 13,
+  formErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: -2,
+  },
+  formErrorIconBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.2,
+    borderColor: '#DC2626',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  formErrorIconText: {
+    fontFamily: authConstants.typography.buttonText.fontFamily,
+    fontSize: 11,
+    lineHeight: 13,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    color: '#DC2626',
+    includeFontPadding: false,
     textAlign: 'center',
+  },
+  formError: {
+    flex: 1,
+    fontFamily: authConstants.typography.inputText.fontFamily,
+    color: '#DC2626',
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'left',
   },
   continueButton: {
     backgroundColor: authConstants.colors.ui.buttonBlack,

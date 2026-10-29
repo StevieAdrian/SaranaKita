@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { authClient } from '@/services/auth';
 import { toUserMessage } from '@/services/api';
-import { toIsoDate } from '@/shared/utils/date';
-import { hasErrors, validateRegisterForm } from '../utils/validation';
+import { getDefaultDateOfBirth, toIsoDate } from '@/shared/utils/date';
+import { hasErrors, USERNAME_CHARS_RE, validateRegisterForm } from '../utils/validation';
 import type {
   Gender,
   RegisterFormErrors,
@@ -11,8 +11,6 @@ import type {
   RegisterRouteParams,
   UsernameStatus,
 } from '../types';
-
-const INITIAL_DATE = new Date(2005, 0, 1);
 
 export function useRegisterForm(routeParams?: RegisterRouteParams) {
   const navigation = useNavigation<any>();
@@ -30,7 +28,7 @@ export function useRegisterForm(routeParams?: RegisterRouteParams) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [phone, setPhone] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState<Date>(INITIAL_DATE);
+  const [dateOfBirth, setDateOfBirth] = useState<Date>(() => getDefaultDateOfBirth());
   const [classGrade, setClassGrade] = useState<string>('');
   const [gender, setGender] = useState<Gender | null>(null);
 
@@ -72,7 +70,7 @@ export function useRegisterForm(routeParams?: RegisterRouteParams) {
       return;
     }
 
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    if (!USERNAME_CHARS_RE.test(username)) {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
@@ -80,6 +78,18 @@ export function useRegisterForm(routeParams?: RegisterRouteParams) {
       setErrors((prev) => ({
         ...prev,
         username: 'Username hanya boleh menggunakan huruf, angka, dan garis bawah (_).',
+      }));
+      return;
+    }
+
+    if (username.length > 20) {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      setUsernameStatus('invalid');
+      setErrors((prev) => ({
+        ...prev,
+        username: 'Username maksimal 20 karakter.',
       }));
       return;
     }

@@ -4,7 +4,7 @@ import {
   setAccessTokenProvider,
   setUnauthorizedHandler,
 } from '@/services/api';
-import { clearTokens, loadTokens, saveTokens } from './storage';
+import { clearTokens, loadCachedUser, loadTokens, saveCachedUser, saveTokens } from './storage';
 import { supabase } from './supabase';
 import { toAuthUser, type ApiUser } from './map-user';
 import type {
@@ -38,6 +38,7 @@ async function applySession(response: SessionResponse): Promise<AuthUser> {
   tokens = response.tokens;
   await saveTokens(response.tokens);
   const user = toAuthUser(response.user);
+  await saveCachedUser(user);
   setState({ status: 'authenticated', user });
   return user;
 }
@@ -76,6 +77,7 @@ async function applySupabaseSession(
   };
 
   const authUser = toAuthUser(user);
+  await saveCachedUser(authUser);
   setState({ status: 'authenticated', user: authUser });
   return authUser;
 }
@@ -152,13 +154,30 @@ async function restore(): Promise<void> {
     return;
   }
   tokens = stored;
+
+  const cachedUser = await loadCachedUser();
+  if (cachedUser) {
+    setState({ status: 'authenticated', user: cachedUser });
+  }
+
   try {
     const response = await apiClient.get<MeResponse>('/auth/me');
-    setState({ status: 'authenticated', user: toAuthUser(response.user) });
-  } catch {
-    tokens = null;
-    await clearTokens();
-    setState({ status: 'unauthenticated', user: null });
+    const user = toAuthUser(response.user);
+    await saveCachedUser(user);
+    setState({ status: 'authenticated', user });
+  } catch (err) {
+    if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+      tokens = null;
+      await clearTokens();
+      setState({ status: 'unauthenticated', user: null });
+    } else {
+      if (__DEV__) {
+        console.warn('[authClient.restore] Gagal verifikasi sesi karena kendala jaringan:', error);
+      }
+      if (cachedUser) {
+        setState({ status: 'authenticated', user: cachedUser });
+      }
+    }
   }
 }
 

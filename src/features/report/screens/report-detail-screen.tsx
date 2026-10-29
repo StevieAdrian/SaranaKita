@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -16,10 +15,16 @@ import {
 } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { REPORT_PROGRESS, ReportProgress } from '@/shared/components/report';
-import { RecommendationSheet, ScreenHeader } from '@/shared/components/ui';
+import {
+  ConfirmationModal,
+  RecommendationSheet,
+  ScreenHeader,
+  Toast,
+} from '@/shared/components/ui';
 import { palette } from '@/shared/theme';
 import { USER_ROLE } from '@/services/auth';
 import { REPORT_STATUS } from '@/services/report/status.constants';
+import { NotFoundScreen } from '@/features/auth/screens/transitions';
 import { ReportGallery } from '../components/report-gallery';
 import {
   CommentSection,
@@ -30,6 +35,7 @@ import {
 import { useCurrentUser } from '../hooks/use-current-user';
 import { useReportDetail } from '../hooks/use-report-detail';
 import { formatIsoDate, formatReporterRole } from '../utils/detail-format';
+import { useRole } from '@/shared/context/theme-context';
 type DetailRoute = RouteProp<
   { ReportDetail: { reportId: string } },
   'ReportDetail'
@@ -39,11 +45,13 @@ export function ReportDetailScreen(): React.JSX.Element {
   const navigation = useNavigation();
   const { params } = useRoute<DetailRoute>();
   const insets = useSafeAreaInsets();
+  const { theme } = useRole();
   const user = useCurrentUser();
   const {
     report,
     loading,
     error,
+    isNotFound,
     voting,
     recommending,
     rejecting,
@@ -57,6 +65,18 @@ export function ReportDetailScreen(): React.JSX.Element {
     submitComment,
   } = useReportDetail(params.reportId);
 
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    visible: false,
+    message: '',
+    type: 'error',
+  });
+  const [showRecommendSheet, setShowRecommendSheet] = useState(false);
+  const [showRejectConfirm, setShowRejectConfirm] = useState(false);
+
   const isTeacher = user?.role === USER_ROLE.GURU;
   const canVote = user?.role === USER_ROLE.SISWA;
   const canComment = canVote;
@@ -64,7 +84,11 @@ export function ReportDetailScreen(): React.JSX.Element {
   const handleCommentSubmit = async (text: string): Promise<boolean> => {
     const message = await submitComment(text);
     if (message) {
-      Alert.alert('Gagal mengirim komentar', message);
+      setToast({
+        visible: true,
+        message,
+        type: 'error',
+      });
       return false;
     }
     return true;
@@ -73,40 +97,47 @@ export function ReportDetailScreen(): React.JSX.Element {
   const handleVote = async () => {
     const message = await toggleVote();
     if (message) {
-      Alert.alert('Gagal menyimpan dukungan', message);
+      setToast({
+        visible: true,
+        message,
+        type: 'error',
+      });
     }
   };
-
-  const [showRecommendSheet, setShowRecommendSheet] = useState(false);
 
   const handleRecommendation = async (reason: string) => {
     const message = await toggleRecommendation(reason);
+    setShowRecommendSheet(false);
     if (message) {
-      Alert.alert('Gagal menyimpan rekomendasi', message);
-    } else {
-      setShowRecommendSheet(false);
+      setToast({
+        visible: true,
+        message,
+        type: 'error',
+      });
     }
   };
 
-  const handleReject = async () => {
+  const handleReject = () => {
     if (!report) return;
-    Alert.alert(
-      'Tolak Laporan',
-      'Apakah kamu yakin ingin menolak laporan ini?',
-      [
-        { text: 'Batal', style: 'cancel' },
-        {
-          text: 'Tolak',
-          style: 'destructive',
-          onPress: async () => {
-            const message = await submitReject();
-            if (message) {
-              Alert.alert('Gagal menolak laporan', message);
-            }
-          },
-        },
-      ],
-    );
+    setShowRejectConfirm(true);
+  };
+
+  const handleConfirmReject = async () => {
+    setShowRejectConfirm(false);
+    const message = await submitReject();
+    if (message) {
+      setToast({
+        visible: true,
+        message,
+        type: 'error',
+      });
+    } else {
+      setToast({
+        visible: true,
+        message: 'Laporan berhasil ditolak.',
+        type: 'success',
+      });
+    }
   };
 
   const renderBody = () => {
@@ -144,12 +175,13 @@ export function ReportDetailScreen(): React.JSX.Element {
     return (
       <ScrollView contentContainerStyle={scrollContent}>
         <ReportGallery imageUrls={report.imageUrls} title={report.title} />
-        <View className="-mt-6 gap-5 rounded-t-3xl bg-white px-5 pt-6">
+        <View style={{ backgroundColor: theme.surface }} className="-mt-6 gap-5 rounded-t-3xl px-5 pt-6">
           <View className="gap-2">
             <View className="flex-row items-start gap-3">
               <Text
                 accessibilityRole="header"
-                className="flex-1 text-2xl font-bold text-gray-900"
+                style={{ color: theme.textHeading }}
+                className="flex-1 text-2xl font-bold"
               >
                 {report.title}
               </Text>
@@ -169,7 +201,7 @@ export function ReportDetailScreen(): React.JSX.Element {
                 {report.category.name}
               </Text>
             ) : null}
-            <Text className="text-sm leading-5 text-gray-500">
+            <Text style={{ color: theme.textSecondary }} className="text-sm leading-5">
               {report.description}
             </Text>
           </View>
@@ -194,7 +226,8 @@ export function ReportDetailScreen(): React.JSX.Element {
             <View className="flex-row items-center justify-between">
               <Text
                 accessibilityRole="header"
-                className="text-lg font-bold text-gray-900"
+                style={{ color: theme.textHeading }}
+                className="text-lg font-bold"
               >
                 Progres Laporan
               </Text>
@@ -225,6 +258,15 @@ export function ReportDetailScreen(): React.JSX.Element {
       </ScrollView>
     );
   };
+
+  if (!loading && (isNotFound || (!report && error?.toLowerCase().includes('tidak ditemukan')))) {
+    return (
+      <NotFoundScreen
+        navigation={navigation}
+        message="Laporan tidak ditemukan."
+      />
+    );
+  }
 
   return (
     <View className="flex-1 bg-white">
@@ -272,9 +314,7 @@ export function ReportDetailScreen(): React.JSX.Element {
         >
           {/* Tombol Tolak */}
           <Pressable
-            onPress={() => {
-              handleReject().catch(() => {});
-            }}
+            onPress={handleReject}
             disabled={rejecting || recommending}
             accessibilityRole="button"
             accessibilityLabel="Tolak laporan"
@@ -333,6 +373,25 @@ export function ReportDetailScreen(): React.JSX.Element {
           handleRecommendation(reason).catch(() => {});
         }}
         onCancel={() => setShowRecommendSheet(false)}
+      />
+      <ConfirmationModal
+        visible={showRejectConfirm}
+        title="Tolak Laporan?"
+        message="Apakah kamu yakin ingin menolak laporan ini?"
+        confirmLabel="Ya, Tolak"
+        cancelLabel="Batal"
+        tone="danger"
+        loading={rejecting}
+        onConfirm={() => {
+          handleConfirmReject().catch(() => {});
+        }}
+        onCancel={() => setShowRejectConfirm(false)}
+      />
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onDismiss={() => setToast(prev => ({ ...prev, visible: false }))}
       />
     </View>
   );

@@ -1,3 +1,4 @@
+import { useRole } from '@/shared/context/theme-context';
 import React from 'react';
 import { ScrollView } from 'react-native';
 import { USER_ROLE } from '@/services/auth';
@@ -36,10 +37,11 @@ const activities: RecentActivity[] = [
 ];
 
 export function TeacherStatisticScreen(): React.JSX.Element {
+  const { theme } = useRole();
   const feed = useHomeFeed();
   return (
     <ScrollView
-      className="flex-1 bg-[#EAF2FF]"
+      className="flex-1 " style={{ backgroundColor: theme.background }}
       showsVerticalScrollIndicator={false}
     >
       <StatisticHeader

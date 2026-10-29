@@ -1,4 +1,5 @@
 export { CLASS_OPTIONS } from '@/shared/constants';
+import { fontFamilies, palette } from '@/shared/theme';
 
 export const GENDER_OPTIONS = [
   { value: 'Laki-Laki', label: 'Laki-Laki' },
@@ -69,36 +70,31 @@ export function formatRoleTitle(
     : `Kelas ${classOrPosition}`;
 }
 
-export const profileFonts = {
-  regular: 'Poppins-Regular',
-  medium: 'Poppins-Medium',
-  semiBold: 'Poppins-SemiBold',
-  bold: 'Poppins-Bold',
-} as const;
+export const profileFonts = fontFamilies;
 
 export const profileColors = {
-  brand: '#2563EB',
-  white: '#FFFFFF',
+  brand: palette.brand,
+  white: palette.white,
   background: '#F0F6FF',
-  backgroundSubtle: '#F8FAFC',
-  cardBg: '#FFFFFF',
+  backgroundSubtle: palette.slate[50],
+  cardBg: palette.white,
   text: {
-    primary: '#0F172A',
-    body: '#1E293B',
-    muted: '#64748B',
-    subtle: '#94A3B8',
-    white: '#FFFFFF',
+    primary: palette.slate[900],
+    body: palette.slate[800],
+    muted: palette.slate[500],
+    subtle: palette.slate[400],
+    white: palette.white,
   },
   border: {
-    default: '#CBD5E1',
-    light: '#E2E8F0',
-    focused: '#2563EB',
-    error: '#EF4444',
+    default: palette.slate[300],
+    light: palette.slate[200],
+    focused: palette.brand,
+    error: palette.errorRed,
   },
   stats: {
-    pending: '#2563EB',
-    inReview: '#F59E0B',
-    inRepair: '#713F12',
+    pending: palette.brand,
+    inReview: palette.warning,
+    inRepair: palette.brown,
     resolved: '#166534',
     rejected: '#9A3412',
   },

@@ -1,12 +1,12 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { palette } from '@/shared/theme';
 import { useCurrentUser } from '@/features/home/hooks/use-current-user';
 import { adminTheme, staffTheme } from '@/shared/theme/colors';
+import { useRole } from '@/shared/context/theme-context';
 
 const ICON_SIZE = 28;
-const SHADOW = { boxShadow: '0 -4px 12px rgba(15, 23, 42, 0.08)' } as const;
 const ROLE_COLORS: Record<string, string> = {
   siswa: palette.primary,
   guru: palette.teacherPrimary,
@@ -20,15 +20,23 @@ export function BottomTabBar({
   navigation,
   insets,
 }: BottomTabBarProps): React.JSX.Element {
+  const { theme } = useRole();
   const user = useCurrentUser();
 
-  const activeColor = ROLE_COLORS[user?.role ?? ''] ?? palette.navy;
+  const activeColor = ROLE_COLORS[user?.role ?? ''] ?? theme.primary;
 
   return (
     <View
       accessibilityRole="tablist"
-      className="flex-row items-center rounded-t-[32px] bg-white px-4 pt-4"
-      style={[SHADOW, { paddingBottom: Math.max(insets.bottom, 12) }]}
+      className="flex-row items-center rounded-t-[32px] px-4 pt-4"
+      style={[
+        styles.bar,
+        {
+          backgroundColor: theme.surface,
+          shadowColor: theme.shadowColor,
+          paddingBottom: Math.max(insets.bottom, 12),
+        },
+      ]}
     >
       {state.routes.map((route, index) => {
         const descriptor = descriptors[route.key];
@@ -70,7 +78,7 @@ export function BottomTabBar({
           >
             {options.tabBarIcon?.({
               focused,
-              color: focused ? activeColor : palette.tabInactive,
+              color: focused ? activeColor : theme.iconInactive,
               size: ICON_SIZE,
             })}
           </Pressable>
@@ -79,3 +87,12 @@ export function BottomTabBar({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  bar: {
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+});
