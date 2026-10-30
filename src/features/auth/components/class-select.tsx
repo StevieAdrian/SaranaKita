@@ -3,6 +3,7 @@ import { FlatList, Image, Keyboard, Platform, StyleProp, StyleSheet, Text, TextS
 import leftArrow from '@/assets/images/left-arrow.png';
 import { BottomSheet } from '@/shared/components/ui/bottom-sheet';
 import { KEYBOARD_DISMISS_DELAY_MS } from '@/shared/constants';
+import { fontFamilies } from '@/shared/theme';
 import { authConstants } from '../constants/auth-constants';
 import { CLASS_OPTIONS } from '../utils/constants';
 
@@ -256,12 +257,12 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   optionTextNormal: {
-    fontFamily: 'Poppins-Medium',
+    fontFamily: fontFamilies.medium,
     fontWeight: Platform.OS === 'ios' ? '500' : undefined,
     color: '#1E2939',
   },
   optionTextSelected: {
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: fontFamilies.semiBold,
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
     color: '#1E2939',
   },
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
   },
   currentBadgeText: {
-    fontFamily: 'Poppins-Medium',
+    fontFamily: fontFamilies.medium,
     fontSize: 10,
     lineHeight: 14,
     fontWeight: Platform.OS === 'ios' ? '500' : undefined,

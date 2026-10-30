@@ -60,6 +60,6 @@ export {
   type ThemeScheme,
 } from './colors';
 export { spacing } from './spacing';
-export { typography, type TypographyVariant } from './typography';
+export { typography, fontFamilies, type TypographyVariant } from './typography';
 export { radius, hitSlop, MIN_TOUCH_SIZE } from './layout';
 export type { SpacingToken } from './spacing';

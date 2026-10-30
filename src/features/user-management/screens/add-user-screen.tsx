@@ -3,22 +3,31 @@ import { StyleSheet, View } from 'react-native';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useRole } from '@/shared/context/theme-context';
 import { FormUser, type UserFormData } from '../components/form-user';
+import { DEFAULT_USER_PASSWORD } from '../utils/constants';
 import { UserFormHeader } from '../components/user-form-header';
 import { useUserManagement } from '../hooks/use-user-management';
+import { isRoleAdminOrStaff } from '../utils/permissions';
 
 export function AddUserScreen(): React.JSX.Element {
   const navigation = useNavigation<any>();
-  const { theme } = useRole();
+  const { theme, currentRole } = useRole();
   const { createUser } = useUserManagement();
   const [submitting, setSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (!isRoleAdminOrStaff(currentRole)) {
+      navigation.goBack();
+    }
+  }, [currentRole, navigation]);
 
   const handleSubmit = async (data: UserFormData) => {
     setSubmitting(true);
     try {
-      const { confirmPassword: _cp, ...cleanData } = data;
+      const cleanData = { ...data };
+      delete cleanData.confirmPassword;
       await createUser({
         ...cleanData,
-        password: data.password || 'SaranaKita123',
+        password: data.password || DEFAULT_USER_PASSWORD,
         isActive: data.isActive !== undefined ? data.isActive : data.status === 'active',
       });
       navigation.dispatch(

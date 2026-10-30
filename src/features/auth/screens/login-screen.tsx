@@ -4,9 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { TextField } from '@/shared/components/ui/text-field';
 import { Toast } from '@/shared/components/ui';
+import { authClient } from '@/services/auth';
+import { toUserMessage } from '@/services/api';
 import { AuthDivider, AuthHeader, GoogleButton } from '../components';
 import { authConstants } from '../constants/auth-constants';
 import { useLoginForm } from '../hooks/use-login-form';
+import { checkUserProfileComplete, signInWithGoogle, statusCodes } from '../services/google-auth';
 
 export function LoginScreen(): React.JSX.Element {
   const navigation = useNavigation<any>();
@@ -14,6 +17,7 @@ export function LoginScreen(): React.JSX.Element {
   const { email, password, errors, submitting, setEmail, setPassword, submit } =
     useLoginForm();
   const passwordRef = useRef<TextInputInstance>(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const [toast, setToast] = useState<{
     visible: boolean;
@@ -39,13 +43,49 @@ export function LoginScreen(): React.JSX.Element {
     navigation.navigate('Register');
   }, [navigation]);
 
-  const onGoogle = useCallback(() => {
-    setToast({
-      visible: true,
-      message: 'Fitur Google Sign-In segera hadir.',
-      type: 'info',
-    });
-  }, []);
+  const onGoogle = useCallback(async () => {
+    setGoogleLoading(true);
+    try {
+      const { authData, userEmail, userFullName } = await signInWithGoogle();
+      const userId = authData.session.user.id;
+      const { isComplete, userData } = await checkUserProfileComplete(userId, authData.session.access_token);
+
+      if (!isComplete) {
+        navigation.navigate('SignUp', {
+          isGoogleAuth: true,
+          email: userEmail,
+          fullName: userFullName,
+        });
+      } else {
+        await authClient.applySupabaseSession(authData.session, userData);
+      }
+    } catch (err: any) {
+      authClient.signOut().catch(() => { });
+      if (err?.code === statusCodes?.SIGN_IN_CANCELLED) {
+        return;
+      }
+      if (err?.code === statusCodes?.IN_PROGRESS) {
+        return;
+      }
+      if (err?.code === statusCodes?.PLAY_SERVICES_NOT_AVAILABLE) {
+        setToast({
+          visible: true,
+          message: 'Layanan Google Play tidak tersedia pada perangkat ini.',
+          type: 'error',
+        });
+        return;
+      }
+      setToast({
+        visible: true,
+        message: toUserMessage(err) || 'Gagal masuk menggunakan akun Google.',
+        type: 'error',
+      });
+    } finally {
+      setGoogleLoading(false);
+    }
+  }, [navigation]);
+
+  const hasFormError = Boolean(errors.form);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -86,7 +126,7 @@ export function LoginScreen(): React.JSX.Element {
               submitBehavior="submit"
               errorText={errors.email}
               labelStyle={styles.label}
-              style={styles.input}
+              style={[styles.input, hasFormError && styles.inputError]}
             />
 
             <TextField
@@ -95,7 +135,7 @@ export function LoginScreen(): React.JSX.Element {
               required
               value={password}
               onChangeText={setPassword}
-              placeholder="••••••••••"
+              placeholder={hasFormError ? '' : '••••••••••'}
               placeholderTextColor={authConstants.typography.inputPlaceholder.color}
               secureTextEntry
               autoComplete="password"
@@ -104,7 +144,7 @@ export function LoginScreen(): React.JSX.Element {
               onSubmitEditing={submit}
               errorText={errors.password}
               labelStyle={styles.label}
-              style={styles.input}
+              style={[styles.input, hasFormError && styles.inputError]}
             />
 
             <Pressable
@@ -117,9 +157,12 @@ export function LoginScreen(): React.JSX.Element {
             </Pressable>
 
             {errors.form ? (
-              <Text style={styles.formError} accessibilityLiveRegion="polite">
-                {errors.form}
-              </Text>
+              <View style={styles.formErrorRow} accessibilityLiveRegion="polite">
+                <View style={styles.formErrorIconBadge}>
+                  <Text style={styles.formErrorIconText}>!</Text>
+                </View>
+                <Text style={styles.formError}>{errors.form}</Text>
+              </View>
             ) : null}
 
             {/* Button */}
@@ -157,7 +200,12 @@ export function LoginScreen(): React.JSX.Element {
             <AuthDivider text="Atau lanjutkan dengan" />
 
             {/* Google Button */}
-            <GoogleButton onPress={onGoogle} label="Google" />
+            <GoogleButton
+              onPress={onGoogle}
+              label="Google"
+              disabled={submitting || googleLoading}
+              loading={googleLoading}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -225,6 +273,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: authConstants.colors.text.dark,
   },
+  inputError: {
+    borderColor: '#EF4444',
+  },
   forgot: {
     alignSelf: 'flex-end',
     marginTop: -6,
@@ -235,10 +286,37 @@ const styles = StyleSheet.create({
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
     fontFamily: authConstants.typography.link.fontFamily,
   },
-  formError: {
-    color: authConstants.colors.text.error,
-    fontSize: 13,
+  formErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: -2,
+  },
+  formErrorIconBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.2,
+    borderColor: '#DC2626',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  formErrorIconText: {
+    fontFamily: authConstants.typography.buttonText.fontFamily,
+    fontSize: 11,
+    lineHeight: 13,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    color: '#DC2626',
+    includeFontPadding: false,
     textAlign: 'center',
+  },
+  formError: {
+    flex: 1,
+    fontFamily: authConstants.typography.inputText.fontFamily,
+    color: '#DC2626',
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'left',
   },
   continueButton: {
     backgroundColor: authConstants.colors.ui.buttonBlack,

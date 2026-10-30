@@ -1,11 +1,10 @@
+import { Appearance } from 'react-native';
+import { fontFamilies, palette } from '@/shared/theme';
 import type { RadioOption, SelectOption } from '@/shared/components/ui';
 
-export const userFonts = {
-  regular: 'Poppins-Regular',
-  medium: 'Poppins-Medium',
-  semiBold: 'Poppins-SemiBold',
-  bold: 'Poppins-Bold',
-} as const;
+export const userFonts = fontFamilies;
+
+export const DEFAULT_USER_PASSWORD = 'SaranaKita123';
 
 export const fontWeights = {
   regular: undefined,
@@ -53,24 +52,36 @@ export const USER_STATUS_OPTIONS: readonly SelectOption[] = [
   { value: 'inactive', label: 'Nonaktif' },
 ] as const;
 
+export function getUserManagementColors(scheme?: 'light' | 'dark' | null) {
+  const isDark = (scheme ?? Appearance.getColorScheme()) === 'dark';
+  return {
+    brand: palette.brand,
+    white: palette.white,
+    background: isDark ? '#0B1220' : palette.slate[50],
+    cardBg: isDark ? '#151E2E' : palette.white,
+    text: {
+      primary: isDark ? '#F1F5F9' : palette.slate[900],
+      secondary: isDark ? '#CBD5E1' : palette.slate[800],
+      muted: isDark ? '#94A3B8' : palette.slate[500],
+      subtle: isDark ? '#64748B' : palette.slate[400],
+      placeholder: isDark ? '#828282' : palette.slate[400],
+    },
+    border: {
+      default: isDark ? '#334155' : palette.slate[300],
+      light: isDark ? '#1F293D' : palette.slate[200],
+      focused: palette.brand,
+      error: palette.errorRed,
+    },
+  };
+}
+
 export const userManagementColors = {
-  brand: '#2563EB',
-  white: '#FFFFFF',
-  background: '#F8FAFC',
-  cardBg: '#FFFFFF',
-  text: {
-    primary: '#0F172A',
-    secondary: '#1E293B',
-    muted: '#64748B',
-    subtle: '#94A3B8',
-    placeholder: '#94A3B8',
-  },
-  border: {
-    default: '#CBD5E1',
-    light: '#E2E8F0',
-    focused: '#2563EB',
-    error: '#EF4444',
-  },
+  get brand() { return getUserManagementColors().brand; },
+  get white() { return getUserManagementColors().white; },
+  get background() { return getUserManagementColors().background; },
+  get cardBg() { return getUserManagementColors().cardBg; },
+  get text() { return getUserManagementColors().text; },
+  get border() { return getUserManagementColors().border; },
   roles: {
     siswa: {
       dot: '#3B82F6',

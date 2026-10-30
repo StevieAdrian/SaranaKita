@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import eyeClosedIcon from '@/assets/images/eye-closed.png';
+import eyeOpenIcon from '@/assets/images/eye-open.png';
 import { ConfirmationModal, Toast } from '@/shared/components/ui';
+import { validateConfirmPasswordValue, validatePasswordValue } from '@/features/auth/utils/validation';
 import { useRole } from '@/shared/context/theme-context';
 import { spacing } from '@/shared/theme';
 import { profileFonts } from '../utils/constants';
@@ -19,6 +22,9 @@ export function FormPassword({
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [toast, setToast] = useState<{
@@ -39,18 +45,22 @@ export function FormPassword({
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
-    if (!currentPassword) {
+    if (!currentPassword || !currentPassword.trim()) {
       errs.currentPassword = 'Kata sandi sekarang wajib diisi.';
     }
-    if (!newPassword) {
-      errs.newPassword = 'Kata sandi baru wajib diisi.';
-    } else if (newPassword.length < 8) {
-      errs.newPassword = 'Kata sandi baru minimal 8 karakter.';
+    const newPassErr = validatePasswordValue(newPassword, 'Kata sandi baru');
+    if (newPassErr) {
+      errs.newPassword = newPassErr;
+    } else if (currentPassword && newPassword === currentPassword) {
+      errs.newPassword = 'Kata sandi baru tidak boleh sama dengan kata sandi sekarang.';
     }
-    if (!confirmPassword) {
-      errs.confirmPassword = 'Konfirmasi kata sandi baru wajib diisi.';
-    } else if (confirmPassword !== newPassword) {
-      errs.confirmPassword = 'Konfirmasi kata sandi tidak cocok.';
+    const confirmPassErr = validateConfirmPasswordValue(
+      newPassword,
+      confirmPassword,
+      'Konfirmasi kata sandi baru',
+    );
+    if (confirmPassErr) {
+      errs.confirmPassword = confirmPassErr;
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -69,6 +79,9 @@ export function FormPassword({
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
       setToast({
         visible: true,
         message: 'Kata sandi berhasil diperbarui.',
@@ -103,22 +116,40 @@ export function FormPassword({
             <Text style={styles.label}>
               Kata Sandi Sekarang<Text style={styles.asterisk}>*</Text>
             </Text>
-            <TextInput
-              value={currentPassword}
-              onChangeText={(text) => {
-                setCurrentPassword(text);
-                if (errors.currentPassword) {
-                  setErrors((prev) => ({ ...prev, currentPassword: '' }));
+            <View style={styles.inputWrapper}>
+              <TextInput
+                value={currentPassword}
+                onChangeText={(text) => {
+                  setCurrentPassword(text);
+                  if (errors.currentPassword) {
+                    setErrors((prev) => ({ ...prev, currentPassword: '' }));
+                  }
+                }}
+                placeholder="••••••••••"
+                placeholderTextColor="#98A2B3"
+                secureTextEntry={!showCurrentPassword}
+                style={[
+                  styles.textInput,
+                  errors.currentPassword ? styles.textInputError : null,
+                ]}
+              />
+              <TouchableOpacity
+                onPress={() => setShowCurrentPassword((prev) => !prev)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  showCurrentPassword ? 'Sembunyikan kata sandi sekarang' : 'Tampilkan kata sandi sekarang'
                 }
-              }}
-              placeholder="••••••••••"
-              placeholderTextColor="#94A3B8"
-              secureTextEntry
-              style={[
-                styles.textInput,
-                errors.currentPassword ? styles.textInputError : null,
-              ]}
-            />
+                style={styles.eyeButton}
+              >
+                <Image
+                  source={showCurrentPassword ? eyeOpenIcon : eyeClosedIcon}
+                  style={styles.eyeIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            </View>
             {errors.currentPassword ? (
               <Text style={styles.errorText}>{errors.currentPassword}</Text>
             ) : null}
@@ -129,22 +160,40 @@ export function FormPassword({
             <Text style={styles.label}>
               Kata Sandi Baru<Text style={styles.asterisk}>*</Text>
             </Text>
-            <TextInput
-              value={newPassword}
-              onChangeText={(text) => {
-                setNewPassword(text);
-                if (errors.newPassword) {
-                  setErrors((prev) => ({ ...prev, newPassword: '' }));
+            <View style={styles.inputWrapper}>
+              <TextInput
+                value={newPassword}
+                onChangeText={(text) => {
+                  setNewPassword(text);
+                  if (errors.newPassword) {
+                    setErrors((prev) => ({ ...prev, newPassword: '' }));
+                  }
+                }}
+                placeholder="••••••••••"
+                placeholderTextColor="#98A2B3"
+                secureTextEntry={!showNewPassword}
+                style={[
+                  styles.textInput,
+                  errors.newPassword ? styles.textInputError : null,
+                ]}
+              />
+              <TouchableOpacity
+                onPress={() => setShowNewPassword((prev) => !prev)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  showNewPassword ? 'Sembunyikan kata sandi baru' : 'Tampilkan kata sandi baru'
                 }
-              }}
-              placeholder="••••••••••"
-              placeholderTextColor="#94A3B8"
-              secureTextEntry
-              style={[
-                styles.textInput,
-                errors.newPassword ? styles.textInputError : null,
-              ]}
-            />
+                style={styles.eyeButton}
+              >
+                <Image
+                  source={showNewPassword ? eyeOpenIcon : eyeClosedIcon}
+                  style={styles.eyeIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            </View>
             {errors.newPassword ? (
               <Text style={styles.errorText}>{errors.newPassword}</Text>
             ) : null}
@@ -155,22 +204,40 @@ export function FormPassword({
             <Text style={styles.label}>
               Konfirmasi Kata Sandi Baru<Text style={styles.asterisk}>*</Text>
             </Text>
-            <TextInput
-              value={confirmPassword}
-              onChangeText={(text) => {
-                setConfirmPassword(text);
-                if (errors.confirmPassword) {
-                  setErrors((prev) => ({ ...prev, confirmPassword: '' }));
+            <View style={styles.inputWrapper}>
+              <TextInput
+                value={confirmPassword}
+                onChangeText={(text) => {
+                  setConfirmPassword(text);
+                  if (errors.confirmPassword) {
+                    setErrors((prev) => ({ ...prev, confirmPassword: '' }));
+                  }
+                }}
+                placeholder="••••••••••"
+                placeholderTextColor="#98A2B3"
+                secureTextEntry={!showConfirmPassword}
+                style={[
+                  styles.textInput,
+                  errors.confirmPassword ? styles.textInputError : null,
+                ]}
+              />
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword((prev) => !prev)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  showConfirmPassword ? 'Sembunyikan konfirmasi kata sandi baru' : 'Tampilkan konfirmasi kata sandi baru'
                 }
-              }}
-              placeholder="••••••••••"
-              placeholderTextColor="#94A3B8"
-              secureTextEntry
-              style={[
-                styles.textInput,
-                errors.confirmPassword ? styles.textInputError : null,
-              ]}
-            />
+                style={styles.eyeButton}
+              >
+                <Image
+                  source={showConfirmPassword ? eyeOpenIcon : eyeClosedIcon}
+                  style={styles.eyeIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            </View>
             {errors.confirmPassword ? (
               <Text style={styles.errorText}>{errors.confirmPassword}</Text>
             ) : null}
@@ -239,11 +306,16 @@ const styles = StyleSheet.create({
     fontFamily: profileFonts.medium,
     color: '#FE4A23',
   },
+  inputWrapper: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
   textInput: {
     height: 44,
     borderRadius: 5,
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
+    paddingLeft: 12,
+    paddingRight: 44,
     fontFamily: profileFonts.regular,
     fontSize: 14,
     color: '#1E1E1E',
@@ -251,6 +323,18 @@ const styles = StyleSheet.create({
   textInputError: {
     borderWidth: 1,
     borderColor: '#EF4444',
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 12,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  eyeIcon: {
+    width: 22,
+    height: 22,
   },
   errorText: {
     fontFamily: profileFonts.regular,

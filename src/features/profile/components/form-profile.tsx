@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Platform, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
+import { validatePhoneValue } from '@/features/auth/utils/validation';
 import { BaseCard, ConfirmationModal, DatePicker, FormField, Input, RadioGroup, Toast } from '@/shared/components/ui';
 import { useRole } from '@/shared/context/theme-context';
 import { spacing } from '@/shared/theme';
-import { toIsoDate } from '@/shared/utils/date';
+import { getDefaultDateOfBirth, toIsoDate } from '@/shared/utils/date';
 import { GENDER_OPTIONS, profileFonts } from '../utils/constants';
 import maleDefault from '@/assets/images/male-default.png';
 import vectorEdit from '@/assets/images/vector-edit.png';
@@ -65,7 +66,7 @@ export function FormProfile({
       const parsed = new Date(initialData.birthDate);
       if (!isNaN(parsed.getTime())) return parsed;
     }
-    return new Date(2005, 7, 25);
+    return getDefaultDateOfBirth();
   });
   const [gender, setGender] = useState(genderLabel(initialData?.gender));
   const [avatarUrl, setAvatarUrl] = useState<string | null>(initialData?.avatarUrl ?? null);
@@ -113,7 +114,7 @@ export function FormProfile({
   const initialPhone = (initialData?.phone ?? '').trim();
   const initialDobStr = initialData?.birthDate
     ? toIsoDate(new Date(initialData.birthDate))
-    : (initialData ? toIsoDate(new Date(2005, 7, 25)) : '');
+    : (initialData ? toIsoDate(getDefaultDateOfBirth()) : '');
   const initialGender = genderLabel(initialData?.gender);
   const initialAvatar = initialData?.avatarUrl ?? null;
 
@@ -136,8 +137,12 @@ export function FormProfile({
     if (!cleanFirst) {
       errs.firstName = 'Nama depan wajib diisi.';
     }
-    if (!phone.trim()) {
-      errs.phone = 'Nomor Telepon wajib diisi.';
+    const cleanPhone = phone.trim();
+    if (cleanPhone || initialPhone) {
+      const phoneError = validatePhoneValue(phone, Boolean(initialPhone));
+      if (phoneError) {
+        errs.phone = phoneError;
+      }
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -354,10 +359,19 @@ export function FormProfile({
             />
           </FormField>
 
-          <FormField label="Nomor Telepon" required error={errors.phone}>
+          <FormField label="Nomor Telepon" required={Boolean(initialPhone)} error={errors.phone}>
             <Input
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={(text) => {
+                setPhone(text);
+                if (errors.phone) {
+                  setErrors((prev) => {
+                    const copy = { ...prev };
+                    delete copy.phone;
+                    return copy;
+                  });
+                }
+              }}
               placeholder="08xxxxxxxxxx"
               keyboardType="phone-pad"
               hasError={Boolean(errors.phone)}

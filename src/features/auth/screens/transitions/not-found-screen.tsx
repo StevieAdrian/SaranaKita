@@ -1,17 +1,28 @@
 import React from 'react';
-import { Image, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
 import arrowBackIcon from '@/assets/images/404-arrowback.png';
+import { authClient } from '@/services/auth';
 import { authConstants } from '../../constants/auth-constants';
 
 export type NotFoundScreenProps = {
   navigation?: any;
+  route?: any;
   onGoBack?: () => void;
+  title?: string;
+  message?: string;
 };
 
 export function NotFoundScreen({
   navigation,
+  route,
   onGoBack,
+  title = 'Oops!',
+  message,
 }: NotFoundScreenProps): React.JSX.Element {
+  const isDark = useColorScheme() === 'dark';
+  const displayTitle = route?.params?.title ?? title;
+  const displayMessage = route?.params?.message ?? message;
+
   const handleBack = () => {
     if (onGoBack) {
       onGoBack();
@@ -19,18 +30,23 @@ export function NotFoundScreen({
     }
     if (navigation?.canGoBack?.()) {
       navigation.goBack();
+      return;
+    }
+    const isAuthed = authClient.getState().status === 'authenticated';
+    if (isAuthed && navigation?.navigate) {
+      navigation.navigate('Main');
     } else if (navigation?.navigate) {
       navigation.navigate('Login');
     }
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDark && { backgroundColor: '#0B1220' }]}>
       <StatusBar barStyle="light-content" />
       <View style={styles.content}>
         <View style={styles.textGroup}>
           <Text style={styles.oopsText} accessibilityRole="header">
-            Oops!
+            {displayTitle}
           </Text>
 
           <Text style={styles.codeText} accessibilityRole="text">
@@ -38,7 +54,10 @@ export function NotFoundScreen({
           </Text>
 
           <Text style={styles.descriptionText}>
-            <Text style={styles.boldDesc}>Halaman ini tidak tersedia.{'\n'}</Text>
+            <Text style={styles.boldDesc}>
+              {displayMessage ?? 'Halaman ini tidak tersedia.'}
+              {'\n'}
+            </Text>
             <Text style={styles.normalDesc}>Kembali ke halaman utama.</Text>
           </Text>
         </View>

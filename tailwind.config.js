@@ -7,7 +7,7 @@ module.exports = {
       colors: {
         navy: '#102A6B',
         primary: '#2563EB',
-        page: '#EAF1FB',
+        page: '#ECF3FD',
         field: '#F9F9F9',
         'field-border': '#D0D5DD',
       },

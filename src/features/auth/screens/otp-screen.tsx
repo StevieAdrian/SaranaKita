@@ -23,6 +23,8 @@ import { authClient, supabase } from '@/services/auth';
 import { toUserMessage } from '@/services/api';
 import { Toast } from '@/shared/components/ui';
 import { authConstants } from '../constants/auth-constants';
+import { fontFamilies } from '@/shared/theme';
+import { checkUserProfileComplete } from '../services/google-auth';
 import type { OtpScreenRouteParams } from '../types';
 import leftArrow from '@/assets/images/left-arrow.png';
 
@@ -250,15 +252,28 @@ export function OtpScreen(): React.JSX.Element {
       }
 
       if (isResetPassword) {
-        navigation.navigate('ResetPassword', { email });
+        await supabase.auth.signOut({ scope: 'local' }).catch(() => { });
+        navigation.replace('ResetPassword', { email });
       } else {
-        if (data?.session || data?.user) {
+        if (data?.session) {
+          const { userData } = await checkUserProfileComplete(
+            data.session.user.id,
+            data.session.access_token,
+          );
+          await authClient.applySupabaseSession(data.session, userData ?? undefined);
+        } else {
           navigation.reset({
             index: 0,
-            routes: [{ name: 'Main' }],
+            routes: [
+              {
+                name: 'Login',
+                params: {
+                  toastMessage: 'Akun berhasil diverifikasi. Silakan masuk.',
+                  toastType: 'success',
+                },
+              },
+            ],
           });
-        } else {
-          navigation.navigate('Main');
         }
       }
     } catch (err: any) {
@@ -439,7 +454,7 @@ export function OtpScreen(): React.JSX.Element {
               </View>
 
               <View style={styles.resendGroup}>
-                <Text style={styles.metaLabel}>Tidak menerima kode? </Text>
+                <Text style={styles.metaLabel}>Belum terima kode? </Text>
                 <TouchableOpacity
                   onPress={handleResend}
                   disabled={resendCooldown > 0 || resending}
@@ -514,18 +529,18 @@ const styles = StyleSheet.create({
     tintColor: '#FFFFFF',
   },
   scrollContent: {
-    paddingHorizontal: 28,
+    paddingHorizontal: 20,
     paddingTop: 36,
     paddingBottom: 48,
     alignItems: 'center',
   },
   headerTitleGroup: {
     width: '100%',
-    maxWidth: 338,
+    maxWidth: 340,
     alignItems: 'center',
   },
   title: {
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: fontFamilies.semiBold,
     fontSize: 24,
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
     color: authConstants.colors.text.slate,
@@ -534,7 +549,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   subtitle: {
-    fontFamily: 'Poppins-Regular',
+    fontFamily: fontFamilies.regular,
     fontSize: 15,
     fontWeight: Platform.OS === 'ios' ? '400' : undefined,
     color: authConstants.colors.text.slateMuted,
@@ -545,7 +560,7 @@ const styles = StyleSheet.create({
   },
   emailCard: {
     width: '100%',
-    maxWidth: 338,
+    maxWidth: 340,
     height: 52,
     backgroundColor: authConstants.colors.surface,
     borderWidth: 1,
@@ -564,7 +579,7 @@ const styles = StyleSheet.create({
   },
   emailText: {
     flex: 1,
-    fontFamily: 'Poppins-Medium',
+    fontFamily: fontFamilies.medium,
     fontSize: 14,
     fontWeight: Platform.OS === 'ios' ? '500' : undefined,
     color: authConstants.colors.text.slate,
@@ -576,7 +591,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   changeText: {
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: fontFamilies.semiBold,
     fontSize: 14,
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
     color: authConstants.colors.brand,
@@ -587,7 +602,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
-    maxWidth: 338,
+    maxWidth: 340,
     gap: 8,
     marginTop: 32,
   },
@@ -612,7 +627,7 @@ const styles = StyleSheet.create({
   otpInput: {
     width: '100%',
     height: '100%',
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: fontFamilies.semiBold,
     fontSize: 24,
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
     color: authConstants.colors.text.navyText,
@@ -634,7 +649,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
-    maxWidth: 338,
+    maxWidth: 340,
     marginTop: 28,
   },
   timerGroup: {
@@ -646,32 +661,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   metaLabel: {
-    fontFamily: 'Poppins-Regular',
-    fontSize: 12,
+    fontFamily: fontFamilies.regular,
+    fontSize: 11,
     fontWeight: Platform.OS === 'ios' ? '400' : undefined,
     color: authConstants.colors.text.slateMuted,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   timerValue: {
-    fontFamily: 'Poppins-Bold',
-    fontSize: 12,
+    fontFamily: fontFamilies.bold,
+    fontSize: 11,
     fontWeight: Platform.OS === 'ios' ? '700' : undefined,
     color: authConstants.colors.brand,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   resendButton: {
-    fontFamily: 'Poppins-Bold',
-    fontSize: 12,
+    fontFamily: fontFamilies.bold,
+    fontSize: 11,
     fontWeight: Platform.OS === 'ios' ? '700' : undefined,
     color: authConstants.colors.brand,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   resendDisabled: {
     opacity: 0.5,
   },
   verifyButton: {
     width: '100%',
-    maxWidth: 338,
+    maxWidth: 340,
     height: 50,
     borderRadius: 10,
     alignItems: 'center',
@@ -685,7 +700,7 @@ const styles = StyleSheet.create({
     backgroundColor: authConstants.colors.ui.buttonDisabled,
   },
   verifyButtonText: {
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: fontFamilies.semiBold,
     fontSize: 14,
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
     color: authConstants.colors.text.light,

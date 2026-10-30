@@ -12,14 +12,22 @@ import { HeaderUserManagement } from '../components/header-user-management';
 import { UserListCard } from '../components/user-list-card';
 import { useUserManagement } from '../hooks/use-user-management';
 import { userFonts } from '../utils/constants';
+import { isRoleAdminOrStaff } from '../utils/permissions';
 
 export function UserManagementScreen(): React.JSX.Element {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute<any>();
-  const { theme } = useRole();
+  const { theme, currentRole } = useRole();
+
+  React.useEffect(() => {
+    if (!isRoleAdminOrStaff(currentRole)) {
+      navigation.goBack();
+    }
+  }, [currentRole, navigation]);
 
   const {
     users,
+    allUsers,
     totalCount,
     summary,
     schoolName,
@@ -89,7 +97,7 @@ export function UserManagementScreen(): React.JSX.Element {
 
   const metrics = useMemo(() => {
     const calc = (role: string, totalFromSummary: number) => {
-      const roleUsers = users.filter((u) => u.role === role);
+      const roleUsers = (allUsers ?? []).filter((u) => u.role === role);
       if (roleUsers.length === 0) {
         return { total: totalFromSummary, active: totalFromSummary, inactive: 0 };
       }
@@ -103,7 +111,7 @@ export function UserManagementScreen(): React.JSX.Element {
       guru: calc('guru', summary.totalGuru),
       staff: calc('staff', summary.totalStaff),
     };
-  }, [users, summary]);
+  }, [allUsers, summary]);
 
   return (
     <View style={styles.container}>
@@ -143,7 +151,7 @@ export function UserManagementScreen(): React.JSX.Element {
         ListHeaderComponent={
           <View style={styles.listTitleRow}>
             {/* Jumlah Pengguna */}
-            <Text accessibilityRole="header" style={styles.countHeader}>
+            <Text accessibilityRole="header" style={[styles.countHeader, { color: theme.textHeading }]}>
               {users.length} Pengguna
             </Text>
 
@@ -173,7 +181,7 @@ export function UserManagementScreen(): React.JSX.Element {
         )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
               Tidak ada pengguna yang ditemukan.
             </Text>
           </View>

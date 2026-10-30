@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import leftArrow from '@/assets/images/left-arrow.png';
@@ -18,8 +18,7 @@ export function ProfileSettingsScreen(): React.JSX.Element {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { theme } = useRole();
-  const { profile, setProfile, reload } = useProfileScreen();
-
+  const { profile, setProfile } = useProfileScreen();
   const [activeTab, setActiveTab] = useState<ProfileTab>('Ubah Profil');
   const [submitting, setSubmitting] = useState(false);
 
@@ -80,10 +79,13 @@ export function ProfileSettingsScreen(): React.JSX.Element {
   const handleChangePassword = async (currentPass: string, newPass: string) => {
     setSubmitting(true);
     try {
-      await changePassword({
+      const res = await changePassword({
         currentPassword: currentPass,
         newPassword: newPass,
       });
+      if (res.tokens) {
+        await authClient.updateTokens(res.tokens);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -131,7 +133,10 @@ export function ProfileSettingsScreen(): React.JSX.Element {
         />
       </View>
 
-      <View style={styles.content}>
+      <KeyboardAvoidingView
+        style={styles.content}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         {activeTab === 'Ubah Profil' ? (
           <FormProfile
             initialData={initialProfileData}
@@ -151,7 +156,7 @@ export function ProfileSettingsScreen(): React.JSX.Element {
             loading={submitting}
           />
         )}
-      </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }

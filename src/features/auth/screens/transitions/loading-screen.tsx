@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, Image, Platform, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Image, Platform, Pressable, StatusBar, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import loadingLogo from '@/assets/images/loading-logo.png';
 import { authConstants } from '../../constants/auth-constants';
 
@@ -15,6 +15,7 @@ export function LoadingScreen({
   message = 'Loading....',
 }: LoadingScreenProps): React.JSX.Element {
   const displayMessage = route?.params?.message ?? message;
+  const isDark = useColorScheme() === 'dark';
   const spinAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -45,7 +46,10 @@ export function LoadingScreen({
   return (
     <Pressable
       onPress={handleTap}
-      style={styles.container}
+      style={[
+        styles.container,
+        isDark && { backgroundColor: '#0B1220' },
+      ]}
       accessibilityRole="progressbar"
       accessibilityLabel={displayMessage}
     >
@@ -54,14 +58,24 @@ export function LoadingScreen({
         <Animated.View style={{ transform: [{ rotate: spin }] }}>
           <Image
             source={loadingLogo}
-            style={styles.spinner}
+            style={[
+              styles.spinner,
+              isDark && { tintColor: authConstants.colors.brand },
+            ]}
             resizeMode="contain"
             accessibilityRole="image"
             accessibilityLabel="Loading indicator"
           />
         </Animated.View>
 
-        <Text style={styles.messageText}>{displayMessage}</Text>
+        <Text
+          style={[
+            styles.messageText,
+            isDark && { color: '#94A3B8' },
+          ]}
+        >
+          {displayMessage}
+        </Text>
       </View>
     </Pressable>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { userFonts, userManagementColors } from '../utils/constants';
+import { useRole } from '@/shared/context/theme-context';
 
 export type UserCountMetric = {
   total: number;
@@ -19,6 +20,7 @@ export function SummaryCard({
   guru = { total: 0, active: 0, inactive: 0 },
   staff = { total: 0, active: 0, inactive: 0 },
 }: SummaryCardProps): React.JSX.Element {
+  const { theme } = useRole();
   const cards = [
     {
       title: 'Siswa',
@@ -43,9 +45,9 @@ export function SummaryCard({
   return (
     <View style={styles.container}>
       {cards.map((item) => (
-        <View key={item.title} style={styles.card}>
+        <View key={item.title} style={[styles.card, { backgroundColor: theme.surface, shadowColor: theme.shadowColor }]}>
           <View style={styles.topRow}>
-            <Text accessibilityRole="header" style={styles.countText}>
+            <Text accessibilityRole="header" style={[styles.countText, { color: theme.textHeading }]}>
               {item.data.total}
             </Text>
             <View style={[styles.roleBadge, { backgroundColor: item.badgeBg }]}>
@@ -58,14 +60,14 @@ export function SummaryCard({
           <View style={styles.statusCol}>
             <View style={styles.statusLine}>
               <View style={[styles.statusDot, styles.activeDot]} />
-              <Text style={styles.statusText} numberOfLines={1}>
-                <Text style={styles.statusNumber}>{item.data.active}</Text> Aktif
+              <Text style={[styles.statusText, { color: theme.textSecondary }]} numberOfLines={1}>
+                <Text style={[styles.statusNumber, { color: theme.textHeading }]}>{item.data.active}</Text> Aktif
               </Text>
             </View>
             <View style={styles.statusLine}>
               <View style={[styles.statusDot, styles.inactiveDot]} />
-              <Text style={styles.statusText} numberOfLines={1}>
-                <Text style={styles.statusNumber}>{item.data.inactive}</Text> Nonaktif
+              <Text style={[styles.statusText, { color: theme.textSecondary }]} numberOfLines={1}>
+                <Text style={[styles.statusNumber, { color: theme.textHeading }]}>{item.data.inactive}</Text> Nonaktif
               </Text>
             </View>
           </View>

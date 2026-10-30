@@ -1,11 +1,12 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
-import type { RegisterProfileRouteParams } from '@/features/auth';
+import type { RegisterProfileRouteParams, RegisterRouteParams } from '@/features/auth/types';
 import type { ManageUser } from '@/services/users';
 
 export type AuthStackParamList = {
   Splash: undefined;
   Login: undefined;
-  Register: undefined;
+  Register?: RegisterRouteParams;
+  SignUp?: RegisterRouteParams;
   RegisterProfile?: RegisterProfileRouteParams;
   OtpVerification: {
     email: string;
@@ -15,7 +16,7 @@ export type AuthStackParamList = {
   ForgotPassword: undefined;
   ResetPassword: { email: string };
   Loading?: { message?: string };
-  NotFound?: undefined;
+  NotFound?: { title?: string; message?: string };
 };
 
 export type TabParamList = {
@@ -37,7 +38,7 @@ export type RootStackParamList = {
   UserManagement: { toastMessage?: string; toastType?: 'success' | 'error' } | undefined;
   AddUser: undefined;
   EditUser: { user: ManageUser };
-  NotFound: undefined;
+  NotFound?: { title?: string; message?: string };
   EvaluationReport: {
     reportId: string;
     reportTitle: string;

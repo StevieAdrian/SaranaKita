@@ -1,35 +1,50 @@
 import React, { useState } from 'react';
-import { Image, Platform, Pressable, StyleSheet, Text, type GestureResponderEvent } from 'react-native';
+import { ActivityIndicator, Image, Platform, Pressable, StyleSheet, Text, type GestureResponderEvent } from 'react-native';
 import googleLogo from '@/assets/images/google-logo.png';
 import { authConstants } from '../constants/auth-constants';
 
 export type GoogleButtonProps = {
   onPress: (e: GestureResponderEvent) => void;
   label?: string;
+  disabled?: boolean;
+  loading?: boolean;
 };
 
 export function GoogleButton({
   onPress,
   label = 'Google',
+  disabled = false,
+  loading = false,
 }: GoogleButtonProps): React.JSX.Element {
   const [pressed, setPressed] = useState(false);
 
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled || loading}
       onPressIn={() => setPressed(true)}
       onPressOut={() => setPressed(false)}
       accessibilityRole="button"
       accessibilityLabel={`Lanjutkan dengan ${label}`}
-      style={[styles.button, pressed && styles.pressed]}
+      style={[
+        styles.button,
+        pressed && styles.pressed,
+        (disabled || loading) && styles.disabled,
+      ]}
     >
-      <Image
-        source={googleLogo}
-        style={styles.logo}
-        resizeMode="contain"
-        accessibilityElementsHidden
-      />
-      <Text style={styles.text}>{label}</Text>
+      {loading ? (
+        <ActivityIndicator size="small" color={authConstants.colors.brand} />
+      ) : (
+        <>
+          <Image
+            source={googleLogo}
+            style={styles.logo}
+            resizeMode="contain"
+            accessibilityElementsHidden
+          />
+          <Text style={styles.text}>{label}</Text>
+        </>
+      )}
     </Pressable>
   );
 }
@@ -48,6 +63,9 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.8,
+  },
+  disabled: {
+    opacity: 0.6,
   },
   logo: {
     width: 20,

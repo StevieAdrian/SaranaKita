@@ -37,7 +37,7 @@ export function CardStaffContribution(
             {rejectedCount}
           </Text>
           <Text style={styles.miniLabel} numberOfLines={2}>
-            Laporan Ditolak
+            Laporan{'\n'}Ditolak
           </Text>
         </View>
 
@@ -47,7 +47,7 @@ export function CardStaffContribution(
             {verifiedCount}
           </Text>
           <Text style={styles.miniLabel} numberOfLines={2}>
-            Laporan Diverifikasi
+            Laporan{'\n'}Diverifikasi
           </Text>
         </View>
 
@@ -80,8 +80,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: profileFonts.bold,
-    fontSize: 14,
-    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    fontSize: 16,
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
+    lineHeight: 23,
     marginBottom: 12,
   },
   staffRow: {

@@ -1,7 +1,9 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useMemo } from 'react';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { useRole } from '@/shared/context/theme-context';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { NotFoundScreen, useSession } from '@/features/auth';
+import { useSession } from '@/features/auth/hooks/use-session';
+import { NotFoundScreen } from '@/features/auth/screens/transitions';
 import { ProfileSettingsScreen } from '@/features/profile';
 import {
   CreateReportScreen,
@@ -19,10 +21,26 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator(): React.JSX.Element {
   const session = useSession();
+  const { theme, scheme } = useRole();
   const needsAuth = session.status !== 'authenticated';
 
+  const navTheme = useMemo(() => {
+    const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        background: theme.background,
+        card: theme.surface,
+        text: theme.textHeading,
+        border: theme.borderSubtle,
+        primary: theme.primary,
+      },
+    };
+  }, [scheme, theme]);
+
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {needsAuth ? (
           <Stack.Screen name="Auth" component={AuthNavigator} />
@@ -45,4 +63,3 @@ export function RootNavigator(): React.JSX.Element {
     </NavigationContainer>
   );
 }
-

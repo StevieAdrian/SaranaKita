@@ -1,3 +1,4 @@
+import { useRole } from '@/shared/context/theme-context';
 import React from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { USER_ROLE } from '@/services/auth';
@@ -8,6 +9,7 @@ import { useHomeFeed } from '@/features/home/hooks/use-home-feed';
 import { useReportMonitoring } from '../hooks/use-report-monitoring';
 
 export function StaffStatisticScreen(): React.JSX.Element {
+  const { theme } = useRole();
   const feed = useHomeFeed();
   const monitoring = useReportMonitoring();
 
@@ -32,7 +34,7 @@ export function StaffStatisticScreen(): React.JSX.Element {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#EAF2FF]"
+      className="flex-1 " style={{ backgroundColor: theme.background }}
       showsVerticalScrollIndicator={false}
     >
       <StatisticHeader

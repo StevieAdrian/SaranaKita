@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { ManageUser } from '@/services/users';
 import { ConfirmationModal } from '@/shared/components/ui';
 import { useRole } from '@/shared/context/theme-context';
@@ -97,7 +97,7 @@ export function UserListCard({
 
   return (
     <>
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}>
         {/* Profile Image */}
         <View style={styles.topSection}>
           {user.avatarUrl ? (
@@ -122,7 +122,7 @@ export function UserListCard({
           <View style={styles.infoCol}>
             {/* Nama & Role */}
             <View style={styles.nameRow}>
-              <Text numberOfLines={1} style={styles.nameText}>
+              <Text numberOfLines={1} style={[styles.nameText, { color: theme.textHeading }]}>
                 {displayName}
               </Text>
               <View
@@ -143,13 +143,13 @@ export function UserListCard({
             </View>
 
             {/* Email */}
-            <Text numberOfLines={1} style={styles.emailText}>
+            <Text numberOfLines={1} style={[styles.emailText, { color: theme.textSecondary }]}>
               {user.email}
             </Text>
 
             {/* Class & Status */}
             <View style={styles.classStatusRow}>
-              <Text numberOfLines={1} style={styles.classText}>
+              <Text numberOfLines={1} style={[styles.classText, { color: theme.textSecondary }]}>
                 {classOrPos}
               </Text>
               <View
@@ -172,7 +172,7 @@ export function UserListCard({
         </View>
 
         {/* Action Buttons */}
-        <View style={styles.actionRow}>
+        <View style={[styles.actionRow, { borderTopColor: theme.borderSubtle }]}>
           <View style={styles.actionHalf}>
             <TouchableOpacity
               activeOpacity={0.7}
@@ -184,15 +184,15 @@ export function UserListCard({
               <Image
                 source={iconEdit}
                 resizeMode="contain"
-                style={[styles.actionIcon, styles.editIcon]}
+                style={[styles.actionIcon, { tintColor: theme.textHeading }]}
               />
-              <Text numberOfLines={1} style={styles.editText}>
+              <Text numberOfLines={1} style={[styles.editText, { color: theme.textHeading }]}>
                 Edit
               </Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.verticalDivider} />
+          <View style={[styles.verticalDivider, { backgroundColor: theme.borderSubtle }]} />
 
           <View style={styles.actionHalf}>
             <TouchableOpacity
@@ -205,9 +205,9 @@ export function UserListCard({
               <Image
                 source={iconDelete}
                 resizeMode="contain"
-                style={[styles.actionIcon, styles.deleteIcon]}
+                style={[styles.actionIcon, { tintColor: theme.danger }]}
               />
-              <Text numberOfLines={1} style={styles.deleteText}>
+              <Text numberOfLines={1} style={[styles.deleteText, { color: theme.danger }]}>
                 Hapus
               </Text>
             </TouchableOpacity>

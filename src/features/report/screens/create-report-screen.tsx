@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -18,8 +17,10 @@ import {
   PhotoPicker,
   ScreenHeader,
   Select,
+  Toast,
 } from '@/shared/components/ui';
 import { palette } from '@/shared/theme';
+import { useRole } from '@/shared/context/theme-context';
 import {
   CLASS_OPTIONS,
   DESCRIPTION_MAX_LENGTH,
@@ -39,6 +40,7 @@ const SCROLL_CONTENT = { flexGrow: 1, paddingHorizontal: 16 } as const;
 export function CreateReportScreen(): React.JSX.Element {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { theme } = useRole();
   const {
     values,
     errors,
@@ -51,23 +53,52 @@ export function CreateReportScreen(): React.JSX.Element {
     reset,
   } = useCreateReportForm();
   const categories = useCategories();
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    visible: false,
+    message: '',
+    type: 'success',
+  });
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleConfirm = async () => {
     const result = await confirmSubmit();
     if (!result.ok) {
-      Alert.alert('Gagal mengirim laporan', result.message);
+      cancelSubmit();
+      setToast({
+        visible: true,
+        message: result.message || 'Gagal mengirim laporan.',
+        type: 'error',
+      });
       return;
     }
     reset();
-    Alert.alert(
-      'Laporan terkirim',
-      'Terima kasih, laporan kamu sudah kami terima.',
-      [{ text: 'OK', onPress: () => navigation.goBack() }],
-    );
+    setToast({
+      visible: true,
+      message: 'Laporan terkirim. Terima kasih, laporan kamu sudah kami terima.',
+      type: 'success',
+    });
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+    }
+    redirectTimerRef.current = setTimeout(() => {
+      navigation.goBack();
+    }, 1200);
   };
 
   return (
-    <View className="flex-1 bg-page">
+    <View className="flex-1" style={{ backgroundColor: theme.background }}>
       <ScreenHeader title="Buat Laporan" onBack={navigation.goBack} />
 
       <KeyboardAvoidingView
@@ -80,13 +111,16 @@ export function CreateReportScreen(): React.JSX.Element {
           keyboardShouldPersistTaps="handled"
         >
           <View
-            className="flex-grow gap-4 rounded-t-2xl bg-white px-5 pt-6"
-            style={{ paddingBottom: insets.bottom + 24 }}
+            className="flex-grow gap-4 rounded-t-2xl px-5 pt-6"
+            style={{ backgroundColor: theme.surface, paddingBottom: insets.bottom + 24 }}
           >
             <FormField label="Bukti Laporan" error={errors.photo}>
               <PhotoPicker
                 value={values.photo}
                 onChange={photo => setField('photo', photo)}
+                onError={message =>
+                  setToast({ visible: true, message, type: 'error' })
+                }
                 hasError={Boolean(errors.photo)}
               />
             </FormField>
@@ -184,6 +218,20 @@ export function CreateReportScreen(): React.JSX.Element {
         loading={submitting}
         onConfirm={handleConfirm}
         onCancel={cancelSubmit}
+      />
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onDismiss={() => {
+          setToast(prev => ({ ...prev, visible: false }));
+          if (toast.type === 'success' && redirectTimerRef.current) {
+            clearTimeout(redirectTimerRef.current);
+            redirectTimerRef.current = null;
+            navigation.goBack();
+          }
+        }}
       />
     </View>
   );

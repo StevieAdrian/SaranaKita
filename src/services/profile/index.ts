@@ -7,6 +7,7 @@ export {
 } from './profile.api';
 export type {
   ChangePasswordInput,
+  ChangePasswordResponse,
   ContributionStats,
   FullProfile,
   Profile,

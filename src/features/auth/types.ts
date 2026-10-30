@@ -55,7 +55,14 @@ export type RegisterPayload = {
   readonly avatarUrl?: string;
 };
 
+export type RegisterRouteParams = {
+  readonly isGoogleAuth?: boolean;
+  readonly email?: string;
+  readonly fullName?: string;
+};
+
 export type RegisterProfileRouteParams = {
+  readonly isGoogleAuth?: boolean;
   readonly username: string;
   readonly firstName: string;
   readonly lastName: string;

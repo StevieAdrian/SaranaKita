@@ -7,6 +7,7 @@ import {
   PORT,
   SUPABASE_ANON_KEY,
   SUPABASE_URL,
+  GOOGLE_WEB_CLIENTID,
 } from '@env';
 
 export type AppEnvironment = 'development' | 'production' | 'test';
@@ -21,6 +22,7 @@ export type AppEnv = {
   readonly enableDevLogging: boolean;
   readonly supabaseUrl: string;
   readonly supabaseAnonKey: string;
+  readonly googleWebClientId: string;
 };
 
 export function normalizeUrl(url: string): string {
@@ -71,4 +73,5 @@ export const Env: AppEnv = {
   enableDevLogging: activeNodeEnv !== 'production' && __DEV__,
   supabaseUrl: (SUPABASE_URL ?? '').trim(),
   supabaseAnonKey: (SUPABASE_ANON_KEY ?? '').trim(),
+  googleWebClientId: (GOOGLE_WEB_CLIENTID ?? '').trim(),
 };

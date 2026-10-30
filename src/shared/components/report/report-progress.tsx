@@ -2,6 +2,7 @@ import React from 'react';
 import { Image, Text, View } from 'react-native';
 import checkIcon from '@/assets/images/check.png';
 import { palette } from '@/shared/theme';
+import { useRole } from '@/shared/context/theme-context';
 import { REPORT_STATUS_META, type ReportStatus } from './report-status';
 import { PROGRESS_STEPS, REPORT_PROGRESS } from './report-progress-meta';
 
@@ -9,22 +10,21 @@ export type ReportProgressProps = {
   status: ReportStatus;
 };
 
-const INACTIVE = '#E2E8F0';
-const INACTIVE_DOT = '#94A3B8';
 const CHECK_TINT = { tintColor: palette.white } as const;
 const HIDDEN_LINE = { backgroundColor: 'transparent' } as const;
-const INACTIVE_FILL = { backgroundColor: INACTIVE } as const;
-const INACTIVE_DOT_FILL = { backgroundColor: INACTIVE_DOT } as const;
 
 export function ReportProgress({
   status,
 }: ReportProgressProps): React.JSX.Element {
+  const { theme } = useRole();
   const { completedSteps, color } = REPORT_PROGRESS[status];
   const activeFill = { backgroundColor: color };
   const activeText = { color };
+  const inactiveFill = { backgroundColor: theme.borderSubtle };
+  const inactiveDotFill = { backgroundColor: theme.iconInactive };
 
   const lineStyle = (visible: boolean, active: boolean) =>
-    !visible ? HIDDEN_LINE : active ? activeFill : INACTIVE_FILL;
+    !visible ? HIDDEN_LINE : active ? activeFill : inactiveFill;
 
   return (
     <View
@@ -51,7 +51,7 @@ export function ReportProgress({
               />
               <View
                 className="h-7 w-7 items-center justify-center rounded-full"
-                style={done ? activeFill : INACTIVE_FILL}
+                style={done ? activeFill : inactiveFill}
               >
                 {done ? (
                   <Image
@@ -63,7 +63,7 @@ export function ReportProgress({
                 ) : (
                   <View
                     className="h-1.5 w-1.5 rounded-full"
-                    style={INACTIVE_DOT_FILL}
+                    style={inactiveDotFill}
                   />
                 )}
               </View>
@@ -74,10 +74,11 @@ export function ReportProgress({
             </View>
             <Text
               numberOfLines={1}
-              className={`mt-1.5 text-[11px] ${
-                done ? 'font-semibold' : 'text-gray-400'
-              }`}
-              style={done ? activeText : undefined}
+              className="mt-1.5 text-[11px]"
+              style={[
+                done ? activeText : { color: theme.textMuted },
+                done ? { fontWeight: '600' } : undefined,
+              ]}
             >
               {label}
             </Text>

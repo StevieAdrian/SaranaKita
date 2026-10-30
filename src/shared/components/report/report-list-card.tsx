@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import { palette } from '@/shared/theme';
+import { useRole } from '@/shared/context/theme-context';
 import { ReportThumbnail } from './report-thumbnail';
 import { StatusBadge } from './status-badge';
 import type { ReportStatus } from './report-status';
@@ -74,18 +75,22 @@ export function ReportListCard({
   canStillEdit = false,
   finalTime,
   remainingTime = '00:00',
-  showFinalizedTime = false,
   showProgress = false,
 }: ReportListCardProps): React.JSX.Element {
+  const { theme, scheme } = useRole();
+  const isDark = scheme === 'dark';
   const isMuted = action?.variant === 'muted';
   const actionColor =
-    action?.tone === 'teacher' ? palette.teacherPrimary : palette.primary;
+    action?.tone === 'teacher' ? palette.teacherPrimary : theme.primary;
   const reporter = reporterClass
     ? `${reporterName} · Kelas ${reporterClass}`
     : reporterName;
 
   return (
-    <View className="overflow-hidden rounded-lg bg-white py-2">
+    <View
+      style={{ backgroundColor: theme.surface }}
+      className="overflow-hidden rounded-lg py-2"
+    >
       <Pressable
         onPress={onPress}
         disabled={!onPress}
@@ -99,17 +104,30 @@ export function ReportListCard({
             <View className="flex-row items-start gap-2">
               <Text
                 numberOfLines={1}
-                className="flex-1 text-base font-bold text-gray-900"
+                style={{ color: theme.textHeading }}
+                className="flex-1 text-base font-bold"
               >
                 {title}
               </Text>
-              <View className="rounded-md bg-[#DBEAFE] px-2 py-0.5">
-                <Text className="text-xs font-semibold text-navy">
+              <View
+                style={{
+                  backgroundColor: isDark ? theme.primarySoft : '#DBEAFE',
+                }}
+                className="rounded-md px-2 py-0.5"
+              >
+                <Text
+                  style={{ color: isDark ? theme.primary : palette.navy }}
+                  className="text-xs font-semibold"
+                >
                   {badgeLabel ?? location}
                 </Text>
               </View>
             </View>
-            <Text numberOfLines={2} className="text-sm text-gray-700">
+            <Text
+              numberOfLines={2}
+              style={{ color: theme.textSecondary }}
+              className="text-sm"
+            >
               {description}
             </Text>
             <StatusBadge status={status} />
@@ -118,35 +136,45 @@ export function ReportListCard({
 
         <View className="gap-1">
           <View className="flex-row justify-between">
-            <Text className="text-xs text-gray-400">Dilaporkan oleh:</Text>
-            <Text className="text-xs text-gray-400">{date}</Text>
+            <Text style={{ color: theme.textMuted }} className="text-xs">Dilaporkan oleh:</Text>
+            <Text style={{ color: theme.textMuted }} className="text-xs">{date}</Text>
           </View>
-          <Text numberOfLines={1} className="text-sm text-gray-900">
+          <Text
+            numberOfLines={1}
+            style={{ color: theme.textHeading }}
+            className="text-sm"
+          >
             {reporter}
           </Text>
         </View>
       </Pressable>
       {showProgress && <ReportProgress status={status} />}
 
-      <View className="mt-2 border-t border-gray-100 px-4 py-3">
+      <View
+        style={{ borderTopColor: theme.borderSubtle }}
+        className="mt-2 border-t px-4 py-3"
+      >
         <View className="flex-row items-center justify-between gap-2">
-          <Text className="flex-1 text-xs text-gray-400">
+          <Text style={{ color: theme.textMuted }} className="flex-1 text-xs">
             {canStillEdit
               ? 'Waktu Tersisa Untuk Mengubah Laporan:'
               : 'Waktu Laporan Final'}
           </Text>
 
-          <Text className="text-xs text-gray-400">
+          <Text style={{ color: theme.textMuted }} className="text-xs">
             {canStillEdit ? remainingTime : finalTime}
           </Text>
         </View>
       </View>
 
-      <View className="flex-row items-center justify-between border-t border-gray-100 px-4 py-3">
-        <Text className="text-sm text-gray-500">
-          <Text className="font-bold text-gray-900">{votes}</Text> Votes
+      <View
+        style={{ borderTopColor: theme.borderSubtle }}
+        className="flex-row items-center justify-between border-t px-4 py-3"
+      >
+        <Text style={{ color: theme.textSecondary }} className="text-sm">
+          <Text style={{ color: theme.textHeading }} className="font-bold">{votes}</Text> Votes
           {'   '}
-          <Text className="font-bold text-gray-900">{comments}</Text> Komentar
+          <Text style={{ color: theme.textHeading }} className="font-bold">{comments}</Text> Komentar
         </Text>
 
         {canEdit && onEditPress ? (
@@ -154,9 +182,13 @@ export function ReportListCard({
             onPress={onEditPress}
             accessibilityRole="button"
             accessibilityLabel={`Edit laporan ${title}`}
-            className="min-h-[44px] justify-center rounded-lg border border-primary bg-white px-4 active:opacity-70"
+            style={{
+              backgroundColor: theme.surface,
+              borderColor: theme.primary,
+            }}
+            className="min-h-[44px] justify-center rounded-lg border px-4 active:opacity-70"
           >
-            <Text className="font-semibold text-primary">Edit Laporan</Text>
+            <Text style={{ color: theme.primary }} className="font-semibold">Edit Laporan</Text>
           </Pressable>
         ) : canAddNote ? (
           <View className="flex-row items-center gap-2">
@@ -166,9 +198,13 @@ export function ReportListCard({
                   onPress={onEditNotePress}
                   accessibilityRole="button"
                   accessibilityLabel={`Ubah catatan ${title}`}
-                  className="min-h-[44px] justify-center rounded-lg border border-primary bg-white px-3 active:opacity-70"
+                  style={{
+                    backgroundColor: theme.surface,
+                    borderColor: theme.primary,
+                  }}
+                  className="min-h-[44px] justify-center rounded-lg border px-3 active:opacity-70"
                 >
-                  <Text className="font-semibold text-primary">
+                  <Text style={{ color: theme.primary }} className="font-semibold">
                     Ubah Catatan
                   </Text>
                 </Pressable>
@@ -176,9 +212,10 @@ export function ReportListCard({
                   onPress={onDeleteNotePress}
                   accessibilityRole="button"
                   accessibilityLabel={`Hapus catatan ${title}`}
-                  className="min-h-[44px] justify-center rounded-lg bg-red-50 px-3 active:opacity-70"
+                  style={{ backgroundColor: theme.dangerSurface }}
+                  className="min-h-[44px] justify-center rounded-lg px-3 active:opacity-70"
                 >
-                  <Text className="font-semibold text-red-600">Hapus</Text>
+                  <Text style={{ color: theme.danger }} className="font-semibold">Hapus</Text>
                 </Pressable>
               </>
             ) : (
@@ -186,9 +223,13 @@ export function ReportListCard({
                 onPress={onAddNotePress}
                 accessibilityRole="button"
                 accessibilityLabel={`Tambah catatan ${title}`}
-                className="min-h-[44px] justify-center rounded-lg border border-primary bg-white px-4 active:opacity-70"
+                style={{
+                  backgroundColor: theme.surface,
+                  borderColor: theme.primary,
+                }}
+                className="min-h-[44px] justify-center rounded-lg border px-4 active:opacity-70"
               >
-                <Text className="font-semibold text-primary">+ Catatan</Text>
+                <Text style={{ color: theme.primary }} className="font-semibold">+ Catatan</Text>
               </Pressable>
             )}
           </View>
@@ -201,35 +242,27 @@ export function ReportListCard({
             disabled={action.disabled}
             style={
               isMuted
-                ? action?.tone === 'teacher'
-                  ? { borderColor: actionColor }
-                  : undefined
+                ? {
+                  backgroundColor: theme.surface,
+                  borderColor: actionColor,
+                  borderWidth: 1,
+                }
                 : { backgroundColor: actionColor }
             }
-            className={`min-h-[44px] justify-center rounded-lg px-6 active:opacity-70 ${
-              action.variant === 'muted'
-                ? 'border border-primary bg-white'
-                : 'bg-primary'
-            }`}
+            className="min-h-[44px] justify-center rounded-lg px-6 active:opacity-70"
           >
-            <View className="justify-cente flex flex-row gap-2">
+            <View className="flex flex-row items-center justify-center gap-2">
               {action.label === 'Vote' && (
                 <Image
                   source={addVotesIcon}
                   accessibilityLabel="Add Vote"
-                  style={{ width: 18, height: 18 }}
+                  style={{ width: 18, height: 18, tintColor: isMuted ? actionColor : '#FFFFFF' }}
                   resizeMode="contain"
                 />
               )}
               <Text
-                className={`font-semibold ${
-                  action.variant === 'muted' ? 'text-primary' : 'text-white'
-                }`}
-                style={
-                  isMuted && action.tone === 'teacher'
-                    ? { color: actionColor }
-                    : undefined
-                }
+                style={{ color: isMuted ? actionColor : '#FFFFFF' }}
+                className="font-semibold"
               >
                 {action.label}
               </Text>

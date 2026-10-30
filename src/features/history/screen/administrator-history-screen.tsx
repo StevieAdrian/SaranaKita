@@ -1,3 +1,4 @@
+import { useRole } from '@/shared/context/theme-context';
 import React, { useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { USER_ROLE } from '@/services/auth';
@@ -15,6 +16,7 @@ import type { RootStackParamList } from '@/navigation/types';
 import { getReportEvaluasi } from '@/services/report/feed.api';
 
 export function AdministratorHistoryScreen(): React.JSX.Element {
+  const { theme } = useRole();
   const { reports, refresh } = useHistoryReports();
   const [filterTab, setFilterTab] = useState<HistoryFilter>('all');
   const [query, setQuery] = useState('');
@@ -97,7 +99,7 @@ export function AdministratorHistoryScreen(): React.JSX.Element {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#EAF2FF]"
+      className="flex-1 " style={{ backgroundColor: theme.background }}
       showsVerticalScrollIndicator={false}
     >
       <HistoryHeader

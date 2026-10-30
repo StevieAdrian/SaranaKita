@@ -58,3 +58,11 @@ export type ChangePasswordInput = {
   readonly currentPassword: string;
   readonly newPassword: string;
 };
+
+export type ChangePasswordResponse = {
+  readonly message: string;
+  readonly tokens?: {
+    readonly accessToken: string;
+    readonly refreshToken: string;
+  };
+};

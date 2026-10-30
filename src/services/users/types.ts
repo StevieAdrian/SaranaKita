@@ -52,7 +52,6 @@ export type UpdateUserInput = {
   readonly classOrPosition?: string;
   readonly status?: string;
   readonly isActive?: boolean;
-  readonly password?: string;
   readonly gender?: string | null;
   readonly phone?: string;
   readonly phoneNumber?: string;

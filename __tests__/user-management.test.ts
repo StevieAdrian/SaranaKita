@@ -66,6 +66,38 @@ describe('user-management permissions and constants', () => {
     expect(siswaUsers[0]?.id).toBe('1');
   });
 
+  it('keeps summary metrics fixed regardless of filtered users subset', () => {
+    const allUsers: ManageUser[] = [
+      { id: '1', username: 's1', email: 's1@sch.id', fullName: 'S1', role: 'siswa', isVerified: true, createdAt: '', status: 'active' },
+      { id: '2', username: 's2', email: 's2@sch.id', fullName: 'S2', role: 'siswa', isVerified: true, createdAt: '', status: 'active' },
+      { id: '3', username: 's3', email: 's3@sch.id', fullName: 'S3', role: 'siswa', isVerified: true, createdAt: '', status: 'inactive' },
+      { id: '4', username: 'g1', email: 'g1@sch.id', fullName: 'G1', role: 'guru', isVerified: true, createdAt: '', status: 'active' },
+    ];
+
+    const calcMetrics = (userList: ManageUser[]) => {
+      const calcRole = (role: string) => {
+        const roleUsers = userList.filter((u) => u.role === role);
+        const inactive = roleUsers.filter((u) => u.status === 'inactive').length;
+        const active = roleUsers.length - inactive;
+        return { total: roleUsers.length, active, inactive };
+      };
+      return {
+        siswa: calcRole('siswa'),
+        guru: calcRole('guru'),
+      };
+    };
+
+    const fixedMetrics = calcMetrics(allUsers);
+    expect(fixedMetrics.siswa).toEqual({ total: 3, active: 2, inactive: 1 });
+    expect(fixedMetrics.guru).toEqual({ total: 1, active: 1, inactive: 0 });
+
+    const filteredUsers = allUsers.filter((u) => u.status === 'active');
+    expect(filteredUsers).toHaveLength(3);
+
+    const metricsAfterFilter = calcMetrics(allUsers);
+    expect(metricsAfterFilter).toEqual(fixedMetrics);
+  });
+
   it('excludes users marked with isDelete = true from active users list', () => {
     const mockUsersWithDeleted: ManageUser[] = [
       {

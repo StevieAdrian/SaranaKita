@@ -3,8 +3,9 @@ import { Image, Keyboard, Platform, Pressable, Text } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import calendarSignupLogo from '@/assets/images/calender-signup-logo.png';
 import { KEYBOARD_DISMISS_DELAY_MS } from '@/shared/constants';
-import { palette } from '@/shared/theme';
+import { fontFamilies } from '@/shared/theme';
 import { formatDisplayDate } from '@/shared/utils/date';
+import { useRole } from '@/shared/context/theme-context';
 import { BottomSheet } from './bottom-sheet';
 import { Button } from './button';
 
@@ -17,8 +18,6 @@ export type DatePickerProps = {
   hasError?: boolean;
 };
 
-const NAVY_BUTTON = { backgroundColor: palette.navy } as const;
-
 export function DatePicker({
   value,
   onChange,
@@ -27,6 +26,7 @@ export function DatePicker({
   accessibilityLabel,
   hasError = false,
 }: DatePickerProps): React.JSX.Element {
+  const { theme, scheme } = useRole();
   const [iosOpen, setIosOpen] = useState(false);
   const [draft, setDraft] = useState(value);
   const display = formatDisplayDate(value);
@@ -37,7 +37,7 @@ export function DatePicker({
       const safeDate =
         value instanceof Date && !isNaN(value.getTime())
           ? value
-          : new Date(2005, 0, 1);
+          : new Date();
 
       if (Platform.OS === 'android') {
         try {
@@ -46,8 +46,8 @@ export function DatePicker({
             mode: 'date',
             minimumDate,
             maximumDate,
-            positiveButton: { label: 'OK', textColor: '#2563EB' },
-            negativeButton: { label: 'Batal', textColor: '#2563EB' },
+            positiveButton: { label: 'OK', textColor: theme.primary },
+            negativeButton: { label: 'Batal', textColor: theme.textSecondary },
             onValueChange: (_event, date) => {
               if (date) {
                 onChange(date);
@@ -81,11 +81,15 @@ export function DatePicker({
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
         accessibilityValue={{ text: display }}
-        className={`h-12 flex-row items-center rounded-lg border bg-field px-4 active:opacity-70 ${hasError ? 'border-red-500' : 'border-field-border'}`}
+        style={{
+          backgroundColor: theme.surfaceInput,
+          borderColor: hasError ? theme.danger : theme.borderInput,
+        }}
+        className="h-12 flex-row items-center rounded-lg border px-4 active:opacity-70"
       >
         <Text
           numberOfLines={1}
-          style={{ fontFamily: 'Poppins-Regular', fontSize: 14, color: '#1E1E1E' }}
+          style={{ fontFamily: fontFamilies.regular, fontSize: 14, color: theme.textInput }}
           className="flex-1"
         >
           {display}
@@ -93,7 +97,7 @@ export function DatePicker({
         <Image
           source={calendarSignupLogo}
           resizeMode="contain"
-          style={{ width: 14, height: 16, tintColor: '#828282' }}
+          style={{ width: 14, height: 16, tintColor: theme.iconMuted }}
         />
       </Pressable>
 
@@ -105,10 +109,18 @@ export function DatePicker({
             display="inline"
             minimumDate={minimumDate}
             maximumDate={maximumDate}
-            accentColor={palette.navy}
-            onValueChange={(_event, date) => setDraft(date)}
+            themeVariant={scheme}
+            onChange={(_event, date) => {
+              if (date) {
+                setDraft(date);
+              }
+            }}
           />
-          <Button title="Pilih" onPress={confirmIos} style={NAVY_BUTTON} />
+          <Button
+            title="Pilih"
+            onPress={confirmIos}
+            style={{ backgroundColor: theme.primary }}
+          />
         </BottomSheet>
       ) : null}
     </>

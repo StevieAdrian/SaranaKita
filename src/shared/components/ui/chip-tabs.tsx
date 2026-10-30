@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, ScrollView, Text, type ViewStyle } from 'react-native';
 import { palette } from '@/shared/theme';
+import { useRole } from '@/shared/context/theme-context';
 
 export type ChipTabOption<T extends string> = {
   readonly value: T;
@@ -24,6 +25,9 @@ export function ChipTabs<T extends string>({
   accessibilityLabel,
   tone = 'primary',
 }: ChipTabsProps<T>): React.JSX.Element {
+  const { theme, scheme } = useRole();
+  const isDark = scheme === 'dark';
+
   return (
     <ScrollView
       horizontal
@@ -35,27 +39,30 @@ export function ChipTabs<T extends string>({
       {options.map(option => {
         const selected = option.value === value;
 
-        //warna blm dibenerin
         const activeColor =
           tone === 'teacher'
             ? palette.teacherPrimary
             : tone === 'staff'
-            ? palette.primaryDark
-            : tone === 'admin'
-            ? palette.brown
-            : palette.primary;
+              ? palette.primaryDark
+              : tone === 'admin'
+                ? palette.brown
+                : theme.primary;
 
         const activeBackground =
-          tone === 'teacher'
-            ? palette.blueStatus
-            : tone === 'staff'
-            ? palette.blueStatus
-            : tone === 'admin'
-            ? palette.white
-            : palette.blueStatus;
+          isDark
+            ? theme.primarySoft
+            : tone === 'teacher'
+              ? palette.blueStatus
+              : tone === 'staff'
+                ? palette.blueStatus
+                : tone === 'admin'
+                  ? palette.white
+                  : palette.blueStatus;
+
         const activeStyle: ViewStyle | undefined = selected
           ? { borderColor: activeColor, backgroundColor: activeBackground }
-          : undefined;
+          : { backgroundColor: theme.surface, borderColor: theme.borderInput };
+
         return (
           <Pressable
             key={option.value}
@@ -63,15 +70,14 @@ export function ChipTabs<T extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected }}
             style={activeStyle}
-            className={`min-h-[44px] min-w-[96px] items-center justify-center rounded-md border px-4 active:opacity-70 ${
-              selected ? '' : 'border-gray-300 bg-white'
-            }`}
+            className="min-h-[44px] min-w-[96px] items-center justify-center rounded-md border px-4 active:opacity-70"
           >
             <Text
-              className={`text-sm ${
-                selected ? 'font-semibold' : 'text-gray-500'
-              }`}
-              style={selected ? { color: activeColor } : undefined}
+              className="text-sm font-medium"
+              style={{
+                color: selected ? activeColor : theme.textSecondary,
+                fontWeight: selected ? '600' : '400',
+              }}
             >
               {option.label}
             </Text>
