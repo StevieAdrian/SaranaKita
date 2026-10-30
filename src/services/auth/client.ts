@@ -52,6 +52,17 @@ async function signIn(credentials: SignInCredentials): Promise<AuthUser> {
   return applySession(response);
 }
 
+async function updateTokens(newTokens: { accessToken: string; refreshToken: string }): Promise<void> {
+  tokens = newTokens;
+  await saveTokens(newTokens);
+  await supabase.auth
+    .setSession({
+      access_token: newTokens.accessToken,
+      refresh_token: newTokens.refreshToken,
+    })
+    .catch(() => { });
+}
+
 async function applySupabaseSession(
   session: { access_token: string; refresh_token: string; user?: any },
   userOverride?: { id?: string; email?: string; username?: string; displayName?: string; role?: string | null },
@@ -323,6 +334,7 @@ export const authClient = {
   forgotPassword,
   resetPassword,
   resendOtp,
+  updateTokens,
   applySupabaseSession,
   completeGoogleProfile,
 };

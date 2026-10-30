@@ -121,6 +121,7 @@ export function AdministratorHomeScreen({
   name?: string;
   primaryColor?: string;
 }): React.JSX.Element {
+  const { theme } = useRole();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { dashboard, loading, refreshing, error, refresh } =
@@ -136,7 +137,7 @@ export function AdministratorHomeScreen({
 
   if (!dashboard && loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-page">
+      <View style={{ backgroundColor: theme.background }} className="flex-1 items-center justify-center">
         <ActivityIndicator color={primaryColor} />
       </View>
     );
@@ -144,7 +145,7 @@ export function AdministratorHomeScreen({
 
   if (!dashboard) {
     return (
-      <View className="flex-1 bg-page">
+      <View style={{ backgroundColor: theme.background }} className="flex-1">
         <View
           className="gap-5 px-5 pb-8"
           style={{
@@ -155,7 +156,7 @@ export function AdministratorHomeScreen({
           <HomeHeader name={name} schoolName={null} />
         </View>
         <View className="flex-1 items-center justify-center gap-3 px-6">
-          <Text className="text-center text-sm text-gray-500">
+          <Text style={{ color: theme.textSecondary }} className="text-center text-sm">
             {error ?? 'Data dashboard belum tersedia.'}
           </Text>
           <Pressable
@@ -184,7 +185,6 @@ export function AdministratorHomeScreen({
         : REPORT_STATUS_ROWS.find(row => row.status === reportFilter)?.label ??
         'Semua Laporan';
 
-  const { theme } = useRole();
   return (
     <View style={{ backgroundColor: theme.background }} className="flex-1">
       <ScrollView

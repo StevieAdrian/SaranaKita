@@ -27,6 +27,7 @@ export function UserManagementScreen(): React.JSX.Element {
 
   const {
     users,
+    allUsers,
     totalCount,
     summary,
     schoolName,
@@ -96,7 +97,7 @@ export function UserManagementScreen(): React.JSX.Element {
 
   const metrics = useMemo(() => {
     const calc = (role: string, totalFromSummary: number) => {
-      const roleUsers = users.filter((u) => u.role === role);
+      const roleUsers = (allUsers ?? []).filter((u) => u.role === role);
       if (roleUsers.length === 0) {
         return { total: totalFromSummary, active: totalFromSummary, inactive: 0 };
       }
@@ -110,7 +111,7 @@ export function UserManagementScreen(): React.JSX.Element {
       guru: calc('guru', summary.totalGuru),
       staff: calc('staff', summary.totalStaff),
     };
-  }, [users, summary]);
+  }, [allUsers, summary]);
 
   return (
     <View style={styles.container}>

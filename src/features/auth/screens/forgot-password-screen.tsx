@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { authClient } from '@/services/auth';
 import { toUserMessage } from '@/services/api';
 import { TextField } from '@/shared/components/ui/text-field';
 import { Toast } from '@/shared/components/ui';
+import { AuthHeader } from '../components';
 import { authConstants } from '../constants/auth-constants';
 import { validateEmailValue } from '../utils/validation';
 import leftArrow from '@/assets/images/left-arrow.png';
-import logo from '@/assets/images/logo-saranakita.png';
-
-const LOGO_WIDTH = 120;
-const LOGO_HEIGHT = Math.round((LOGO_WIDTH * 29) / 124);
 
 export function ForgotPasswordScreen(): React.JSX.Element {
   const navigation = useNavigation<any>();
@@ -64,6 +61,24 @@ export function ForgotPasswordScreen(): React.JSX.Element {
     }
   };
 
+  const handleLoginPress = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  };
+
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    }
+  };
+
   const isFormValid = email.trim().length > 0;
 
   return (
@@ -73,7 +88,7 @@ export function ForgotPasswordScreen(): React.JSX.Element {
       {/* Header */}
       <View style={styles.topNavRow}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={handleBack}
           activeOpacity={0.7}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           style={styles.backButton}
@@ -98,76 +113,65 @@ export function ForgotPasswordScreen(): React.JSX.Element {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.headerBlock}>
-              <Image
-                source={logo}
-                style={styles.logo}
-                resizeMode="contain"
-                accessibilityRole="image"
-                accessibilityLabel="SaranaKita"
+            <View style={styles.centerBlock}>
+              <AuthHeader
+                title="Lupa Kata Sandi?"
+                subtitle="Masukkan alamat email Anda. Kami akan mengirimkan kode OTP untuk mereset kata sandi."
               />
-              <Text style={styles.title} accessibilityRole="header">
-                Lupa Kata Sandi?
-              </Text>
-              <Text style={styles.subtitle}>
-                Masukkan alamat email Anda. Kami akan mengirimkan kode OTP untuk mereset kata sandi.
-              </Text>
             </View>
 
             {/* Email Card */}
             <View style={styles.card}>
-              <View style={styles.fieldGroup}>
-                <TextField
-                  label="Email"
-                  required
-                  value={email}
-                  onChangeText={(text) => {
-                    setEmail(text);
-                    if (error) setError(null);
-                  }}
-                  placeholder="johndoe@gmail.com"
-                  placeholderTextColor={authConstants.colors.text.placeholder}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  errorText={error ?? undefined}
-                  labelStyle={styles.label}
-                  style={styles.input}
-                  onSubmitEditing={handleSubmit}
-                  submitBehavior="submit"
-                />
-              </View>
+              <TextField
+                label="Email"
+                required
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (error) setError(null);
+                }}
+                placeholder="johndoe@gmail.com"
+                placeholderTextColor={authConstants.typography.inputPlaceholder.color}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                errorText={error ?? undefined}
+                labelStyle={styles.label}
+                style={styles.input}
+                onSubmitEditing={handleSubmit}
+                submitBehavior="submit"
+              />
 
               {/* Submit Button */}
               <TouchableOpacity
                 onPress={handleSubmit}
                 disabled={submitting || !isFormValid}
-                activeOpacity={0.85}
+                activeOpacity={0.8}
                 style={[
-                  styles.submitButton,
-                  submitting || !isFormValid ? styles.buttonDisabled : styles.buttonActive,
+                  styles.continueButton,
+                  (submitting || !isFormValid) && styles.buttonDisabled,
                 ]}
                 accessibilityRole="button"
                 accessibilityLabel="Kirim Kode OTP"
               >
                 {submitting ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator color={authConstants.colors.text.light} size="small" />
                 ) : (
-                  <Text style={styles.submitButtonText}>Kirim Kode OTP</Text>
+                  <Text style={styles.continueButtonText}>Kirim Kode OTP</Text>
                 )}
               </TouchableOpacity>
 
               <View style={styles.loginRow}>
-                <Text style={styles.loginQuestionText}>
+                <Text style={styles.loginText}>
                   Ingat kata sandi Anda?{' '}
                 </Text>
-                <TouchableOpacity
-                  onPress={() => navigation.goBack()}
-                  activeOpacity={0.7}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                <Pressable
+                  onPress={handleLoginPress}
+                  accessibilityRole="link"
+                  accessibilityLabel="Log In"
                 >
-                  <Text style={styles.loginLinkText}>Log In</Text>
-                </TouchableOpacity>
+                  <Text style={styles.linkText}>Log In</Text>
+                </Pressable>
               </View>
             </View>
           </ScrollView>
@@ -219,82 +223,52 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     alignItems: 'center',
   },
-  headerBlock: {
-    alignItems: 'center',
-    marginBottom: authConstants.spacing.cardToFormGap,
-    paddingHorizontal: 20,
-  },
-  logo: {
-    width: LOGO_WIDTH,
-    height: LOGO_HEIGHT,
-    marginBottom: 20,
-  },
-  title: {
-    fontFamily: authConstants.typography.title.fontFamily,
-    fontSize: 32,
-    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
-    color: authConstants.colors.text.light,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontFamily: authConstants.typography.subtitle.fontFamily,
-    fontSize: 16,
-    lineHeight: 24,
-    color: authConstants.colors.text.light,
-    textAlign: 'center',
-    maxWidth: 280,
-    marginTop: 8,
+  centerBlock: {
+    width: '100%',
+    maxWidth: 369,
+    alignSelf: 'center',
   },
   card: {
     width: '100%',
     maxWidth: 369,
+    alignSelf: 'center',
     backgroundColor: authConstants.colors.surface,
     borderRadius: authConstants.components.card.borderRadius,
-    borderWidth: 0.8,
+    borderWidth: 1,
     borderColor: authConstants.colors.ui.cardBorder,
-    paddingVertical: 28,
-    paddingHorizontal: 24,
-    gap: 20,
-    shadowColor: authConstants.colors.ui.shadowColor,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  fieldGroup: {
-    gap: 6,
+    paddingVertical: authConstants.components.card.paddingVertical,
+    paddingHorizontal: authConstants.components.card.paddingHorizontal,
+    gap: 18,
   },
   label: {
     fontFamily: authConstants.typography.label.fontFamily,
     fontSize: 16,
     fontWeight: Platform.OS === 'ios' ? '500' : undefined,
-    color: authConstants.colors.text.secondary,
+    color: authConstants.colors.text.dark,
   },
   input: {
     backgroundColor: authConstants.colors.surface,
-    borderColor: authConstants.colors.ui.inputBorder,
-    borderWidth: 0.8,
+    borderColor: authConstants.colors.ui.inputBorderLight,
+    borderWidth: authConstants.components.input.borderWidth,
     borderRadius: authConstants.components.input.borderRadius,
     height: authConstants.components.input.height,
     fontFamily: authConstants.typography.inputText.fontFamily,
     fontSize: 14,
     color: authConstants.colors.text.dark,
-    paddingHorizontal: 12,
   },
-  submitButton: {
+  continueButton: {
+    backgroundColor: authConstants.colors.ui.buttonBlack,
     borderRadius: authConstants.components.button.borderRadius,
     height: authConstants.components.button.height,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 8,
     width: '100%',
-  },
-  buttonActive: {
-    backgroundColor: authConstants.colors.ui.buttonBlack,
   },
   buttonDisabled: {
     backgroundColor: authConstants.colors.ui.buttonDisabled,
   },
-  submitButtonText: {
+  continueButtonText: {
     fontFamily: authConstants.typography.buttonText.fontFamily,
     fontSize: 14,
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
@@ -304,17 +278,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 4,
+    flexWrap: 'wrap',
+    marginTop: 14,
   },
-  loginQuestionText: {
+  loginText: {
     color: authConstants.colors.text.dark,
     fontSize: 14,
     fontFamily: authConstants.typography.inputText.fontFamily,
   },
-  loginLinkText: {
+  linkText: {
     color: authConstants.colors.brand,
-    fontSize: 16,
-    fontFamily: authConstants.typography.link.fontFamily,
+    fontSize: 14,
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    fontFamily: authConstants.typography.link.fontFamily,
   },
 });

@@ -65,6 +65,7 @@ function UrgentReportCard({
 }
 
 export function StaffHomeScreen(): React.JSX.Element {
+  const { theme } = useRole();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const user = useCurrentUser();
@@ -73,7 +74,7 @@ export function StaffHomeScreen(): React.JSX.Element {
 
   if (!dashboard && loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-page">
+      <View style={{ backgroundColor: theme.background }} className="flex-1 items-center justify-center">
         <ActivityIndicator color={STAFF_PRIMARY} />
       </View>
     );
@@ -81,7 +82,7 @@ export function StaffHomeScreen(): React.JSX.Element {
 
   if (!dashboard) {
     return (
-      <View className="flex-1 bg-page">
+      <View style={{ backgroundColor: theme.background }} className="flex-1">
         <View
           className="gap-5 px-5 pb-8"
           style={{
@@ -95,7 +96,7 @@ export function StaffHomeScreen(): React.JSX.Element {
           />
         </View>
         <View className="flex-1 items-center justify-center gap-3 px-6">
-          <Text className="text-center text-sm text-gray-500">
+          <Text style={{ color: theme.textSecondary }} className="text-center text-sm">
             {error ?? 'Data dashboard belum tersedia.'}
           </Text>
           <Pressable
@@ -122,7 +123,6 @@ export function StaffHomeScreen(): React.JSX.Element {
   );
   const openReportHistory = () => navigation.navigate('ReportHistory');
 
-  const { theme } = useRole();
   return (
     <View style={{ backgroundColor: theme.background }} className="flex-1">
       <ScrollView

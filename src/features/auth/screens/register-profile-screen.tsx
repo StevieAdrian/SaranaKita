@@ -154,6 +154,14 @@ export function RegisterProfileScreen(): React.JSX.Element {
     }
   };
 
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Register');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <StatusBar barStyle="light-content" />
@@ -169,7 +177,7 @@ export function RegisterProfileScreen(): React.JSX.Element {
           {/* Header */}
           <View style={styles.headerBar}>
             <TouchableOpacity
-              onPress={() => navigation.goBack()}
+              onPress={handleBack}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               activeOpacity={0.7}
               style={styles.backButton}

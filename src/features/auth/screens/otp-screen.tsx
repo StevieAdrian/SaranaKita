@@ -253,7 +253,7 @@ export function OtpScreen(): React.JSX.Element {
 
       if (isResetPassword) {
         await supabase.auth.signOut({ scope: 'local' }).catch(() => { });
-        navigation.navigate('ResetPassword', { email });
+        navigation.replace('ResetPassword', { email });
       } else {
         if (data?.session) {
           const { userData } = await checkUserProfileComplete(
@@ -454,7 +454,7 @@ export function OtpScreen(): React.JSX.Element {
               </View>
 
               <View style={styles.resendGroup}>
-                <Text style={styles.metaLabel}>Tidak menerima kode? </Text>
+                <Text style={styles.metaLabel}>Belum terima kode? </Text>
                 <TouchableOpacity
                   onPress={handleResend}
                   disabled={resendCooldown > 0 || resending}
@@ -529,14 +529,14 @@ const styles = StyleSheet.create({
     tintColor: '#FFFFFF',
   },
   scrollContent: {
-    paddingHorizontal: 28,
+    paddingHorizontal: 20,
     paddingTop: 36,
     paddingBottom: 48,
     alignItems: 'center',
   },
   headerTitleGroup: {
     width: '100%',
-    maxWidth: 338,
+    maxWidth: 340,
     alignItems: 'center',
   },
   title: {
@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
   },
   emailCard: {
     width: '100%',
-    maxWidth: 338,
+    maxWidth: 340,
     height: 52,
     backgroundColor: authConstants.colors.surface,
     borderWidth: 1,
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
-    maxWidth: 338,
+    maxWidth: 340,
     gap: 8,
     marginTop: 32,
   },
@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
-    maxWidth: 338,
+    maxWidth: 340,
     marginTop: 28,
   },
   timerGroup: {
@@ -662,31 +662,31 @@ const styles = StyleSheet.create({
   },
   metaLabel: {
     fontFamily: fontFamilies.regular,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: Platform.OS === 'ios' ? '400' : undefined,
     color: authConstants.colors.text.slateMuted,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   timerValue: {
     fontFamily: fontFamilies.bold,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: Platform.OS === 'ios' ? '700' : undefined,
     color: authConstants.colors.brand,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   resendButton: {
     fontFamily: fontFamilies.bold,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: Platform.OS === 'ios' ? '700' : undefined,
     color: authConstants.colors.brand,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   resendDisabled: {
     opacity: 0.5,
   },
   verifyButton: {
     width: '100%',
-    maxWidth: 338,
+    maxWidth: 340,
     height: 50,
     borderRadius: 10,
     alignItems: 'center',

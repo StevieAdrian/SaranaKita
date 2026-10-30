@@ -111,6 +111,7 @@ export function useUserManagement() {
 
   return {
     users: filteredUsers,
+    allUsers: users,
     totalCount: users.length,
     summary,
     schoolName,

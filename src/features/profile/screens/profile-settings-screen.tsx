@@ -79,10 +79,13 @@ export function ProfileSettingsScreen(): React.JSX.Element {
   const handleChangePassword = async (currentPass: string, newPass: string) => {
     setSubmitting(true);
     try {
-      await changePassword({
+      const res = await changePassword({
         currentPassword: currentPass,
         newPassword: newPass,
       });
+      if (res.tokens) {
+        await authClient.updateTokens(res.tokens);
+      }
     } finally {
       setSubmitting(false);
     }
