@@ -1,7 +1,6 @@
 import React from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import notificationIcon from '@/assets/images/notification.png';
-import { hitSlop } from '@/shared/theme';
 import { NotificationButton } from '@/shared/components/ui/notification';
 
 export type HomeHeaderProps = {
@@ -17,8 +16,6 @@ export function HomeHeader({
   unreadNotifications = 0,
   onNotificationsPress,
 }: HomeHeaderProps): React.JSX.Element {
-  const badge = unreadNotifications > 99 ? '99+' : String(unreadNotifications);
-
   return (
     <View className="flex-row items-start justify-between">
       <View className="flex-1 gap-0.5 pr-4">

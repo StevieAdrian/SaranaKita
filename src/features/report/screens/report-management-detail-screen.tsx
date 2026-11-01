@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -17,14 +16,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import checkIcon from '@/assets/images/check.png';
 import leftArrow from '@/assets/images/left-arrow.png';
 import { USER_ROLE } from '@/services/auth';
-import { useSession } from '@/features/auth';
+import { useSession } from '@/features/auth/hooks/use-session';
 import {
   REPORT_STATUS_BY_NAME,
   REPORT_STATUS_NAME_BY_STATUS,
   REPORT_STATUS,
   REPORT_STATUS_NAME,
   REPORT_STATUS_NAMES,
-  type ReportStatus,
   type UpdateReportStatusName,
 } from '@/services/report';
 import {
@@ -33,6 +31,8 @@ import {
 } from '@/shared/components/report';
 import { BottomSheet, ModalSuccess } from '@/shared/components/ui';
 import { getThemeColors, palette } from '@/shared/theme';
+import { useRole } from '@/shared/context/theme-context';
+import { NotFoundScreen } from '@/features/auth/screens/transitions';
 import { ReportGallery } from '../components/report-gallery';
 import {
   ReporterCard,
@@ -109,6 +109,7 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
   const route = useRoute<ManagementDetailRoute>();
   const insets = useSafeAreaInsets();
   const { user } = useSession();
+  const { theme } = useRole();
   const primaryColor =
     user?.role === USER_ROLE.STAFF
       ? getThemeColors(USER_ROLE.STAFF).primary
@@ -126,6 +127,7 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
     report,
     loading,
     error,
+    isNotFound,
     comments,
     commentsError,
     changingStatus,
@@ -169,12 +171,12 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
 
   const confirmVerification = () => {
     setVerificationConfirmationOpen(false);
-    updateStatus(REPORT_STATUS_NAME.IN_REVIEW).catch(() => {});
+    updateStatus(REPORT_STATUS_NAME.IN_REVIEW).catch(() => { });
   };
 
   const confirmRejection = () => {
     setRejectionConfirmationOpen(false);
-    updateStatus(REPORT_STATUS_NAME.REJECTED).catch(() => {});
+    updateStatus(REPORT_STATUS_NAME.REJECTED).catch(() => { });
   };
 
   const header = (
@@ -187,12 +189,21 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
 
   if (loading && !report) {
     return (
-      <View className="flex-1 bg-white">
+      <View className="flex-1" style={{ backgroundColor: theme.surface }}>
         {header}
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={primaryColor} />
         </View>
       </View>
+    );
+  }
+
+  if (!loading && (isNotFound || (!report && error?.toLowerCase().includes('tidak ditemukan')))) {
+    return (
+      <NotFoundScreen
+        navigation={navigation}
+        message="Laporan tidak ditemukan."
+      />
     );
   }
 
@@ -232,12 +243,12 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
         }}
       >
         <ReportGallery imageUrls={report.imageUrls} title={report.title} />
-        <View className="-mt-5 gap-4 rounded-t-3xl bg-white px-5 pt-5">
+        <View className="-mt-5 gap-4 rounded-t-3xl px-5 pt-5" style={{ backgroundColor: theme.surface }}>
           <View className="gap-3">
             <View className="flex-row items-start gap-3">
               <Text
                 accessibilityRole="header"
-                className="flex-1 text-xl font-bold leading-6 text-[#172033]"
+                style={{ color: theme.textHeading }} className="flex-1 text-xl font-bold leading-6"
               >
                 {report.title}
               </Text>
@@ -561,20 +572,18 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
           return (
             <Pressable
               key={statusName}
-              onPress={() => updateStatus(statusName).catch(() => {})}
+              onPress={() => updateStatus(statusName).catch(() => { })}
               disabled={changingStatus}
               accessibilityRole="button"
               accessibilityState={{ selected }}
-              className={`min-h-[48px] justify-center rounded-lg px-3 ${
-                selected ? 'bg-[#FEF3C7]' : ''
-              }`}
+              className={`min-h-[48px] justify-center rounded-lg px-3 ${selected ? 'bg-[#FEF3C7]' : ''
+                }`}
             >
               <Text
-                className={`text-sm ${
-                  selected
-                    ? 'font-semibold text-[#854D0E]'
-                    : 'text-gray-800'
-                }`}
+                className={`text-sm ${selected
+                  ? 'font-semibold text-[#854D0E]'
+                  : 'text-gray-800'
+                  }`}
               >
                 {statusName}
               </Text>

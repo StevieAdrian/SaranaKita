@@ -10,6 +10,7 @@ import {
 import checkIcon from '@/assets/images/check.png';
 import type { ReportComment, ReportTimelineEvent } from '@/services/report';
 import { palette } from '@/shared/theme';
+import { useRole } from '@/shared/context/theme-context';
 import { COMMENT_MAX_LENGTH } from '../constants';
 import {
   formatShortDate,
@@ -40,9 +41,8 @@ export function DetailStats({
           key={item.label}
           accessible
           accessibilityLabel={`${item.value} ${item.label}`}
-          className={`flex-1 items-center ${
-            i > 0 ? 'border-l border-white/40' : ''
-          }`}
+          className={`flex-1 items-center ${i > 0 ? 'border-l border-white/40' : ''
+            }`}
         >
           <Text className="text-2xl font-bold text-white">{item.value}</Text>
           <Text className="text-xs text-white/90">{item.label}</Text>
@@ -93,17 +93,18 @@ export function ReporterCard({
   avatarUrl: string | null;
   date: string;
 }): React.JSX.Element {
+  const { theme } = useRole();
   return (
-    <View className="flex-row items-center gap-3 rounded-xl border border-gray-200 p-3">
+    <View style={{ borderColor: theme.borderSubtle }} className="flex-row items-center gap-3 rounded-xl border p-3">
       <Avatar name={name} uri={avatarUrl} size={44} />
       <View className="flex-1">
-        <Text className="text-xs text-gray-400">Dilaporkan oleh</Text>
-        <Text numberOfLines={1} className="text-base font-bold text-gray-900">
+        <Text style={{ color: theme.textMuted }} className="text-xs">Dilaporkan oleh</Text>
+        <Text numberOfLines={1} style={{ color: theme.textHeading }} className="text-base font-bold">
           {name}
         </Text>
-        <Text className="text-xs text-gray-500">{roleLabel}</Text>
+        <Text style={{ color: theme.textSecondary }} className="text-xs">{roleLabel}</Text>
       </View>
-      <Text className="text-xs text-gray-400">{date}</Text>
+      <Text style={{ color: theme.textMuted }} className="text-xs">{date}</Text>
     </View>
   );
 }
@@ -115,6 +116,7 @@ export function ReportTimeline({
   events: readonly ReportTimelineEvent[];
   color: string;
 }): React.JSX.Element {
+  const { theme } = useRole();
   return (
     <View className="gap-3">
       {events.map(event => {
@@ -135,16 +137,16 @@ export function ReportTimeline({
                 style={WHITE_TINT}
               />
             </View>
-            <View className="flex-1 rounded-lg border border-gray-200 p-3">
+            <View style={{ borderColor: theme.borderSubtle, backgroundColor: theme.surface }} className="flex-1 rounded-lg border p-3">
               <View className="flex-row justify-between gap-2">
-                <Text className="flex-1 font-semibold text-gray-900">
+                <Text style={{ color: theme.textHeading }} className="flex-1 font-semibold">
                   {copy.title}
                 </Text>
-                <Text className="text-xs text-gray-400">
+                <Text style={{ color: theme.textMuted }} className="text-xs">
                   {formatShortDate(event.at)}
                 </Text>
               </View>
-              <Text className="mt-1 text-sm text-gray-500">{copy.body}</Text>
+              <Text style={{ color: theme.textSecondary }} className="mt-1 text-sm">{copy.body}</Text>
             </View>
           </View>
         );
@@ -174,6 +176,7 @@ export function CommentSection({
   onSubmit,
   onRetry,
 }: CommentSectionProps): React.JSX.Element {
+  const { theme } = useRole();
   const [text, setText] = useState('');
   const trimmedText = text.trim();
   const handleSubmit = async () => {
@@ -195,7 +198,8 @@ export function CommentSection({
       <View className="flex-row items-center justify-between">
         <Text
           accessibilityRole="header"
-          className="text-lg font-bold text-gray-900"
+          style={{ color: theme.textHeading }}
+          className="text-lg font-bold"
         >
           Komentar
         </Text>
@@ -206,19 +210,20 @@ export function CommentSection({
           <Text className="text-xs font-semibold text-primary">{count}</Text>
         </View>
       </View>
-      <View className="gap-2 rounded-xl border border-gray-200 bg-gray-50 p-3">
+      <View style={{ backgroundColor: theme.surfaceInput, borderColor: theme.borderInput }} className="gap-2 rounded-xl border p-3">
         <View className="flex-row items-start gap-3">
           <Avatar name={userName} uri={null} size={32} />
           <TextInput
             value={text}
             onChangeText={setText}
             placeholder="Tambahkan komentar..."
-            placeholderTextColor={palette.gray500}
+            placeholderTextColor={theme.textPlaceholder}
             maxLength={COMMENT_MAX_LENGTH}
             multiline
             editable={canComment && !submitting}
             accessibilityLabel="Tulis komentar"
-            className="min-h-[48px] flex-1 text-sm text-gray-900"
+            style={{ color: theme.textInput }}
+            className="min-h-[48px] flex-1 text-sm"
           />
         </View>
         <View className="flex-row items-center justify-between">
@@ -227,7 +232,7 @@ export function CommentSection({
           </Text>
           <Pressable
             onPress={() => {
-              handleSubmit().catch(() => {});
+              handleSubmit().catch(() => { });
             }}
             disabled={!canComment || !trimmedText || submitting}
             accessibilityRole="button"
@@ -236,11 +241,10 @@ export function CommentSection({
               busy: submitting,
             }}
             accessibilityLabel="Kirim komentar"
-            className={`min-h-[36px] justify-center rounded-lg px-5 ${
-              canComment && trimmedText && !submitting
-                ? 'bg-primary'
-                : 'bg-gray-300'
-            }`}
+            className={`min-h-[36px] justify-center rounded-lg px-5 ${canComment && trimmedText && !submitting
+              ? 'bg-primary'
+              : 'bg-gray-300'
+              }`}
           >
             {submitting ? (
               <ActivityIndicator size="small" color={palette.white} />
@@ -272,16 +276,16 @@ export function CommentSection({
       {comments.map(comment => (
         <View key={comment.id} className="flex-row items-start gap-3 py-1">
           <Avatar name={comment.authorName} uri={comment.avatarUrl} size={32} />
-          <View className="flex-1 gap-1 rounded-xl bg-gray-50 p-3">
+          <View style={{ backgroundColor: theme.surfaceInput }} className="flex-1 gap-1 rounded-xl p-3">
             <View className="flex-row items-center justify-between gap-2">
-              <Text className="flex-1 text-sm font-semibold text-gray-900">
+              <Text style={{ color: theme.textHeading }} className="flex-1 text-sm font-semibold">
                 {comment.authorName}
               </Text>
               <Text className="text-xs text-gray-400">
                 {formatShortDate(comment.createdAt)}
               </Text>
             </View>
-            <Text className="text-sm leading-5 text-gray-700">
+            <Text style={{ color: theme.textBody }} className="text-sm leading-5">
               {comment.commentText}
             </Text>
           </View>

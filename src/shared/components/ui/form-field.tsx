@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useRole } from '@/shared/context/theme-context';
 
 const fontMedium = 'Poppins-Medium';
 const fontRegular = 'Poppins-Regular';
@@ -17,15 +18,17 @@ export function FormField({
   error,
   children,
 }: FormFieldProps): React.JSX.Element {
+  const { theme } = useRole();
+
   return (
     <View style={styles.container} className="gap-2">
-      <Text style={styles.label} className="text-base text-gray-900">
+      <Text style={[styles.label, { color: theme.textHeading }]} className="text-base">
         {label}
-        {required ? <Text style={styles.asterisk}> *</Text> : null}
+        {required ? <Text style={[styles.asterisk, { color: theme.danger }]}> *</Text> : null}
       </Text>
       {children}
       {error ? (
-        <Text accessibilityLiveRegion="polite" style={styles.error} className="text-sm">
+        <Text accessibilityLiveRegion="polite" style={[styles.error, { color: theme.danger }]} className="text-sm">
           {error}
         </Text>
       ) : null}
@@ -41,18 +44,15 @@ const styles = StyleSheet.create({
     fontFamily: fontMedium,
     fontSize: 16,
     lineHeight: 22,
-    color: '#171717',
   },
   asterisk: {
     fontFamily: fontMedium,
     fontSize: 16,
-    color: '#EF4444',
   },
   error: {
     fontFamily: fontRegular,
     fontSize: 12,
     lineHeight: 16,
-    color: '#EF4444',
     marginTop: 2,
   },
 });

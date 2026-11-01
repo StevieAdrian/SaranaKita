@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
 import verifiedCheckmark from '@/assets/images/verified-checkmark.png';
 import unverifiedCrossmark from '@/assets/images/unverified-crossmark.png';
 import { authConstants } from '../constants/auth-constants';
@@ -11,6 +11,7 @@ export type UsernameInputProps = Omit<TextInputProps, 'style'> & {
   status?: UsernameStatus;
   errorText?: string;
   hideLabel?: boolean;
+  labelStyle?: StyleProp<TextStyle>;
   wrapperStyle?: StyleProp<ViewStyle>;
 };
 
@@ -22,6 +23,7 @@ export function UsernameInput({
   value,
   onChangeText,
   hideLabel = false,
+  labelStyle,
   wrapperStyle,
   ...rest
 }: UsernameInputProps): React.JSX.Element {
@@ -37,7 +39,7 @@ export function UsernameInput({
   return (
     <View style={styles.container}>
       {!hideLabel ? (
-        <Text style={styles.label}>
+        <Text style={[styles.label, labelStyle]}>
           {label}
           {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
         </Text>
@@ -52,7 +54,7 @@ export function UsernameInput({
           autoCapitalize="none"
           autoCorrect={false}
           style={styles.input}
-          accessibilityLabel={required ? `${label}, required` : label}
+          accessibilityLabel={required ? `${label}, wajib` : label}
           accessibilityHint={hasError ? errorText : undefined}
           {...rest}
         />
@@ -92,9 +94,7 @@ const styles = StyleSheet.create({
     gap: authConstants.spacing.labelToInput,
   },
   label: {
-    fontFamily: authConstants.typography.label.fontFamily,
-    fontSize: 14,
-    color: '#171717',
+    ...authConstants.typography.label,
   },
   requiredAsterisk: {
     color: authConstants.colors.text.error,

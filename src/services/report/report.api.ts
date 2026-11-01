@@ -1,5 +1,4 @@
 import { apiClient } from '@/services/api';
-import { ReportDetail } from './detail.api';
 
 export type CreateReportInput = {
   readonly title: string;

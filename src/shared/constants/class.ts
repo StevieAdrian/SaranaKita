@@ -3,6 +3,7 @@ import type { SelectOption } from '@/shared/components/ui';
 export const CLASS_OPTIONS: readonly SelectOption[] = [
   { value: 'X-A', label: 'X-A' },
   { value: 'X-B', label: 'X-B' },
+  { value: 'X-C', label: 'X-C' },
   { value: 'XI-A', label: 'XI-A' },
   { value: 'XI-B', label: 'XI-B' },
   { value: 'XI-C', label: 'XI-C' },

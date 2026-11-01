@@ -23,6 +23,7 @@ import { USER_ROLE } from '@/services/auth';
 import { ReportThumbnail, StatusBadge } from '@/shared/components/report';
 import { REPORT_STATUS_META } from '@/shared/components/report/report-status';
 import { getThemeColors } from '@/shared/theme';
+import { useRole } from '@/shared/context/theme-context';
 import { HomeHeader } from '../components/home-header';
 import {
   REPORT_STATUS_ROWS,
@@ -57,9 +58,8 @@ function CountTile({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      className={`min-h-[88px] flex-1 flex-row items-center gap-2.5 rounded-lg border px-3 py-3 active:opacity-90 ${
-        selected ? 'border-white' : 'border-transparent'
-      }`}
+      className={`min-h-[88px] flex-1 flex-row items-center gap-2.5 rounded-lg border px-3 py-3 active:opacity-90 ${selected ? 'border-white' : 'border-transparent'
+        }`}
       style={{ backgroundColor: color }}
     >
       <Image
@@ -85,26 +85,28 @@ function ReportCard({
   report: FeedReport;
   onPress: () => void;
 }): React.JSX.Element {
+  const { theme } = useRole();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Buka laporan ${report.title}`}
-      className="flex-row gap-2 rounded-lg bg-white p-3 active:opacity-80"
+      style={{ backgroundColor: theme.surface }}
+      className="flex-row gap-2 rounded-lg p-3 active:opacity-80"
     >
       <ReportThumbnail uri={report.imageUrl} className="h-20 w-20 rounded-md" />
       <View className="flex-1 gap-1">
-        <Text numberOfLines={1} className="text-sm font-bold text-gray-900">
+        <Text numberOfLines={1} style={{ color: theme.textHeading }} className="text-sm font-bold">
           {report.title}
         </Text>
-        <Text numberOfLines={1} className="text-xs text-gray-500">
+        <Text numberOfLines={1} style={{ color: theme.textSecondary }} className="text-xs">
           {report.reporterName} · {toDisplayDate(report.createdAt)}
         </Text>
         <StatusBadge status={report.status} size="sm" />
-        <Text className="text-xs text-gray-600">
-          <Text className="font-bold text-gray-900">{report.votes}</Text>
+        <Text style={{ color: theme.textSecondary }} className="text-xs">
+          <Text style={{ color: theme.textHeading }} className="font-bold">{report.votes}</Text>
           {'  '}Votes{'   '}
-          <Text className="font-bold text-gray-900">{report.comments}</Text>
+          <Text style={{ color: theme.textHeading }} className="font-bold">{report.comments}</Text>
           {'  '}Komentar
         </Text>
       </View>
@@ -119,6 +121,7 @@ export function AdministratorHomeScreen({
   name?: string;
   primaryColor?: string;
 }): React.JSX.Element {
+  const { theme } = useRole();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { dashboard, loading, refreshing, error, refresh } =
@@ -134,7 +137,7 @@ export function AdministratorHomeScreen({
 
   if (!dashboard && loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-page">
+      <View style={{ backgroundColor: theme.background }} className="flex-1 items-center justify-center">
         <ActivityIndicator color={primaryColor} />
       </View>
     );
@@ -142,7 +145,7 @@ export function AdministratorHomeScreen({
 
   if (!dashboard) {
     return (
-      <View className="flex-1 bg-page">
+      <View style={{ backgroundColor: theme.background }} className="flex-1">
         <View
           className="gap-5 px-5 pb-8"
           style={{
@@ -153,7 +156,7 @@ export function AdministratorHomeScreen({
           <HomeHeader name={name} schoolName={null} />
         </View>
         <View className="flex-1 items-center justify-center gap-3 px-6">
-          <Text className="text-center text-sm text-gray-500">
+          <Text style={{ color: theme.textSecondary }} className="text-center text-sm">
             {error ?? 'Data dashboard belum tersedia.'}
           </Text>
           <Pressable
@@ -180,10 +183,10 @@ export function AdministratorHomeScreen({
       : reportFilter === 'action_required'
         ? 'Perlu Tindakan'
         : REPORT_STATUS_ROWS.find(row => row.status === reportFilter)?.label ??
-          'Semua Laporan';
+        'Semua Laporan';
 
   return (
-    <View className="flex-1 bg-[#ECF3FD]">
+    <View style={{ backgroundColor: theme.background }} className="flex-1">
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -278,7 +281,7 @@ export function AdministratorHomeScreen({
 
           <View className="gap-3">
             <View className="flex-row items-center justify-between">
-              <Text className="text-base font-bold text-gray-900">
+              <Text style={{ color: theme.textHeading }} className="text-base font-bold">
                 {filterLabel}
               </Text>
               {reportFilter !== 'all' ? (

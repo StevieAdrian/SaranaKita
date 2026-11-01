@@ -1,5 +1,6 @@
 import { apiClient } from '@/services/api';
 import type { ReportStatus } from './status.constants';
+import { MonitoringResponse } from '@/features/statistic/types';
 
 export type { ReportStatus } from './status.constants';
 
@@ -198,4 +199,9 @@ export function getReportEvaluasi(reportId: string): Promise<ReportEvaluasi[]> {
   return apiClient.get<ReportEvaluasi[]>(
     `/reports/${encodeURIComponent(reportId)}/evaluasi`,
   );
+}
+
+//Monitoring
+export function getReportMonitoring(): Promise<MonitoringResponse> {
+  return apiClient.get<MonitoringResponse>('/reports/monitoring');
 }

@@ -8,17 +8,7 @@ import searchIcon from '@/assets/images/search.png';
 import { useRole } from '@/shared/context/theme-context';
 import { hitSlop } from '@/shared/theme';
 import { SummaryCard, type UserCountMetric } from './summary-card';
-import { userFonts } from '../utils/constants';
-
-const ROLE_CHIPS: readonly {
-  key: 'all' | 'siswa' | 'guru' | 'staff';
-  label: string;
-}[] = [
-    { key: 'all', label: 'Semua' },
-    { key: 'siswa', label: 'Siswa' },
-    { key: 'guru', label: 'Guru' },
-    { key: 'staff', label: 'Staff' },
-  ];
+import { ROLE_FILTER_CHIPS, userFonts, userManagementColors } from '../utils/constants';
 
 export type HeaderUserManagementProps = {
   totalUsers?: number;
@@ -154,12 +144,12 @@ export function HeaderUserManagement({
         </View>
 
         <View style={styles.chipsRow}>
-          {ROLE_CHIPS.map((chip) => {
-            const isSelected = roleFilter === chip.key;
+          {ROLE_FILTER_CHIPS.map((chip) => {
+            const isSelected = roleFilter === chip.value;
             return (
               <Pressable
-                key={chip.key}
-                onPress={() => onRoleFilterChange(chip.key)}
+                key={chip.value}
+                onPress={() => onRoleFilterChange(chip.value)}
                 accessibilityRole="button"
                 accessibilityState={{ selected: isSelected }}
                 style={[
@@ -258,7 +248,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   whiteSection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: userManagementColors.white,
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 14,
@@ -273,9 +263,9 @@ const styles = StyleSheet.create({
   searchField: {
     flex: 1,
     height: 40,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: userManagementColors.white,
     borderWidth: 1,
-    borderColor: '#94A3B8',
+    borderColor: userManagementColors.text.subtle,
     borderRadius: 5,
     flexDirection: 'row',
     alignItems: 'center',
@@ -297,9 +287,9 @@ const styles = StyleSheet.create({
   filterButton: {
     width: 40,
     height: 40,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: userManagementColors.white,
     borderWidth: 1,
-    borderColor: '#94A3B8',
+    borderColor: userManagementColors.text.subtle,
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -333,8 +323,8 @@ const styles = StyleSheet.create({
   },
   chipSelected: {},
   chipUnselected: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#94A3B8',
+    backgroundColor: userManagementColors.white,
+    borderColor: userManagementColors.text.subtle,
   },
   chipText: {
     fontFamily: userFonts.medium,
@@ -342,7 +332,7 @@ const styles = StyleSheet.create({
   },
   chipTextSelected: {},
   chipTextUnselected: {
-    color: '#94A3B8',
+    color: userManagementColors.text.subtle,
   },
   pressed: {
     opacity: 0.7,

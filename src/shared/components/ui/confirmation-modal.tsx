@@ -39,7 +39,8 @@ export function ConfirmationModal({
   onConfirm,
   onCancel,
 }: ConfirmationModalProps): React.JSX.Element {
-  const { theme } = useRole();
+  const { theme, scheme } = useRole();
+  const isDark = scheme === 'dark';
   const isDanger = tone === 'danger';
   const isBottomSheet = variant === 'bottomSheet';
   const btnRadius = buttonBorderRadius ?? (isDanger ? 12 : 5);
@@ -48,13 +49,33 @@ export function ConfirmationModal({
   const icon = iconSource ?? defaultIcon;
 
   const iconBgColor = isDanger
-    ? '#FEE2E2'
+    ? (isDark ? theme.dangerSurface : '#FEE2E2')
     : isBottomSheet
-      ? '#EDE9FE'
+      ? (isDark ? theme.primarySoft : '#EDE9FE')
       : (confirmColor ? `${confirmColor}1A` : `${theme.primary}1A`);
-  const confirmBtnBg = isDanger ? '#EF4444' : (confirmColor ?? theme.primary);
+  const confirmBtnBg = isDanger ? theme.danger : (confirmColor ?? theme.primary);
   const confirmTextColor = '#FFFFFF';
-  const iconTintColor = isDanger ? '#EF4444' : (confirmColor ?? theme.primary);
+  const iconTintColor = isDanger ? theme.danger : (confirmColor ?? theme.primary);
+
+  const canDismissRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (visible) {
+      canDismissRef.current = false;
+      const timer = setTimeout(() => {
+        canDismissRef.current = true;
+      }, 250);
+      return () => clearTimeout(timer);
+    } else {
+      canDismissRef.current = false;
+    }
+  }, [visible]);
+
+  const handleBackdropPress = () => {
+    if (!loading && canDismissRef.current) {
+      onCancel();
+    }
+  };
 
   return (
     <Modal
@@ -66,7 +87,7 @@ export function ConfirmationModal({
       onRequestClose={loading ? () => { } : onCancel}
     >
       <View style={[styles.overlay, isBottomSheet && styles.overlayBottomSheet]}>
-        <TouchableWithoutFeedback onPress={loading ? undefined : onCancel}>
+        <TouchableWithoutFeedback onPress={handleBackdropPress}>
           <View style={styles.backdrop} />
         </TouchableWithoutFeedback>
 
@@ -74,12 +95,12 @@ export function ConfirmationModal({
           style={[
             isBottomSheet ? styles.bottomSheetCard : styles.card,
             {
-              backgroundColor: theme.surface || '#FFFFFF',
-              shadowColor: '#000000',
+              backgroundColor: theme.surface,
+              shadowColor: theme.shadowColor,
             },
           ]}
         >
-          {isBottomSheet ? <View style={styles.handleBar} /> : null}
+          {isBottomSheet ? <View style={[styles.handleBar, { backgroundColor: theme.borderControl }]} /> : null}
 
           <View
             style={[
@@ -101,7 +122,7 @@ export function ConfirmationModal({
             accessibilityRole="header"
             style={[
               isBottomSheet ? styles.sheetTitle : styles.title,
-              { color: theme.textHeading || '#0F172A' },
+              { color: theme.textHeading },
             ]}
           >
             {title}
@@ -109,7 +130,7 @@ export function ConfirmationModal({
           <Text
             style={[
               isBottomSheet ? styles.sheetMessage : styles.message,
-              { color: theme.textSecondary || '#64748B' },
+              { color: theme.textSecondary },
             ]}
           >
             {message}
@@ -154,6 +175,7 @@ export function ConfirmationModal({
               style={[
                 isBottomSheet ? styles.sheetCancelButton : styles.button,
                 styles.cancelButton,
+                { backgroundColor: isDark ? theme.surfaceInput : '#F1F5F9' },
                 isBottomSheet && { borderRadius: btnRadius },
                 loading && styles.disabled,
               ]}
@@ -161,6 +183,7 @@ export function ConfirmationModal({
               <Text
                 style={[
                   isBottomSheet ? styles.sheetCancelButtonText : styles.cancelButtonText,
+                  { color: theme.textSecondary },
                 ]}
               >
                 {cancelLabel}
@@ -263,7 +286,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#E5E7EB',
     marginBottom: 16,
   },
   sheetIconCircle: {
@@ -324,7 +346,6 @@ const styles = StyleSheet.create({
     fontFamily: fontSemiBold,
     fontSize: 14,
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
-    color: '#64748B',
   },
   cancelButton: {
     backgroundColor: '#F1F5F9',
@@ -333,7 +354,6 @@ const styles = StyleSheet.create({
     fontFamily: fontSemiBold,
     fontSize: 14,
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
-    color: '#64748B',
   },
   disabled: {
     opacity: 0.6,

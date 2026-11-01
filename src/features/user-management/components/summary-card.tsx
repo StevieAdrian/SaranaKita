@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { userFonts } from '../utils/constants';
+import { userFonts, userManagementColors } from '../utils/constants';
+import { useRole } from '@/shared/context/theme-context';
 
 export type UserCountMetric = {
   total: number;
@@ -19,33 +20,34 @@ export function SummaryCard({
   guru = { total: 0, active: 0, inactive: 0 },
   staff = { total: 0, active: 0, inactive: 0 },
 }: SummaryCardProps): React.JSX.Element {
+  const { theme } = useRole();
   const cards = [
     {
       title: 'Siswa',
       data: siswa,
-      badgeBg: 'rgba(37, 99, 235, 0.13)',
-      badgeText: '#112D71',
+      badgeBg: userManagementColors.badges.summary.siswa.bg,
+      badgeText: userManagementColors.badges.summary.siswa.text,
     },
     {
       title: 'Guru',
       data: guru,
-      badgeBg: 'rgba(245, 158, 11, 0.12)',
-      badgeText: '#D97706',
+      badgeBg: userManagementColors.badges.summary.guru.bg,
+      badgeText: userManagementColors.badges.summary.guru.text,
     },
     {
       title: 'Staff',
       data: staff,
-      badgeBg: 'rgba(22, 101, 52, 0.12)',
-      badgeText: '#166534',
+      badgeBg: userManagementColors.badges.summary.staff.bg,
+      badgeText: userManagementColors.badges.summary.staff.text,
     },
   ];
 
   return (
     <View style={styles.container}>
       {cards.map((item) => (
-        <View key={item.title} style={styles.card}>
+        <View key={item.title} style={[styles.card, { backgroundColor: theme.surface, shadowColor: theme.shadowColor }]}>
           <View style={styles.topRow}>
-            <Text accessibilityRole="header" style={styles.countText}>
+            <Text accessibilityRole="header" style={[styles.countText, { color: theme.textHeading }]}>
               {item.data.total}
             </Text>
             <View style={[styles.roleBadge, { backgroundColor: item.badgeBg }]}>
@@ -58,14 +60,14 @@ export function SummaryCard({
           <View style={styles.statusCol}>
             <View style={styles.statusLine}>
               <View style={[styles.statusDot, styles.activeDot]} />
-              <Text style={styles.statusText} numberOfLines={1}>
-                <Text style={styles.statusNumber}>{item.data.active}</Text> Aktif
+              <Text style={[styles.statusText, { color: theme.textSecondary }]} numberOfLines={1}>
+                <Text style={[styles.statusNumber, { color: theme.textHeading }]}>{item.data.active}</Text> Aktif
               </Text>
             </View>
             <View style={styles.statusLine}>
               <View style={[styles.statusDot, styles.inactiveDot]} />
-              <Text style={styles.statusText} numberOfLines={1}>
-                <Text style={styles.statusNumber}>{item.data.inactive}</Text> Nonaktif
+              <Text style={[styles.statusText, { color: theme.textSecondary }]} numberOfLines={1}>
+                <Text style={[styles.statusNumber, { color: theme.textHeading }]}>{item.data.inactive}</Text> Nonaktif
               </Text>
             </View>
           </View>

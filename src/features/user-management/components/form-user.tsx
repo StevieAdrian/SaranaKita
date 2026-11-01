@@ -1,16 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { PHONE_RE } from '@/features/auth/utils/validation';
-import { ClassSelectField, DateOfBirthField, GenderRadioField, UsernameInput, type Gender, type PickedPhoto, type UsernameStatus } from '@/features/auth';
+import {
+  USERNAME_CHARS_RE,
+  validateEmailValue,
+  validatePhoneValue,
+  validateUsernameValue,
+} from '@/features/auth/utils/validation';
+import { ClassSelectField, DateOfBirthField, GenderRadioField, UsernameInput, type PickedPhoto } from '@/features/auth/components';
+import type { Gender, UsernameStatus } from '@/features/auth/types';
 import { toUserMessage } from '@/services/api';
 import { authClient } from '@/services/auth';
 import { uploadAvatarImage } from '@/services/upload';
 import { BaseCard, BottomSheet, ConfirmationModal, FormField, Input, Toast } from '@/shared/components/ui';
 import { useRole } from '@/shared/context/theme-context';
 import { spacing } from '@/shared/theme';
-import { toIsoDate } from '@/shared/utils/date';
-import { userFonts } from '../utils/constants';
+import { getDefaultDateOfBirth, toIsoDate } from '@/shared/utils/date';
+import { DEFAULT_USER_PASSWORD, ROLE_OPTIONS_DATA, STATUS_OPTIONS_DATA, userFonts } from '../utils/constants';
+import { SelectOptionCard } from './select-option-card';
 import addPhotoIcon from '@/assets/images/add-photo.png';
 import leftArrow from '@/assets/images/left-arrow.png';
 import maleDefault from '@/assets/images/male-default.png';
@@ -42,99 +49,19 @@ export type FormUserProps = {
   loading?: boolean;
 };
 
-const DEFAULT_DOB = new Date(2005, 0, 1);
 const MAX_PHOTO_SIZE_BYTES = 5 * 1024 * 1024;
-const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/;
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-type RoleOptionItem = {
-  value: 'siswa' | 'guru' | 'staff';
-  label: string;
-  description: string;
-  dotColor: string;
-  selectedBg: string;
-  selectedBorder: string;
-  radioColor: string;
-  selectedTitleColor: string;
-};
-
-const ROLE_OPTIONS_DATA: readonly RoleOptionItem[] = [
-  {
-    value: 'siswa',
-    label: 'Siswa',
-    description: 'Pengguna murid atau peserta didik',
-    dotColor: '#3B82F6',
-    selectedBg: '#EFF6FF',
-    selectedBorder: '#3B82F6',
-    radioColor: '#3B82F6',
-    selectedTitleColor: '#1D4ED8',
-  },
-  {
-    value: 'guru',
-    label: 'Guru',
-    description: 'Tenaga pendidik atau guru pengajar',
-    dotColor: '#8B5CF6',
-    selectedBg: '#F5F3FF',
-    selectedBorder: '#8B5CF6',
-    radioColor: '#8B5CF6',
-    selectedTitleColor: '#6D28D9',
-  },
-  {
-    value: 'staff',
-    label: 'Staff',
-    description: 'Tenaga kependidikan atau staf operasional',
-    dotColor: '#10B981',
-    selectedBg: '#ECFDF5',
-    selectedBorder: '#10B981',
-    radioColor: '#10B981',
-    selectedTitleColor: '#047857',
-  },
-];
-
-type StatusOptionItem = {
-  value: 'active' | 'inactive';
-  label: string;
-  description: string;
-  dotColor: string;
-  selectedBg: string;
-  selectedBorder: string;
-  radioColor: string;
-  selectedTitleColor: string;
-};
-
-const STATUS_OPTIONS_DATA: readonly StatusOptionItem[] = [
-  {
-    value: 'active',
-    label: 'Aktif',
-    description: 'Akun aktif dan dapat masuk ke aplikasi',
-    dotColor: '#34C759',
-    selectedBg: '#F0FDF4',
-    selectedBorder: '#34C759',
-    radioColor: '#34C759',
-    selectedTitleColor: '#166534',
-  },
-  {
-    value: 'inactive',
-    label: 'Nonaktif',
-    description: 'Akun dinonaktifkan sementara dari sistem',
-    dotColor: '#EF4444',
-    selectedBg: '#FEF2F2',
-    selectedBorder: '#EF4444',
-    radioColor: '#EF4444',
-    selectedTitleColor: '#991B1B',
-  },
-];
 
 function parseInitialDob(dateStr?: string | null): Date {
-  if (!dateStr) return DEFAULT_DOB;
+  const defaultDob = getDefaultDateOfBirth();
+  if (!dateStr) return defaultDob;
   const parsed = new Date(dateStr);
-  return Number.isNaN(parsed.getTime()) ? DEFAULT_DOB : parsed;
+  return Number.isNaN(parsed.getTime()) ? defaultDob : parsed;
 }
 
 function parseInitialGender(g?: string | null): Gender {
-  if (!g) return 'Male';
+  if (!g) return 'Laki-Laki';
   const lower = g.trim().toLowerCase();
-  return lower === 'female' || lower === 'perempuan' ? 'Female' : 'Male';
+  return lower === 'female' || lower === 'perempuan' ? 'Perempuan' : 'Laki-Laki';
 }
 
 export function FormUser({
@@ -158,7 +85,7 @@ export function FormUser({
   const initialPhone = (initialData?.phone ?? '').trim();
   const initialDobStr = initialData?.dateOfBirth
     ? toIsoDate(parseInitialDob(initialData.dateOfBirth))
-    : toIsoDate(DEFAULT_DOB);
+    : toIsoDate(getDefaultDateOfBirth());
   const initialGender = parseInitialGender(initialData?.gender);
   const initialRole =
     initialData?.role && initialData.role !== ('administrator' as any)
@@ -183,8 +110,7 @@ export function FormUser({
   const [firstName, setFirstName] = useState(defaultFirst);
   const [lastName, setLastName] = useState(defaultLast);
   const [email, setEmail] = useState(initialData?.email ?? '');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [password] = useState('');
   const [phone, setPhone] = useState(initialData?.phone ?? '');
   const [dateOfBirth, setDateOfBirth] = useState<Date>(
     parseInitialDob(initialData?.dateOfBirth),
@@ -311,14 +237,26 @@ export function FormUser({
       return;
     }
 
-    if (!USERNAME_RE.test(username)) {
+    if (!USERNAME_CHARS_RE.test(username)) {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
       setUsernameStatus('invalid');
       setErrors((prev) => ({
         ...prev,
-        username: 'Hanya huruf, angka, dan garis bawah (_) yang diperbolehkan.',
+        username: 'Username hanya boleh menggunakan huruf, angka, dan garis bawah (_).',
+      }));
+      return;
+    }
+
+    if (username.length > 20) {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      setUsernameStatus('invalid');
+      setErrors((prev) => ({
+        ...prev,
+        username: 'Username maksimal 20 karakter.',
       }));
       return;
     }
@@ -399,10 +337,11 @@ export function FormUser({
       if (result.didCancel) return;
 
       if (result.errorCode) {
-        Alert.alert(
-          'Gagal Memilih Foto',
-          result.errorMessage ?? 'Silakan coba lagi.',
-        );
+        setToast({
+          visible: true,
+          message: result.errorMessage ?? 'Gagal memilih foto. Silakan coba lagi.',
+          type: 'error',
+        });
         return;
       }
 
@@ -410,7 +349,11 @@ export function FormUser({
       if (!asset?.uri) return;
 
       if (asset.fileSize && asset.fileSize > MAX_PHOTO_SIZE_BYTES) {
-        Alert.alert('Foto Terlalu Besar', 'Ukuran foto maksimal adalah 5 MB.');
+        setToast({
+          visible: true,
+          message: 'Ukuran foto maksimal adalah 5 MB.',
+          type: 'error',
+        });
         return;
       }
 
@@ -421,7 +364,11 @@ export function FormUser({
         fileSize: asset.fileSize,
       });
     } catch {
-      Alert.alert('Gagal Memilih Foto', 'Terjadi kesalahan saat membuka galeri.');
+      setToast({
+        visible: true,
+        message: 'Terjadi kesalahan saat membuka galeri.',
+        type: 'error',
+      });
     }
   };
 
@@ -441,20 +388,13 @@ export function FormUser({
 
     const cleanFirst = firstName.trim();
     if (!cleanFirst) {
-      errs.firstName = 'First name wajib diisi.';
+      errs.firstName = 'Nama depan wajib diisi.';
     }
 
     if (!isEdit) {
-      const cleanUsername = username.trim();
-      if (!cleanUsername) {
-        errs.username = 'Username wajib diisi.';
-      } else if (/\s/.test(username)) {
-        errs.username = 'Username tidak boleh mengandung spasi.';
-      } else if (cleanUsername.length < 3) {
-        errs.username = 'Username minimal 3 karakter.';
-      } else if (!USERNAME_RE.test(cleanUsername)) {
-        errs.username =
-          'Hanya huruf, angka, dan garis bawah (_) yang diperbolehkan.';
+      const usernameError = validateUsernameValue(username);
+      if (usernameError) {
+        errs.username = usernameError;
       } else if (usernameStatus === 'taken') {
         errs.username = 'Username sudah digunakan.';
       } else if (usernameStatus === 'invalid') {
@@ -463,19 +403,15 @@ export function FormUser({
     }
 
     if (!isEdit) {
-      const cleanEmail = email.trim();
-      if (!cleanEmail) {
-        errs.email = 'Email wajib diisi.';
-      } else if (!EMAIL_RE.test(cleanEmail)) {
-        errs.email = 'Format email tidak valid.';
+      const emailError = validateEmailValue(email);
+      if (emailError) {
+        errs.email = emailError;
       }
     }
 
-    const cleanPhone = phone.trim();
-    if (cleanPhone) {
-      if (!PHONE_RE.test(cleanPhone) || cleanPhone.replace(/\D/g, '').length < 9) {
-        errs.phone = 'Format nomor telepon tidak valid (minimal 9 digit).';
-      }
+    const phoneError = validatePhoneValue(phone, false);
+    if (phoneError) {
+      errs.phone = phoneError;
     }
 
     if (!role) {
@@ -565,7 +501,7 @@ export function FormUser({
         lastName: lastName.trim() || undefined,
         fullName: combinedFullName,
         email: email.trim().toLowerCase(),
-        password: password ? password : (isEdit ? undefined : 'SaranaKita123'),
+        password: password ? password : (isEdit ? undefined : DEFAULT_USER_PASSWORD),
         phone: phone.trim() || undefined,
         dateOfBirth: toIsoDate(dateOfBirth),
         role: (role || 'siswa') as 'siswa' | 'guru' | 'staff',
@@ -620,443 +556,456 @@ export function FormUser({
         onDismiss={() => setToast((prev) => ({ ...prev, visible: false }))}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {isEdit ? (
-          <View style={styles.avatarSection}>
-            <View style={styles.avatarWrapper}>
-              <TouchableOpacity
-                onPress={handlePickPhoto}
-                disabled={loading}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-                accessibilityLabel="Pilih Foto Profil"
-                style={styles.avatarFrame}
-              >
-                {photoUri ? (
-                  <Image
-                    source={{ uri: photoUri }}
-                    style={styles.avatarImage}
-                    resizeMode="cover"
-                    accessibilityRole="image"
-                    accessibilityLabel="Profile Avatar"
-                  />
-                ) : (
-                  <Image
-                    source={gender === 'Female' ? womanDefault : maleDefault}
-                    style={styles.defaultAvatarImage}
-                    resizeMode="contain"
-                    accessibilityRole="image"
-                    accessibilityLabel="Profile Avatar"
-                  />
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handlePickPhoto}
-                disabled={loading}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-                accessibilityLabel="Ganti foto profil"
-                style={styles.editBadge}
-              >
-                <Image
-                  source={vectorEdit}
-                  resizeMode="contain"
-                  style={styles.editIcon}
-                  accessibilityElementsHidden
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-        ) : null}
-
-        {/* Foto Profile */}
-        <BaseCard style={styles.formCard}>
-          {!isEdit ? (
-            <View style={styles.photoContainer}>
-              <Text style={styles.photoSectionTitle}>Foto Profile</Text>
-              {photoUri ? (
-                <View style={styles.photoPreviewBox}>
-                  <Image
-                    source={{ uri: photoUri }}
-                    style={styles.photoPreviewImage}
-                    resizeMode="cover"
-                  />
-                  <View style={styles.photoOverlayActions}>
-                    <TouchableOpacity
-                      onPress={handlePickPhoto}
-                      style={styles.photoActionBtn}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.photoActionText}>Ganti</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={handleRemovePhoto}
-                      style={[styles.photoActionBtn, styles.photoDeleteBtn]}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.photoActionText}>Hapus</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : (
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {isEdit ? (
+            <View style={styles.avatarSection}>
+              <View style={styles.avatarWrapper}>
                 <TouchableOpacity
                   onPress={handlePickPhoto}
-                  activeOpacity={0.7}
-                  style={styles.photoUploadBox}
+                  disabled={loading}
+                  activeOpacity={0.8}
                   accessibilityRole="button"
-                  accessibilityLabel="Tambahkan Foto Profile"
+                  accessibilityLabel="Pilih Foto Profil"
+                  style={styles.avatarFrame}
+                >
+                  {photoUri ? (
+                    <Image
+                      source={{ uri: photoUri }}
+                      style={styles.avatarImage}
+                      resizeMode="cover"
+                      accessibilityRole="image"
+                      accessibilityLabel="Foto Profil"
+                    />
+                  ) : (
+                    <Image
+                      source={
+                        gender === 'Perempuan'
+                          ? womanDefault
+                          : maleDefault
+                      }
+                      style={styles.defaultAvatarImage}
+                      resizeMode="contain"
+                      accessibilityRole="image"
+                      accessibilityLabel="Foto Profil"
+                    />
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handlePickPhoto}
+                  disabled={loading}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Ganti foto profil"
+                  style={styles.editBadge}
                 >
                   <Image
-                    source={addPhotoIcon}
-                    style={styles.photoAddIcon}
+                    source={vectorEdit}
                     resizeMode="contain"
+                    style={styles.editIcon}
+                    accessibilityElementsHidden
                   />
-                  <Text style={styles.photoAddTitle}>Tambahkan Foto</Text>
-                  <Text style={styles.photoAddSubtitle}>
-                    Klik untuk memilih foto
-                  </Text>
                 </TouchableOpacity>
-              )}
+              </View>
             </View>
           ) : null}
 
-          {/* Name */}
-          <View style={styles.gridRow}>
-            <View style={styles.gridCol}>
-              <FormField label="First Name" required error={errors.firstName}>
-                <Input
-                  value={firstName}
-                  onChangeText={(text) => {
-                    setFirstName(text);
-                    if (errors.firstName) {
-                      setErrors((prev) => {
-                        const copy = { ...prev };
-                        delete copy.firstName;
-                        return copy;
-                      });
-                    }
-                  }}
-                  placeholder="John"
-                  hasError={Boolean(errors.firstName)}
-                  autoCapitalize="words"
-                />
-              </FormField>
-            </View>
-            <View style={styles.gridCol}>
-              <FormField label="Last Name" error={errors.lastName}>
-                <Input
-                  value={lastName}
-                  onChangeText={(text) => {
-                    setLastName(text);
-                    if (errors.lastName) {
-                      setErrors((prev) => {
-                        const copy = { ...prev };
-                        delete copy.lastName;
-                        return copy;
-                      });
-                    }
-                  }}
-                  placeholder="Doe"
-                  hasError={Boolean(errors.lastName)}
-                  autoCapitalize="words"
-                />
-              </FormField>
-            </View>
-          </View>
-
-          {/* Username */}
-          {isEdit ? (
-            <FormField label="Username">
-              <Input
-                value={username}
-                editable={false}
-                placeholder="SaranaKita"
-                accessibilityState={{ disabled: true }}
-              />
-            </FormField>
-          ) : (
-            <FormField label="Username" required error={errors.username}>
-              <UsernameInput
-                hideLabel
-                value={username}
-                onChangeText={(text) => {
-                  setUsername(text);
-                  if (errors.username) {
-                    setErrors((prev) => {
-                      const copy = { ...prev };
-                      delete copy.username;
-                      return copy;
-                    });
-                  }
-                }}
-                status={usernameStatus}
-                placeholder="SaranaKita"
-                wrapperStyle={styles.usernameInputWrapper}
-              />
-            </FormField>
-          )}
-
-          {/* Email */}
-          {isEdit ? (
-            <FormField label="Email">
-              <Input
-                value={email}
-                editable={false}
-                placeholder="johndoe@gmail.com"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                accessibilityState={{ disabled: true }}
-              />
-            </FormField>
-          ) : (
-            <FormField label="Email" required error={errors.email}>
-              <Input
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  if (errors.email) {
-                    setErrors((prev) => {
-                      const copy = { ...prev };
-                      delete copy.email;
-                      return copy;
-                    });
-                  }
-                }}
-                placeholder="johndoe@gmail.com"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                hasError={Boolean(errors.email)}
-              />
-            </FormField>
-          )}
-
-          {/* Nomor Telepon */}
-          <FormField label="Nomor Telepon" error={errors.phone}>
-            <Input
-              value={phone}
-              onChangeText={(text) => {
-                setPhone(text);
-                if (errors.phone) {
-                  setErrors((prev) => {
-                    const copy = { ...prev };
-                    delete copy.phone;
-                    return copy;
-                  });
-                }
-              }}
-              placeholder="087223627139"
-              keyboardType="phone-pad"
-              hasError={Boolean(errors.phone)}
-            />
-          </FormField>
-
-          {/* DOB */}
-          <FormField label="Date of Birth" error={errors.dateOfBirth}>
-            <DateOfBirthField
-              hideLabel
-              value={dateOfBirth}
-              onChange={setDateOfBirth}
-              required={false}
-            />
-          </FormField>
-
-          {/* Gender */}
-          <FormField label="Gender" error={errors.gender}>
-            <GenderRadioField
-              hideLabel
-              value={gender}
-              onChange={(val) => setGender(val)}
-              required={false}
-            />
-          </FormField>
-
-          {/* Role */}
-          <FormField label="Role" required error={errors.role}>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => setRoleSheetVisible(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Pilih Role"
-              style={[
-                styles.selectTriggerBox,
-                Boolean(errors.role) && styles.inputErrorBorder,
-              ]}
-            >
-              <View style={styles.triggerValueRow}>
-                {selectedRoleOption ? (
-                  <>
-                    <View
-                      style={[
-                        styles.triggerDot,
-                        { backgroundColor: selectedRoleOption.dotColor },
-                      ]}
+          {/* Foto Profil */}
+          <BaseCard style={styles.formCard}>
+            {!isEdit ? (
+              <View style={styles.photoContainer}>
+                <Text style={styles.photoSectionTitle}>Foto Profil</Text>
+                {photoUri ? (
+                  <View style={styles.photoPreviewBox}>
+                    <Image
+                      source={{ uri: photoUri }}
+                      style={styles.photoPreviewImage}
+                      resizeMode="cover"
                     />
-                    <Text style={styles.triggerTextSelected}>
-                      {selectedRoleOption.label}
-                    </Text>
-                  </>
+                    <View style={styles.photoOverlayActions}>
+                      <TouchableOpacity
+                        onPress={handlePickPhoto}
+                        style={styles.photoActionBtn}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.photoActionText}>Ganti</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={handleRemovePhoto}
+                        style={[styles.photoActionBtn, styles.photoDeleteBtn]}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.photoActionText}>Hapus</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 ) : (
-                  <Text style={styles.triggerPlaceholderText}>
-                    Pilih Peran
-                  </Text>
+                  <TouchableOpacity
+                    onPress={handlePickPhoto}
+                    activeOpacity={0.7}
+                    style={styles.photoUploadBox}
+                    accessibilityRole="button"
+                    accessibilityLabel="Tambahkan Foto Profil"
+                  >
+                    <Image
+                      source={addPhotoIcon}
+                      style={styles.photoAddIcon}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.photoAddTitle}>Tambahkan Foto</Text>
+                    <Text style={styles.photoAddSubtitle}>
+                      Klik untuk memilih foto
+                    </Text>
+                  </TouchableOpacity>
                 )}
               </View>
-              <Image
-                source={leftArrow}
-                resizeMode="contain"
-                style={styles.chevronIcon}
-              />
-            </TouchableOpacity>
-          </FormField>
+            ) : null}
 
-          {/* Kelas / Jabatan */}
-          {!role ? (
-            <FormField
-              label="Kelas / Jabatan"
-              required
-              error={errors.classOrPosition}
-            >
+            {/* Name */}
+            <View style={styles.gridRow}>
+              <View style={styles.gridCol}>
+                <FormField label="Nama Depan" required error={errors.firstName}>
+                  <Input
+                    value={firstName}
+                    onChangeText={(text) => {
+                      setFirstName(text);
+                      if (errors.firstName) {
+                        setErrors((prev) => {
+                          const copy = { ...prev };
+                          delete copy.firstName;
+                          return copy;
+                        });
+                      }
+                    }}
+                    placeholder="John"
+                    hasError={Boolean(errors.firstName)}
+                    autoCapitalize="words"
+                  />
+                </FormField>
+              </View>
+              <View style={styles.gridCol}>
+                <FormField label="Nama Belakang" error={errors.lastName}>
+                  <Input
+                    value={lastName}
+                    onChangeText={(text) => {
+                      setLastName(text);
+                      if (errors.lastName) {
+                        setErrors((prev) => {
+                          const copy = { ...prev };
+                          delete copy.lastName;
+                          return copy;
+                        });
+                      }
+                    }}
+                    placeholder="Doe"
+                    hasError={Boolean(errors.lastName)}
+                    autoCapitalize="words"
+                  />
+                </FormField>
+              </View>
+            </View>
+
+            {/* Username */}
+            {isEdit ? (
+              <FormField label="Username">
+                <Input
+                  value={username}
+                  editable={false}
+                  placeholder="SaranaKita"
+                  accessibilityState={{ disabled: true }}
+                />
+              </FormField>
+            ) : (
+              <FormField label="Username" required error={errors.username}>
+                <UsernameInput
+                  hideLabel
+                  value={username}
+                  onChangeText={(text) => {
+                    setUsername(text);
+                    if (errors.username) {
+                      setErrors((prev) => {
+                        const copy = { ...prev };
+                        delete copy.username;
+                        return copy;
+                      });
+                    }
+                  }}
+                  status={usernameStatus}
+                  placeholder="SaranaKita"
+                  wrapperStyle={styles.usernameInputWrapper}
+                />
+              </FormField>
+            )}
+
+            {/* Email */}
+            {isEdit ? (
+              <FormField label="Email">
+                <Input
+                  value={email}
+                  editable={false}
+                  placeholder="johndoe@gmail.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  accessibilityState={{ disabled: true }}
+                />
+              </FormField>
+            ) : (
+              <FormField label="Email" required error={errors.email}>
+                <Input
+                  value={email}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    if (errors.email) {
+                      setErrors((prev) => {
+                        const copy = { ...prev };
+                        delete copy.email;
+                        return copy;
+                      });
+                    }
+                  }}
+                  placeholder="johndoe@gmail.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  hasError={Boolean(errors.email)}
+                />
+              </FormField>
+            )}
+
+            {/* Nomor Telepon */}
+            <FormField label="Nomor Telepon" error={errors.phone}>
+              <Input
+                value={phone}
+                onChangeText={(text) => {
+                  setPhone(text);
+                  if (errors.phone) {
+                    setErrors((prev) => {
+                      const copy = { ...prev };
+                      delete copy.phone;
+                      return copy;
+                    });
+                  }
+                }}
+                placeholder="08xxxxxxxxxx"
+                keyboardType="phone-pad"
+                hasError={Boolean(errors.phone)}
+              />
+            </FormField>
+
+            {/* Tanggal Lahir */}
+            <FormField label="Tanggal Lahir" error={errors.dateOfBirth}>
+              <DateOfBirthField
+                hideLabel
+                value={dateOfBirth}
+                onChange={setDateOfBirth}
+                required={false}
+              />
+            </FormField>
+
+            {/* Jenis Kelamin */}
+            <FormField label="Jenis Kelamin" error={errors.gender}>
+              <GenderRadioField
+                hideLabel
+                value={gender}
+                onChange={(val) => setGender(val)}
+                required={false}
+              />
+            </FormField>
+
+            {/* Role */}
+            <FormField label="Role" required error={errors.role}>
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => {
-                  setToast({
-                    visible: true,
-                    message: 'Silakan pilih Role terlebih dahulu.',
-                    type: 'error',
-                  });
-                }}
+                onPress={() => setRoleSheetVisible(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Pilih Role"
                 style={[
-                  styles.disabledInputBox,
-                  Boolean(errors.classOrPosition) && styles.inputErrorBorder,
+                  styles.selectTriggerBox,
+                  Boolean(errors.role) && styles.inputErrorBorder,
                 ]}
               >
-                <Text style={styles.disabledPlaceholderText}>
-                  Pilih Role terlebih dahulu
-                </Text>
-              </TouchableOpacity>
-              <Text style={styles.disabledHelperText}>
-                Pilih Role terlebih dahulu untuk menentukan Kelas atau Jabatan
-              </Text>
-            </FormField>
-          ) : role === 'siswa' ? (
-            <FormField label="Kelas" required error={errors.classOrPosition}>
-              <ClassSelectField
-                hideLabel
-                value={classOrPosition || null}
-                onChange={(val) => {
-                  setClassOrPosition(val);
-                  if (errors.classOrPosition) {
-                    setErrors((prev) => {
-                      const copy = { ...prev };
-                      delete copy.classOrPosition;
-                      return copy;
-                    });
-                  }
-                }}
-                placeholder="Pilih kelas atau lokasi"
-                sheetTitle="Pilih Kelas Siswa"
-                primaryColor={theme.primary}
-              />
-            </FormField>
-          ) : (
-            <FormField
-              label="Jabatan"
-              required
-              error={errors.classOrPosition}
-            >
-              <Input
-                value={classOrPosition}
-                onChangeText={(text) => {
-                  setClassOrPosition(text);
-                  if (errors.classOrPosition) {
-                    setErrors((prev) => {
-                      const copy = { ...prev };
-                      delete copy.classOrPosition;
-                      return copy;
-                    });
-                  }
-                }}
-                placeholder={getJabatanPlaceholder()}
-                hasError={Boolean(errors.classOrPosition)}
-              />
-            </FormField>
-          )}
-
-          {/* Status */}
-          <FormField label="Status Akun" required>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => setStatusSheetVisible(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Pilih Status Akun"
-              style={styles.selectTriggerBox}
-            >
-              <View style={styles.triggerValueRow}>
-                <View
-                  style={[
-                    styles.triggerDot,
-                    { backgroundColor: selectedStatusOption.dotColor },
-                  ]}
+                <View style={styles.triggerValueRow}>
+                  {selectedRoleOption ? (
+                    <>
+                      <View
+                        style={[
+                          styles.triggerDot,
+                          { backgroundColor: selectedRoleOption.dotColor },
+                        ]}
+                      />
+                      <Text style={styles.triggerTextSelected}>
+                        {selectedRoleOption.label}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={styles.triggerPlaceholderText}>
+                      Pilih Peran
+                    </Text>
+                  )}
+                </View>
+                <Image
+                  source={leftArrow}
+                  resizeMode="contain"
+                  style={styles.chevronIcon}
                 />
-                <Text style={styles.triggerTextSelected}>
-                  {selectedStatusOption.label}
-                </Text>
-              </View>
-              <Image
-                source={leftArrow}
-                resizeMode="contain"
-                style={styles.chevronIcon}
-              />
-            </TouchableOpacity>
-          </FormField>
-        </BaseCard>
+              </TouchableOpacity>
+            </FormField>
 
-        {/* Submit Button */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={handlePressSubmit}
-          disabled={isEdit ? (!isDirty || loading) : loading}
-          accessibilityRole="button"
-          accessibilityLabel={submitButtonText}
-          style={[
-            styles.submitButton,
-            {
-              backgroundColor: isEdit
-                ? isDirty
-                  ? theme.primary
-                  : theme.primarySoft
-                : theme.primary,
-            },
-            loading && styles.disabled,
-          ]}
-        >
-          {loading ? (
-            <ActivityIndicator color={theme.onPrimary} />
-          ) : (
-            <Text style={[styles.submitText, { color: theme.onPrimary }]}>
-              {submitButtonText}
-            </Text>
-          )}
-        </TouchableOpacity>
-
-        <BottomSheet
-          visible={roleSheetVisible}
-          onClose={() => setRoleSheetVisible(false)}
-          title="Pilih Role Pengguna"
-        >
-          <View style={styles.sheetOptionsList}>
-            {ROLE_OPTIONS_DATA.map((item) => {
-              const isSelected = role === item.value;
-              return (
+            {/* Kelas / Jabatan */}
+            {!role ? (
+              <FormField
+                label="Kelas / Jabatan"
+                required
+                error={errors.classOrPosition}
+              >
                 <TouchableOpacity
-                  key={item.value}
                   activeOpacity={0.7}
+                  onPress={() => {
+                    setToast({
+                      visible: true,
+                      message: 'Silakan pilih Role terlebih dahulu.',
+                      type: 'error',
+                    });
+                  }}
+                  style={[
+                    styles.disabledInputBox,
+                    Boolean(errors.classOrPosition) && styles.inputErrorBorder,
+                  ]}
+                >
+                  <Text style={styles.disabledPlaceholderText}>
+                    Pilih Role terlebih dahulu
+                  </Text>
+                </TouchableOpacity>
+                <Text style={styles.disabledHelperText}>
+                  Pilih Role terlebih dahulu untuk menentukan Kelas atau Jabatan
+                </Text>
+              </FormField>
+            ) : role === 'siswa' ? (
+              <FormField label="Kelas" required error={errors.classOrPosition}>
+                <ClassSelectField
+                  hideLabel
+                  value={classOrPosition || null}
+                  onChange={(val) => {
+                    setClassOrPosition(val);
+                    if (errors.classOrPosition) {
+                      setErrors((prev) => {
+                        const copy = { ...prev };
+                        delete copy.classOrPosition;
+                        return copy;
+                      });
+                    }
+                  }}
+                  placeholder="Pilih kelas atau lokasi"
+                  sheetTitle="Pilih Kelas Siswa"
+                  primaryColor={theme.primary}
+                />
+              </FormField>
+            ) : (
+              <FormField
+                label="Jabatan"
+                required
+                error={errors.classOrPosition}
+              >
+                <Input
+                  value={classOrPosition}
+                  onChangeText={(text) => {
+                    setClassOrPosition(text);
+                    if (errors.classOrPosition) {
+                      setErrors((prev) => {
+                        const copy = { ...prev };
+                        delete copy.classOrPosition;
+                        return copy;
+                      });
+                    }
+                  }}
+                  placeholder={getJabatanPlaceholder()}
+                  hasError={Boolean(errors.classOrPosition)}
+                />
+              </FormField>
+            )}
+
+            {/* Status */}
+            <FormField label="Status Akun" required>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setStatusSheetVisible(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Pilih Status Akun"
+                style={styles.selectTriggerBox}
+              >
+                <View style={styles.triggerValueRow}>
+                  <View
+                    style={[
+                      styles.triggerDot,
+                      { backgroundColor: selectedStatusOption.dotColor },
+                    ]}
+                  />
+                  <Text style={styles.triggerTextSelected}>
+                    {selectedStatusOption.label}
+                  </Text>
+                </View>
+                <Image
+                  source={leftArrow}
+                  resizeMode="contain"
+                  style={styles.chevronIcon}
+                />
+              </TouchableOpacity>
+            </FormField>
+          </BaseCard>
+
+          {/* Submit Button */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={handlePressSubmit}
+            disabled={isEdit ? (!isDirty || loading) : loading}
+            accessibilityRole="button"
+            accessibilityLabel={submitButtonText}
+            style={[
+              styles.submitButton,
+              {
+                backgroundColor: isEdit
+                  ? isDirty
+                    ? theme.primary
+                    : theme.primarySoft
+                  : theme.primary,
+              },
+              loading && styles.disabled,
+            ]}
+          >
+            {loading ? (
+              <ActivityIndicator color={theme.onPrimary} />
+            ) : (
+              <Text style={[styles.submitText, { color: theme.onPrimary }]}>
+                {submitButtonText}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          <BottomSheet
+            visible={roleSheetVisible}
+            onClose={() => setRoleSheetVisible(false)}
+            title="Pilih Role Pengguna"
+          >
+            <View style={styles.sheetOptionsList}>
+              {ROLE_OPTIONS_DATA.map((item) => (
+                <SelectOptionCard
+                  key={item.value}
+                  label={item.label}
+                  description={item.description}
+                  dotColor={item.dotColor}
+                  selectedBg={item.selectedBg}
+                  selectedBorder={item.selectedBorder}
+                  radioColor={item.radioColor}
+                  selectedTitleColor={item.selectedTitleColor}
+                  isSelected={role === item.value}
                   onPress={() => {
                     const nextRole = item.value;
                     setRole(nextRole);
@@ -1073,154 +1022,50 @@ export function FormUser({
                       setClassOrPosition('');
                     }
                   }}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: isSelected }}
-                  accessibilityLabel={item.label}
-                  style={[
-                    styles.sheetOptionCard,
-                    isSelected
-                      ? [
-                        styles.sheetOptionCardSelected,
-                        {
-                          backgroundColor: item.selectedBg,
-                          borderColor: item.selectedBorder,
-                        },
-                      ]
-                      : styles.sheetOptionCardUnselected,
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.sheetStatusDot,
-                      { backgroundColor: item.dotColor },
-                    ]}
-                  />
+                />
+              ))}
+            </View>
+          </BottomSheet>
 
-                  <View style={styles.sheetTextCol}>
-                    <Text
-                      style={[
-                        styles.sheetOptionLabel,
-                        isSelected && { color: item.selectedTitleColor },
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
-                    <Text style={styles.sheetOptionDesc}>
-                      {item.description}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={[
-                      styles.radioOuter,
-                      isSelected
-                        ? { borderColor: item.radioColor }
-                        : styles.radioOuterUnselected,
-                    ]}
-                  >
-                    {isSelected ? (
-                      <View
-                        style={[
-                          styles.radioInner,
-                          { backgroundColor: item.radioColor },
-                        ]}
-                      />
-                    ) : null}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </BottomSheet>
-
-        <BottomSheet
-          visible={statusSheetVisible}
-          onClose={() => setStatusSheetVisible(false)}
-          title="Pilih Status Akun"
-        >
-          <View style={styles.sheetOptionsList}>
-            {STATUS_OPTIONS_DATA.map((item) => {
-              const isSelected = status === item.value;
-              return (
-                <TouchableOpacity
+          <BottomSheet
+            visible={statusSheetVisible}
+            onClose={() => setStatusSheetVisible(false)}
+            title="Pilih Status Akun"
+          >
+            <View style={styles.sheetOptionsList}>
+              {STATUS_OPTIONS_DATA.map((item) => (
+                <SelectOptionCard
                   key={item.value}
-                  activeOpacity={0.7}
+                  label={item.label}
+                  description={item.description}
+                  dotColor={item.dotColor}
+                  selectedBg={item.selectedBg}
+                  selectedBorder={item.selectedBorder}
+                  radioColor={item.radioColor}
+                  selectedTitleColor={item.selectedTitleColor}
+                  isSelected={status === item.value}
                   onPress={() => {
                     setStatus(item.value);
                     setStatusSheetVisible(false);
                   }}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: isSelected }}
-                  accessibilityLabel={item.label}
-                  style={[
-                    styles.sheetOptionCard,
-                    isSelected
-                      ? [
-                        styles.sheetOptionCardSelected,
-                        {
-                          backgroundColor: item.selectedBg,
-                          borderColor: item.selectedBorder,
-                        },
-                      ]
-                      : styles.sheetOptionCardUnselected,
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.sheetStatusDot,
-                      { backgroundColor: item.dotColor },
-                    ]}
-                  />
+                />
+              ))}
+            </View>
+          </BottomSheet>
 
-                  <View style={styles.sheetTextCol}>
-                    <Text
-                      style={[
-                        styles.sheetOptionLabel,
-                        isSelected && { color: item.selectedTitleColor },
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
-                    <Text style={styles.sheetOptionDesc}>
-                      {item.description}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={[
-                      styles.radioOuter,
-                      isSelected
-                        ? { borderColor: item.radioColor }
-                        : styles.radioOuterUnselected,
-                    ]}
-                  >
-                    {isSelected ? (
-                      <View
-                        style={[
-                          styles.radioInner,
-                          { backgroundColor: item.radioColor },
-                        ]}
-                      />
-                    ) : null}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </BottomSheet>
-
-        <ConfirmationModal
-          visible={confirmVisible}
-          variant="bottomSheet"
-          title={modalTitle}
-          message={modalMessage}
-          confirmLabel={modalConfirmText}
-          cancelLabel="Batal"
-          loading={loading}
-          onConfirm={handleConfirmSubmit}
-          onCancel={() => setConfirmVisible(false)}
-        />
-      </ScrollView>
+          <ConfirmationModal
+            visible={confirmVisible}
+            variant="bottomSheet"
+            title={modalTitle}
+            message={modalMessage}
+            confirmLabel={modalConfirmText}
+            cancelLabel="Batal"
+            loading={loading}
+            onConfirm={handleConfirmSubmit}
+            onCancel={() => setConfirmVisible(false)}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -1253,10 +1098,10 @@ const styles = StyleSheet.create({
   },
   photoSectionTitle: {
     fontFamily: userFonts.medium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 22,
     color: '#171717',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   photoUploadBox: {
     width: '100%',
@@ -1479,60 +1324,5 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingBottom: 24,
     gap: 8,
-  },
-  sheetOptionCard: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 9,
-    borderWidth: 1,
-  },
-  sheetOptionCardSelected: {
-    borderWidth: 1.5,
-  },
-  sheetOptionCardUnselected: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E5E7EB',
-  },
-  sheetStatusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  sheetTextCol: {
-    flex: 1,
-    marginLeft: 10,
-    marginRight: 8,
-  },
-  sheetOptionLabel: {
-    fontFamily: userFonts.semiBold,
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#111827',
-  },
-  sheetOptionDesc: {
-    fontFamily: userFonts.regular,
-    fontSize: 11,
-    lineHeight: 15,
-    color: '#64748B',
-    marginTop: 1,
-  },
-  radioOuter: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioOuterUnselected: {
-    borderColor: '#D1D5DB',
-  },
-  radioInner: {
-    width: 9,
-    height: 9,
-    borderRadius: 4.5,
   },
 });

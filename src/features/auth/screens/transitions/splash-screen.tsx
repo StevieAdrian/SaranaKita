@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Animated, Dimensions, Image, Pressable, StatusBar, StyleSheet } from 'react-native';
+import { Animated, Dimensions, Image, Pressable, StatusBar, StyleSheet, useColorScheme } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import logoBlue from '@/assets/images/logo-saranakita-blue.png';
 import splashGradient from '@/assets/images/splash-bg-gradient.png';
+import splashDarkGradient from '@/assets/images/splash-dark-bg-gradient.png';
 import { authConstants } from '../../constants/auth-constants';
+import { authClient, supabase } from '@/services/auth';
+import { checkUserProfileComplete } from '../../services/google-auth';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('screen');
 const LOGO_WIDTH = 206;
@@ -12,18 +15,40 @@ const SPLASH_DURATION_MS = 2000;
 
 export function SplashScreen(): React.JSX.Element {
   const navigation = useNavigation<any>();
+  const isDark = useColorScheme() === 'dark';
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.92)).current;
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef(null as ReturnType<typeof setTimeout> | null);
   const isNavigatingRef = useRef(false);
 
-  const navigateNext = useCallback(() => {
+  const navigateNext = useCallback(async () => {
     if (isNavigatingRef.current) return;
     isNavigatingRef.current = true;
 
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
+    }
+
+    if (authClient.getState().status === 'authenticated') {
+      return;
+    }
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData?.session;
+
+      if (session?.user) {
+        const { isComplete, userData } = await checkUserProfileComplete(session.user.id, session.access_token);
+        if (!isComplete) {
+          await authClient.signOut().catch(() => { });
+        } else {
+          await authClient.applySupabaseSession(session, userData);
+          return;
+        }
+      }
+    } catch {
+      authClient.signOut().catch(() => { });
     }
 
     Animated.parallel([
@@ -68,14 +93,17 @@ export function SplashScreen(): React.JSX.Element {
 
   return (
     <Pressable
-      style={styles.container}
+      style={[
+        styles.container,
+        isDark && { backgroundColor: '#0B1220' },
+      ]}
       onPress={navigateNext}
       accessibilityRole="button"
       accessibilityLabel="Lanjut ke halaman masuk"
     >
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <Image
-        source={splashGradient}
+        source={isDark ? splashDarkGradient : splashGradient}
         style={styles.backgroundImage}
         resizeMode="cover"
         accessibilityElementsHidden

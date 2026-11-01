@@ -1,6 +1,6 @@
 import React from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
-import { profileFonts } from '../utils/constants';
+import { profileColors, profileFonts } from '../utils/constants';
 
 export type CardAdministratorStatisticsProps = {
   'Menunggu Verifikasi'?: number;
@@ -17,25 +17,25 @@ export function CardAdministratorStatistics(
       key: 'pending',
       value: props['Menunggu Verifikasi'] ?? 0,
       label: 'Menunggu\nVerifikasi',
-      color: '#2563EB',
+      color: profileColors.stats.pending,
     },
     {
       key: 'inReview',
       value: props['Dalam Pemeriksaan'] ?? 0,
       label: 'Dalam\nPemeriksaan',
-      color: '#F59E0B',
+      color: profileColors.stats.inReview,
     },
     {
       key: 'inRepair',
       value: props['Dalam Perbaikan'] ?? 0,
       label: 'Dalam\nPerbaikan',
-      color: '#713F12',
+      color: profileColors.stats.inRepair,
     },
     {
       key: 'resolved',
       value: props['Selesai'] ?? 0,
       label: 'Laporan\nSelesai',
-      color: '#166534',
+      color: profileColors.stats.resolved,
     },
   ];
 

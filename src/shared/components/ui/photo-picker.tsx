@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Pressable,
   Text,
@@ -9,6 +8,8 @@ import {
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import addPhotoIcon from '@/assets/images/add-photo.png';
+import { useRole } from '@/shared/context/theme-context';
+import { Toast } from './toast';
 
 export type PickedPhoto = {
   readonly uri: string;
@@ -20,6 +21,7 @@ export type PickedPhoto = {
 export type PhotoPickerProps = {
   value: PickedPhoto | null;
   onChange: (photo: PickedPhoto | null) => void;
+  onError?: (message: string) => void;
   title?: string;
   subtitle?: string;
   maxFileSizeBytes?: number;
@@ -31,12 +33,26 @@ const DEFAULT_MAX_SIZE = 5 * 1024 * 1024;
 export function PhotoPicker({
   value,
   onChange,
+  onError,
   title = 'Tambahkan Foto',
   subtitle = 'Klik untuk memilih foto',
   maxFileSizeBytes = DEFAULT_MAX_SIZE,
   hasError = false,
 }: PhotoPickerProps): React.JSX.Element {
+  const { theme } = useRole();
   const [picking, setPicking] = useState(false);
+  const [toast, setToast] = useState<{ visible: boolean; message: string }>({
+    visible: false,
+    message: '',
+  });
+
+  const reportError = (message: string) => {
+    if (onError) {
+      onError(message);
+    } else {
+      setToast({ visible: true, message });
+    }
+  };
 
   const pick = async () => {
     setPicking(true);
@@ -50,9 +66,8 @@ export function PhotoPicker({
         return;
       }
       if (result.errorCode) {
-        Alert.alert(
-          'Gagal memilih foto',
-          result.errorMessage ?? 'Silakan coba lagi.',
+        reportError(
+          result.errorMessage ?? 'Gagal memilih foto. Silakan coba lagi.',
         );
         return;
       }
@@ -62,7 +77,7 @@ export function PhotoPicker({
       }
       if (asset.fileSize && asset.fileSize > maxFileSizeBytes) {
         const maxMb = Math.round(maxFileSizeBytes / (1024 * 1024));
-        Alert.alert('Foto terlalu besar', `Ukuran maksimal ${maxMb} MB.`);
+        reportError(`Foto terlalu besar. Ukuran maksimal ${maxMb} MB.`);
         return;
       }
       onChange({
@@ -71,17 +86,18 @@ export function PhotoPicker({
         type: asset.type,
         fileSize: asset.fileSize,
       });
+    } catch {
+      reportError('Gagal memilih foto. Silakan coba lagi.');
     } finally {
       setPicking(false);
     }
   };
 
-  const borderClass = hasError ? 'border-red-500' : 'border-field-border';
-
   if (value) {
     return (
       <View
-        className={`h-[140px] overflow-hidden rounded-lg border ${borderClass}`}
+        style={{ borderColor: hasError ? theme.danger : theme.borderInput }}
+        className="h-[140px] overflow-hidden rounded-lg border"
       >
         <Image
           source={{ uri: value.uri }}
@@ -108,32 +124,54 @@ export function PhotoPicker({
             <Text className="text-sm font-medium text-white">Hapus</Text>
           </Pressable>
         </View>
+        {!onError ? (
+          <Toast
+            visible={toast.visible}
+            message={toast.message}
+            type="error"
+            onDismiss={() => setToast({ visible: false, message: '' })}
+          />
+        ) : null}
       </View>
     );
   }
 
   return (
-    <Pressable
-      onPress={pick}
-      disabled={picking}
-      accessibilityRole="button"
-      accessibilityLabel={title}
-      accessibilityHint={subtitle}
-      className={`h-[140px] items-center justify-center rounded-lg border bg-field active:opacity-70 ${borderClass}`}
-    >
-      {picking ? (
-        <ActivityIndicator />
-      ) : (
-        <>
-          <Image
-            source={addPhotoIcon}
-            resizeMode="contain"
-            className="mb-1 h-12 w-12"
-          />
-          <Text className="text-sm text-gray-600">{title}</Text>
-          <Text className="text-xs text-gray-400">{subtitle}</Text>
-        </>
-      )}
-    </Pressable>
+    <>
+      <Pressable
+        onPress={pick}
+        disabled={picking}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        accessibilityHint={subtitle}
+        style={{
+          backgroundColor: theme.surfaceInput,
+          borderColor: hasError ? theme.danger : theme.borderInput,
+        }}
+        className="h-[140px] items-center justify-center rounded-lg border active:opacity-70"
+      >
+        {picking ? (
+          <ActivityIndicator color={theme.primary} />
+        ) : (
+          <>
+            <Image
+              source={addPhotoIcon}
+              resizeMode="contain"
+              className="mb-1 h-12 w-12"
+            />
+            <Text style={{ color: theme.textSecondary }} className="text-sm">{title}</Text>
+            <Text style={{ color: theme.textMuted }} className="text-xs">{subtitle}</Text>
+          </>
+        )}
+      </Pressable>
+      {!onError ? (
+        <Toast
+          visible={toast.visible}
+          message={toast.message}
+          type="error"
+          onDismiss={() => setToast({ visible: false, message: '' })}
+        />
+      ) : null}
+    </>
   );
 }

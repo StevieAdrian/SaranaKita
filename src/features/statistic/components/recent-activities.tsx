@@ -6,15 +6,14 @@ import {
   REPORT_STATUS_NAME_BY_STATUS,
   type ReportStatus,
 } from '@/services/report';
-import { getThemeColors } from '@/shared/theme';
+import { getThemeColors, palette } from '@/shared/theme';
+import { useRole } from '@/shared/context/theme-context';
 import type { RecentActivity } from '../types';
 
 type RecentActivitiesProps = {
   role: UserRole;
   activities: RecentActivity[];
 };
-
-import { palette } from '@/shared/theme';
 
 const STATUS_COLORS: Record<ReportStatus, string> = {
   [REPORT_STATUS.WAITING_VERIFICATION]: palette.primary,
@@ -24,11 +23,26 @@ const STATUS_COLORS: Record<ReportStatus, string> = {
   [REPORT_STATUS.DONE]: palette.greenStatus,
 };
 
+function formatActivityDate(value: string): string {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 export function RecentActivities({
   role,
   activities,
 }: RecentActivitiesProps): React.JSX.Element {
-  const colors = getThemeColors(role);
+  const { theme } = useRole();
+  const colors = theme;
 
   return (
     <View
@@ -50,9 +64,8 @@ export function RecentActivities({
           activities.slice(0, 3).map((activity, index) => (
             <View
               key={activity.id}
-              className={`flex-row items-start gap-3 px-4 py-4 ${
-                index !== activities.length - 1 ? 'border-b' : ''
-              }`}
+              className={`flex-row items-start gap-3 px-4 py-4 ${index !== activities.length - 1 ? 'border-b' : ''
+                }`}
               style={
                 index !== activities.length - 1
                   ? { borderBottomColor: colors.borderSubtle }
@@ -79,12 +92,19 @@ export function RecentActivities({
                   className="text-[11px]"
                   style={{ color: colors.textSecondary }}
                 >
+                  {activity.description}
+                </Text>
+
+                <Text
+                  className="text-[11px]"
+                  style={{ color: colors.textSecondary }}
+                >
                   {REPORT_STATUS_NAME_BY_STATUS[activity.status]}
                 </Text>
               </View>
 
               <Text className="text-[11px]" style={{ color: colors.textMuted }}>
-                {activity.date}
+                {formatActivityDate(activity.date)}
               </Text>
             </View>
           ))

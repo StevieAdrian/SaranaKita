@@ -14,10 +14,10 @@ export function LogoutCard(): React.JSX.Element {
   const handleLogout = async () => {
     setLoading(true);
     try {
+      setConfirmVisible(false);
       await authClient.signOut();
     } finally {
       setLoading(false);
-      setConfirmVisible(false);
     }
   };
 

@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { BottomSheet } from '@/shared/components/ui';
 import { useRole } from '@/shared/context/theme-context';
 import { STATUS_FILTER_OPTIONS, userFonts } from '../utils/constants';
+import { SelectOptionCard } from './select-option-card';
 
 export type FilterStatusProps = {
   visible: boolean;
@@ -98,78 +99,19 @@ export function FilterStatus({
             const statusTheme = STATUS_THEMES[option.value] ?? DEFAULT_STATUS_THEME;
 
             return (
-              <TouchableOpacity
+              <SelectOptionCard
                 key={option.value}
-                activeOpacity={0.7}
+                size="regular"
+                label={option.label}
+                description={option.description}
+                dotColor={statusTheme.dotColor}
+                selectedBg={statusTheme.selectedBg}
+                selectedBorder={statusTheme.selectedBorder}
+                radioColor={statusTheme.radioColor}
+                selectedTitleColor={statusTheme.selectedTitleColor}
+                isSelected={isSelected}
                 onPress={() => setLocalStatus(option.value)}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: isSelected }}
-                accessibilityLabel={option.label}
-                style={[
-                  styles.optionCard,
-                  isSelected
-                    ? [
-                      styles.optionCardSelected,
-                      {
-                        backgroundColor: statusTheme.selectedBg,
-                        borderColor: statusTheme.selectedBorder,
-                      },
-                    ]
-                    : styles.optionCardUnselected,
-                ]}
-              >
-                <View
-                  style={[
-                    styles.statusDot,
-                    { backgroundColor: statusTheme.dotColor },
-                  ]}
-                />
-
-                <View style={styles.textCol}>
-                  <Text
-                    style={[
-                      styles.optionLabel,
-                      isSelected && {
-                        color: statusTheme.selectedTitleColor,
-                      },
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-                  {option.description ? (
-                    <Text
-                      style={[
-                        styles.optionDescription,
-                        isSelected && {
-                          color: option.value === 'all' ? '#9CA3AF' : '#64748B',
-                        },
-                      ]}
-                    >
-                      {option.description}
-                    </Text>
-                  ) : null}
-                </View>
-
-                <View
-                  style={[
-                    styles.radioOuter,
-                    {
-                      borderColor: isSelected
-                        ? statusTheme.radioColor
-                        : '#D1D5DB',
-                    },
-                  ]}
-                >
-                  {isSelected ? (
-                    <View
-                      style={[
-                        styles.radioInner,
-                        { backgroundColor: statusTheme.radioColor },
-                      ]}
-                    />
-                  ) : null}
-                </View>
-              </TouchableOpacity>
+              />
             );
           })}
         </View>
@@ -226,59 +168,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 8,
     marginBottom: 16,
-  },
-  optionCard: {
-    width: '100%',
-    minHeight: 58,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 0.8,
-  },
-  optionCardSelected: {},
-  optionCardUnselected: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E5E7EB',
-  },
-  statusDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 12,
-  },
-  textCol: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  optionLabel: {
-    fontFamily: userFonts.semiBold,
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#1E1E1E',
-  },
-  optionDescription: {
-    fontFamily: userFonts.medium,
-    fontSize: 11,
-    lineHeight: 16,
-    color: '#94A3B8',
-    marginTop: 2,
-  },
-  radioOuter: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1.6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    marginLeft: 12,
-  },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
   },
   applyButton: {
     width: '100%',

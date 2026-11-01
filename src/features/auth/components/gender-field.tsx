@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle } from 'react-native';
 import { authConstants } from '../constants/auth-constants';
 import { GENDER_OPTIONS } from '../utils/constants';
 import type { Gender } from '../types';
@@ -11,6 +11,7 @@ export type GenderRadioFieldProps = {
   required?: boolean;
   label?: string;
   hideLabel?: boolean;
+  labelStyle?: StyleProp<TextStyle>;
 };
 
 export function GenderRadioField({
@@ -18,13 +19,14 @@ export function GenderRadioField({
   onChange,
   errorText,
   required = true,
-  label = 'Gender',
+  label = 'Jenis Kelamin',
   hideLabel = false,
+  labelStyle,
 }: GenderRadioFieldProps): React.JSX.Element {
   return (
     <View style={styles.container}>
       {!hideLabel ? (
-        <Text style={styles.label}>
+        <Text style={[styles.label, labelStyle]}>
           {label}
           {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
         </Text>
@@ -80,9 +82,7 @@ const styles = StyleSheet.create({
     gap: authConstants.spacing.labelToInput,
   },
   label: {
-    fontFamily: authConstants.typography.label.fontFamily,
-    fontSize: 14,
-    color: '#171717',
+    ...authConstants.typography.label,
   },
   requiredAsterisk: {
     color: authConstants.colors.text.error,
@@ -118,14 +118,14 @@ const styles = StyleSheet.create({
     backgroundColor: authConstants.colors.ui.buttonBlack,
   },
   radioLabel: {
-    fontFamily: authConstants.typography.inputText.fontFamily,
+    fontFamily: authConstants.typography.label.fontFamily,
     fontSize: 14,
     color: authConstants.colors.text.secondary,
-    fontWeight: '500',
+    fontWeight: Platform.OS === 'ios' ? '500' : undefined,
   },
   radioLabelSelected: {
     color: authConstants.colors.text.dark,
-    fontWeight: '500',
+    fontWeight: Platform.OS === 'ios' ? '500' : undefined,
   },
   pressed: {
     opacity: 0.7,

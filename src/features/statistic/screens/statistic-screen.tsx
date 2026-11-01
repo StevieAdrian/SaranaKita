@@ -1,6 +1,4 @@
 import React from 'react';
-import { ThemedText } from '@/shared/components/themed-text';
-import { ThemedView } from '@/shared/components/themed-view';
 import { useCurrentUser } from '@/features/home/hooks/use-current-user';
 import { USER_ROLE } from '@/services/auth';
 import { StudentStatisticScreen } from './student-statistic-screen';

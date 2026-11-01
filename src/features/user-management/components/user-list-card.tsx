@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { ManageUser } from '@/services/users';
 import { ConfirmationModal } from '@/shared/components/ui';
 import { useRole } from '@/shared/context/theme-context';
-import { userFonts } from '../utils/constants';
+import { userFonts, userManagementColors } from '../utils/constants';
 import iconDelete from '@/assets/images/icon-trash.png';
 import iconEdit from '@/assets/images/vector-edit.png';
 
@@ -35,26 +35,12 @@ export function UserListCard({
   const [deleting, setDeleting] = useState(false);
 
   const status = user.status ?? 'active';
-  const isInactive = status === 'inactive';
-  const isPending = status === 'pending';
+  const isActive = status === 'active';
 
-  const statusLabel = isInactive
-    ? 'Nonaktif'
-    : isPending
-      ? 'Tertunda'
-      : 'Aktif';
-
-  const statusBg = isInactive
-    ? '#FEE2E2'
-    : isPending
-      ? '#FEF3C7'
-      : '#DCFCE7';
-
-  const statusColor = isInactive
-    ? '#DC2626'
-    : isPending
-      ? '#D97706'
-      : '#16A34A';
+  const statusLabel = isActive ? 'Aktif' : 'Nonaktif';
+  const statusBadge = isActive
+    ? userManagementColors.badges.status.active
+    : userManagementColors.badges.status.inactive;
 
   const role = user.role ?? 'siswa';
   const roleLabel =
@@ -69,24 +55,24 @@ export function UserListCard({
   const roleBadgeStyle = (() => {
     switch (role) {
       case 'siswa':
-        return { bg: '#DBEAFE', text: '#112D71' };
+        return userManagementColors.badges.role.siswa;
       case 'guru':
-        return { bg: '#FEF9C3', text: '#F59E0B' };
+        return userManagementColors.badges.role.guru;
       case 'staff':
-        return { bg: '#DCFCE7', text: '#166534' };
+        return userManagementColors.badges.role.staff;
       default:
-        return { bg: '#FEE2E2', text: theme.primary };
+        return { bg: userManagementColors.badges.role.administrator.bg, text: theme.primary };
     }
   })();
 
   const avatarBgColor = (() => {
     switch (role) {
       case 'siswa':
-        return theme.primary === '#360707' ? '#360707' : '#112D71';
+        return theme.primary === '#360707' ? '#360707' : userManagementColors.avatars.siswa;
       case 'guru':
-        return '#F59E0B';
+        return userManagementColors.avatars.guru;
       case 'staff':
-        return '#166534';
+        return userManagementColors.avatars.staff;
       default:
         return theme.primary;
     }
@@ -111,7 +97,7 @@ export function UserListCard({
 
   return (
     <>
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}>
         {/* Profile Image */}
         <View style={styles.topSection}>
           {user.avatarUrl ? (
@@ -136,7 +122,7 @@ export function UserListCard({
           <View style={styles.infoCol}>
             {/* Nama & Role */}
             <View style={styles.nameRow}>
-              <Text numberOfLines={1} style={styles.nameText}>
+              <Text numberOfLines={1} style={[styles.nameText, { color: theme.textHeading }]}>
                 {displayName}
               </Text>
               <View
@@ -157,25 +143,25 @@ export function UserListCard({
             </View>
 
             {/* Email */}
-            <Text numberOfLines={1} style={styles.emailText}>
+            <Text numberOfLines={1} style={[styles.emailText, { color: theme.textSecondary }]}>
               {user.email}
             </Text>
 
             {/* Class & Status */}
             <View style={styles.classStatusRow}>
-              <Text numberOfLines={1} style={styles.classText}>
+              <Text numberOfLines={1} style={[styles.classText, { color: theme.textSecondary }]}>
                 {classOrPos}
               </Text>
               <View
                 style={[
                   styles.pillBadge,
-                  { backgroundColor: statusBg },
+                  { backgroundColor: statusBadge.bg },
                 ]}
               >
                 <Text
                   style={[
                     styles.pillBadgeText,
-                    { color: statusColor },
+                    { color: statusBadge.text },
                   ]}
                 >
                   {statusLabel}
@@ -186,7 +172,7 @@ export function UserListCard({
         </View>
 
         {/* Action Buttons */}
-        <View style={styles.actionRow}>
+        <View style={[styles.actionRow, { borderTopColor: theme.borderSubtle }]}>
           <View style={styles.actionHalf}>
             <TouchableOpacity
               activeOpacity={0.7}
@@ -198,15 +184,15 @@ export function UserListCard({
               <Image
                 source={iconEdit}
                 resizeMode="contain"
-                style={[styles.actionIcon, styles.editIcon]}
+                style={[styles.actionIcon, { tintColor: theme.textHeading }]}
               />
-              <Text numberOfLines={1} style={styles.editText}>
+              <Text numberOfLines={1} style={[styles.editText, { color: theme.textHeading }]}>
                 Edit
               </Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.verticalDivider} />
+          <View style={[styles.verticalDivider, { backgroundColor: theme.borderSubtle }]} />
 
           <View style={styles.actionHalf}>
             <TouchableOpacity
@@ -219,9 +205,9 @@ export function UserListCard({
               <Image
                 source={iconDelete}
                 resizeMode="contain"
-                style={[styles.actionIcon, styles.deleteIcon]}
+                style={[styles.actionIcon, { tintColor: theme.danger }]}
               />
-              <Text numberOfLines={1} style={styles.deleteText}>
+              <Text numberOfLines={1} style={[styles.deleteText, { color: theme.danger }]}>
                 Hapus
               </Text>
             </TouchableOpacity>

@@ -2,12 +2,14 @@ import React from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { BaseCard } from '@/shared/components/ui/base-card';
 import { useRole } from '@/shared/context/theme-context';
-import { profileFonts } from '../utils/constants';
+import { profileColors, profileFonts } from '../utils/constants';
 
 export type CardStaffContributionProps = {
   'Menunggu Verifikasi'?: number;
   'Selesai'?: number;
   'Ditolak'?: number;
+  reportsRejected?: number;
+  reportsVerified?: number;
 };
 
 export function CardStaffContribution(
@@ -15,15 +17,15 @@ export function CardStaffContribution(
 ): React.JSX.Element {
   const { theme } = useRole();
 
-  const rejectedCount = props['Ditolak'] ?? 0;
-  const verifiedCount = props['Selesai'] ?? 0;
+  const rejectedCount = props.reportsRejected ?? props['Ditolak'] ?? 0;
+  const verifiedCount = props.reportsVerified ?? props['Selesai'] ?? 0;
   const pendingCount = props['Menunggu Verifikasi'] ?? 0;
 
   return (
     <BaseCard style={styles.card}>
       <Text
         accessibilityRole="header"
-        style={[styles.title, { color: theme.textEmphasis || '#000000' }]}
+        style={[styles.title, { color: theme.textEmphasis || profileColors.text.primary }]}
       >
         Kontribusi Saya
       </Text>
@@ -31,27 +33,27 @@ export function CardStaffContribution(
       <View style={styles.staffRow}>
         {/* Laporan Ditolak */}
         <View style={styles.miniCard}>
-          <Text style={[styles.miniNumber, { color: '#9A3412' }]}>
+          <Text style={[styles.miniNumber, { color: profileColors.stats.rejected }]}>
             {rejectedCount}
           </Text>
           <Text style={styles.miniLabel} numberOfLines={2}>
-            Laporan Ditolak
+            Laporan{'\n'}Ditolak
           </Text>
         </View>
 
         {/* Laporan Diverifikasi */}
         <View style={styles.miniCard}>
-          <Text style={[styles.miniNumber, { color: '#2563EB' }]}>
+          <Text style={[styles.miniNumber, { color: profileColors.stats.pending }]}>
             {verifiedCount}
           </Text>
           <Text style={styles.miniLabel} numberOfLines={2}>
-            Laporan Diverifikasi
+            Laporan{'\n'}Diverifikasi
           </Text>
         </View>
 
         {/* Menunggu Verifikasi */}
         <View style={styles.miniCard}>
-          <Text style={[styles.miniNumber, { color: '#F59E0B' }]}>
+          <Text style={[styles.miniNumber, { color: profileColors.stats.inReview }]}>
             {pendingCount}
           </Text>
           <Text style={styles.miniLabel} numberOfLines={2}>
@@ -78,8 +80,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: profileFonts.bold,
-    fontSize: 14,
-    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    fontSize: 16,
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
+    lineHeight: 23,
     marginBottom: 12,
   },
   staffRow: {

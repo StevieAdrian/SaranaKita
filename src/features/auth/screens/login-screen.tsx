@@ -1,29 +1,91 @@
-import React, { useCallback, useRef } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, type TextInputInstance } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, type TextInputInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { TextField } from '@/shared/components/ui/text-field';
+import { Toast } from '@/shared/components/ui';
+import { authClient } from '@/services/auth';
+import { toUserMessage } from '@/services/api';
 import { AuthDivider, AuthHeader, GoogleButton } from '../components';
 import { authConstants } from '../constants/auth-constants';
 import { useLoginForm } from '../hooks/use-login-form';
+import { checkUserProfileComplete, signInWithGoogle, statusCodes } from '../services/google-auth';
 
 export function LoginScreen(): React.JSX.Element {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { email, password, errors, submitting, setEmail, setPassword, submit } =
     useLoginForm();
   const passwordRef = useRef<TextInputInstance>(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({ visible: false, message: '', type: 'info' });
+
+  React.useEffect(() => {
+    if (route.params?.toastMessage) {
+      setToast({
+        visible: true,
+        message: route.params.toastMessage,
+        type: route.params.toastType ?? 'success',
+      });
+    }
+  }, [route.params?.toastMessage, route.params?.toastType]);
 
   const onForgotPassword = useCallback(() => {
-    Alert.alert('Forgot Password', 'Fitur reset kata sandi segera hadir.');
-  }, []);
+    navigation.navigate('ForgotPassword');
+  }, [navigation]);
 
   const onSignUp = useCallback(() => {
     navigation.navigate('Register');
   }, [navigation]);
 
-  const onGoogle = useCallback(() => {
-    Alert.alert('Google Sign-In', 'Fitur Google Sign-In segera hadir.');
-  }, []);
+  const onGoogle = useCallback(async () => {
+    setGoogleLoading(true);
+    try {
+      const { authData, userEmail, userFullName } = await signInWithGoogle();
+      const userId = authData.session.user.id;
+      const { isComplete, userData } = await checkUserProfileComplete(userId, authData.session.access_token);
+
+      if (!isComplete) {
+        navigation.navigate('SignUp', {
+          isGoogleAuth: true,
+          email: userEmail,
+          fullName: userFullName,
+        });
+      } else {
+        await authClient.applySupabaseSession(authData.session, userData);
+      }
+    } catch (err: any) {
+      authClient.signOut().catch(() => { });
+      if (err?.code === statusCodes?.SIGN_IN_CANCELLED) {
+        return;
+      }
+      if (err?.code === statusCodes?.IN_PROGRESS) {
+        return;
+      }
+      if (err?.code === statusCodes?.PLAY_SERVICES_NOT_AVAILABLE) {
+        setToast({
+          visible: true,
+          message: 'Layanan Google Play tidak tersedia pada perangkat ini.',
+          type: 'error',
+        });
+        return;
+      }
+      setToast({
+        visible: true,
+        message: toUserMessage(err) || 'Gagal masuk menggunakan akun Google.',
+        type: 'error',
+      });
+    } finally {
+      setGoogleLoading(false);
+    }
+  }, [navigation]);
+
+  const hasFormError = Boolean(errors.form);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -40,8 +102,8 @@ export function LoginScreen(): React.JSX.Element {
           {/* Header */}
           <View style={styles.centerBlock}>
             <AuthHeader
-              title="Welcome Back!"
-              subtitle="Let’s continue your healthy journey with us."
+              title="Selamat Datang!"
+              subtitle="Masuk dan lanjutkan upaya mewujudkan sekolah yang lebih baik."
             />
           </View>
 
@@ -64,16 +126,16 @@ export function LoginScreen(): React.JSX.Element {
               submitBehavior="submit"
               errorText={errors.email}
               labelStyle={styles.label}
-              style={styles.input}
+              style={[styles.input, hasFormError && styles.inputError]}
             />
 
             <TextField
               ref={passwordRef}
-              label="Password"
+              label="Kata Sandi"
               required
               value={password}
               onChangeText={setPassword}
-              placeholder="••••••••••"
+              placeholder={hasFormError ? '' : '••••••••••'}
               placeholderTextColor={authConstants.typography.inputPlaceholder.color}
               secureTextEntry
               autoComplete="password"
@@ -82,22 +144,25 @@ export function LoginScreen(): React.JSX.Element {
               onSubmitEditing={submit}
               errorText={errors.password}
               labelStyle={styles.label}
-              style={styles.input}
+              style={[styles.input, hasFormError && styles.inputError]}
             />
 
             <Pressable
               onPress={onForgotPassword}
               accessibilityRole="link"
-              accessibilityLabel="Forgot Password?"
+              accessibilityLabel="Lupa Kata Sandi?"
               style={styles.forgot}
             >
-              <Text style={styles.linkText}>Forgot Password?</Text>
+              <Text style={styles.linkText}>Lupa Kata Sandi?</Text>
             </Pressable>
 
             {errors.form ? (
-              <Text style={styles.formError} accessibilityLiveRegion="polite">
-                {errors.form}
-              </Text>
+              <View style={styles.formErrorRow} accessibilityLiveRegion="polite">
+                <View style={styles.formErrorIconBadge}>
+                  <Text style={styles.formErrorIconText}>!</Text>
+                </View>
+                <Text style={styles.formError}>{errors.form}</Text>
+              </View>
             ) : null}
 
             {/* Button */}
@@ -106,7 +171,7 @@ export function LoginScreen(): React.JSX.Element {
               disabled={submitting}
               activeOpacity={0.8}
               accessibilityRole="button"
-              accessibilityLabel="Continue"
+              accessibilityLabel="Masuk"
               style={[
                 styles.continueButton,
                 submitting && styles.buttonDisabled,
@@ -115,30 +180,42 @@ export function LoginScreen(): React.JSX.Element {
               {submitting ? (
                 <ActivityIndicator color={authConstants.colors.text.light} size="small" />
               ) : (
-                <Text style={styles.continueButtonText}>Continue</Text>
+                <Text style={styles.continueButtonText}>Masuk</Text>
               )}
             </TouchableOpacity>
 
             <View style={styles.signUpRow}>
-              <Text style={styles.signUpText}>Haven’t create an account? </Text>
+              <Text style={styles.signUpText}>Belum punya akun? </Text>
               <Pressable
                 onPress={onSignUp}
                 accessibilityRole="link"
-                accessibilityLabel="Sign Up"
+                accessibilityLabel="Daftar"
               >
-                <Text style={styles.linkText}>Sign Up</Text>
+                <Text style={styles.linkText}>Daftar</Text>
               </Pressable>
             </View>
           </View>
 
           <View style={styles.bottomBlock}>
-            <AuthDivider text="Or Continue With" />
+            <AuthDivider text="Atau lanjutkan dengan" />
 
             {/* Google Button */}
-            <GoogleButton onPress={onGoogle} label="Google" />
+            <GoogleButton
+              onPress={onGoogle}
+              label="Google"
+              disabled={submitting || googleLoading}
+              loading={googleLoading}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onDismiss={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 }
@@ -196,6 +273,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: authConstants.colors.text.dark,
   },
+  inputError: {
+    borderColor: '#EF4444',
+  },
   forgot: {
     alignSelf: 'flex-end',
     marginTop: -6,
@@ -206,10 +286,37 @@ const styles = StyleSheet.create({
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
     fontFamily: authConstants.typography.link.fontFamily,
   },
-  formError: {
-    color: authConstants.colors.text.error,
-    fontSize: 13,
+  formErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: -2,
+  },
+  formErrorIconBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.2,
+    borderColor: '#DC2626',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  formErrorIconText: {
+    fontFamily: authConstants.typography.buttonText.fontFamily,
+    fontSize: 11,
+    lineHeight: 13,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+    color: '#DC2626',
+    includeFontPadding: false,
     textAlign: 'center',
+  },
+  formError: {
+    flex: 1,
+    fontFamily: authConstants.typography.inputText.fontFamily,
+    color: '#DC2626',
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'left',
   },
   continueButton: {
     backgroundColor: authConstants.colors.ui.buttonBlack,
@@ -225,7 +332,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.99 }],
   },
   buttonDisabled: {
-    opacity: 0.6,
+    backgroundColor: authConstants.colors.ui.buttonDisabled,
   },
   continueButtonText: {
     fontFamily: authConstants.typography.buttonText.fontFamily,

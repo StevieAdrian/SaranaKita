@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { FlatList, Image, Platform, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { FlatList, Image, Keyboard, Platform, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
 import leftArrow from '@/assets/images/left-arrow.png';
 import { BottomSheet } from '@/shared/components/ui/bottom-sheet';
+import { KEYBOARD_DISMISS_DELAY_MS } from '@/shared/constants';
+import { fontFamilies } from '@/shared/theme';
 import { authConstants } from '../constants/auth-constants';
 import { CLASS_OPTIONS } from '../utils/constants';
 
@@ -21,6 +23,7 @@ export type ClassSelectFieldProps = {
   inputBoxStyle?: StyleProp<ViewStyle>;
   inputTextStyle?: StyleProp<TextStyle>;
   activeBadgeText?: string;
+  labelStyle?: StyleProp<TextStyle>;
 };
 
 export function ClassSelectField({
@@ -28,7 +31,7 @@ export function ClassSelectField({
   onChange,
   errorText,
   required = true,
-  label = 'Class',
+  label = 'Kelas',
   hideLabel = false,
   placeholder = 'Pilih Kelas',
   sheetTitle = 'Pilih Kelas',
@@ -39,6 +42,7 @@ export function ClassSelectField({
   inputBoxStyle,
   inputTextStyle,
   activeBadgeText = 'Saat ini',
+  labelStyle,
 }: ClassSelectFieldProps): React.JSX.Element {
   const [open, setOpen] = useState(false);
   const hasError = Boolean(errorText);
@@ -52,10 +56,19 @@ export function ClassSelectField({
     setOpen(false);
   };
 
+  const cleanValue = (value ?? '').trim().replace(/^kelas\s+/i, '');
+
+  const handleOpen = () => {
+    Keyboard.dismiss();
+    setTimeout(() => {
+      setOpen(true);
+    }, KEYBOARD_DISMISS_DELAY_MS);
+  };
+
   return (
     <View style={styles.container}>
       {!hideLabel ? (
-        <Text style={styles.label}>
+        <Text style={[styles.label, labelStyle]}>
           {label}
           {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
         </Text>
@@ -63,7 +76,7 @@ export function ClassSelectField({
 
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => setOpen(true)}
+        onPress={handleOpen}
         style={[
           styles.inputBox,
           inputBoxStyle,
@@ -71,16 +84,16 @@ export function ClassSelectField({
         ]}
         accessibilityRole="button"
         accessibilityLabel={label}
-        accessibilityValue={{ text: value ?? placeholder }}
+        accessibilityValue={{ text: cleanValue || placeholder }}
       >
         <Text
           style={[
             styles.inputText,
             inputTextStyle,
-            !value && styles.placeholderText,
+            !cleanValue && styles.placeholderText,
           ]}
         >
-          {value || placeholder}
+          {cleanValue || placeholder}
         </Text>
         <Image
           source={leftArrow}
@@ -102,7 +115,7 @@ export function ClassSelectField({
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
-            const isSelected = item.value === value;
+            const isSelected = item.value === value || item.value === cleanValue;
             return (
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -244,12 +257,12 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   optionTextNormal: {
-    fontFamily: 'Poppins-Medium',
+    fontFamily: fontFamilies.medium,
     fontWeight: Platform.OS === 'ios' ? '500' : undefined,
     color: '#1E2939',
   },
   optionTextSelected: {
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: fontFamilies.semiBold,
     fontWeight: Platform.OS === 'ios' ? '600' : undefined,
     color: '#1E2939',
   },
@@ -265,7 +278,7 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
   },
   currentBadgeText: {
-    fontFamily: 'Poppins-Medium',
+    fontFamily: fontFamilies.medium,
     fontSize: 10,
     lineHeight: 14,
     fontWeight: Platform.OS === 'ios' ? '500' : undefined,

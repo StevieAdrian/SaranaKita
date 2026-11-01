@@ -63,7 +63,7 @@ export function ButtonManageProfile({
           activeOpacity={0.8}
           onPress={onPressUserManagement}
           accessibilityRole="button"
-          accessibilityLabel="Manajemen Profile Pengguna"
+          accessibilityLabel="Manajemen Profil Pengguna"
           style={[
             styles.actionButton,
             styles.manageButton,
@@ -78,10 +78,10 @@ export function ButtonManageProfile({
             />
             <View style={styles.manageTextGroup}>
               <Text style={[styles.manageTitle, { color: textColor }]}>
-                Manajemen Profile Pengguna
+                Manajemen Profil Pengguna
               </Text>
               <Text style={[styles.manageSubtitle, { color: textColor }]}>
-                Kelola profile Siswa, Guru & Staff sekolah
+                Kelola profil Siswa, Guru & Staff sekolah
               </Text>
             </View>
           </View>

@@ -6,7 +6,7 @@ export type AuthDividerProps = {
   text?: string;
 };
 
-export function AuthDivider({ text = 'Or Continue With' }: AuthDividerProps): React.JSX.Element {
+export function AuthDivider({ text = 'Atau lanjutkan dengan' }: AuthDividerProps): React.JSX.Element {
   return (
     <View style={styles.dividerRow} accessibilityElementsHidden>
       <View style={styles.dividerLine} />

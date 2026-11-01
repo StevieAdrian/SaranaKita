@@ -1,8 +1,15 @@
 import { Platform, type TextStyle } from 'react-native';
 
-const fontRegular = 'Poppins-Regular';
-const fontSemiBold = 'Poppins-SemiBold';
-const fontBold = 'Poppins-Bold';
+export const fontFamilies = {
+  regular: 'Poppins-Regular',
+  medium: 'Poppins-Medium',
+  semiBold: 'Poppins-SemiBold',
+  bold: 'Poppins-Bold',
+} as const;
+
+const fontRegular = fontFamilies.regular;
+const fontSemiBold = fontFamilies.semiBold;
+const fontBold = fontFamilies.bold;
 
 export const typography = {
   h1: { fontFamily: fontBold, fontSize: 28, fontWeight: Platform.OS === 'ios' ? '700' : undefined, lineHeight: 34 },

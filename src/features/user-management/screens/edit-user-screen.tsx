@@ -1,20 +1,39 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
+import { authClient } from '@/services/auth';
 import type { ManageUser } from '@/services/users';
+import { reloadSharedProfile } from '@/features/profile';
 import { useRole } from '@/shared/context/theme-context';
+import { NotFoundScreen } from '@/features/auth/screens/transitions';
 import { FormUser, type UserFormData } from '../components/form-user';
 import { UserFormHeader } from '../components/user-form-header';
 import { useUserManagement } from '../hooks/use-user-management';
+import { isRoleAdminOrStaff } from '../utils/permissions';
 
 export function EditUserScreen(): React.JSX.Element {
   const navigation = useNavigation();
   const route = useRoute<any>();
-  const { theme } = useRole();
+  const { theme, currentRole } = useRole();
   const { updateUser } = useUserManagement();
 
   const user: ManageUser | undefined = route.params?.user;
   const [submitting, setSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (!isRoleAdminOrStaff(currentRole)) {
+      navigation.goBack();
+    }
+  }, [currentRole, navigation]);
+
+  if (!user?.id) {
+    return (
+      <NotFoundScreen
+        navigation={navigation}
+        message="Pengguna tidak ditemukan."
+      />
+    );
+  }
 
   const handleSubmit = async (data: UserFormData) => {
     if (!user?.id) return;
@@ -30,12 +49,15 @@ export function EditUserScreen(): React.JSX.Element {
         classOrPosition: data.classOrPosition,
         status: data.status,
         isActive: data.isActive !== undefined ? data.isActive : data.status === 'active',
-        password: data.password,
         phone: data.phone,
         dateOfBirth: data.dateOfBirth,
         gender: data.gender ?? undefined,
         avatarUrl: data.avatarUrl,
       });
+      if (user.id === authClient.getState().user?.id) {
+        reloadSharedProfile().catch(() => { });
+        authClient.restore().catch(() => { });
+      }
       navigation.dispatch(
         CommonActions.reset({
           index: 1,
@@ -86,7 +108,7 @@ export function EditUserScreen(): React.JSX.Element {
             status: user?.status ?? 'active',
             avatarUrl: user?.avatarUrl,
             phone: user?.phone ?? '',
-            gender: (user?.gender as any) ?? 'Male',
+            gender: (user?.gender as any) ?? 'Laki-Laki',
             dateOfBirth: user?.dateOfBirth ?? undefined,
           }}
           onSubmit={handleSubmit}

@@ -92,22 +92,26 @@ export function useUserManagement() {
     const created = await createUser(input);
     setUsers((prev) => [created, ...prev]);
     getUserSummary().then(setSummary).catch(() => { });
+    loadData().catch(() => { });
   };
 
   const handleUpdateUser = async (id: string, input: UpdateUserInput) => {
     const updated = await updateUser(id, input);
     setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
     getUserSummary().then(setSummary).catch(() => { });
+    loadData().catch(() => { });
   };
 
   const handleDeleteUser = async (id: string) => {
     await deleteUser(id);
     setUsers((prev) => prev.filter((u) => u.id !== id));
     getUserSummary().then(setSummary).catch(() => { });
+    loadData().catch(() => { });
   };
 
   return {
     users: filteredUsers,
+    allUsers: users,
     totalCount: users.length,
     summary,
     schoolName,

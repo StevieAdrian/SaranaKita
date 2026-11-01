@@ -4,6 +4,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { palette } from '@/shared/theme';
 import { useCurrentUser } from '@/features/home/hooks/use-current-user';
 import { adminTheme, staffTheme } from '@/shared/theme/colors';
+import { useRole } from '@/shared/context/theme-context';
 
 const ICON_SIZE = 28;
 const SHADOW = { boxShadow: '0 -4px 12px rgba(15, 23, 42, 0.08)' } as const;
@@ -20,15 +21,26 @@ export function BottomTabBar({
   navigation,
   insets,
 }: BottomTabBarProps): React.JSX.Element {
+  const { theme, scheme } = useRole();
+  const isDark = scheme === 'dark';
   const user = useCurrentUser();
 
-  const activeColor = ROLE_COLORS[user?.role ?? ''] ?? palette.navy;
+  const activeColor = ROLE_COLORS[user?.role ?? ''] ?? theme.primary;
+  const inactiveColor = isDark ? theme.iconInactive : palette.tabInactive;
 
   return (
     <View
       accessibilityRole="tablist"
-      className="flex-row items-center rounded-t-[32px] bg-white px-4 pt-4"
-      style={[SHADOW, { paddingBottom: Math.max(insets.bottom, 12) }]}
+      className="flex-row items-center rounded-t-[32px] px-4 pt-4"
+      style={[
+        !isDark && SHADOW,
+        {
+          backgroundColor: isDark ? theme.surface : '#FFFFFF',
+          borderTopWidth: isDark ? 1 : 0,
+          borderTopColor: isDark ? theme.borderSubtle : 'transparent',
+          paddingBottom: Math.max(insets.bottom, 12),
+        },
+      ]}
     >
       {state.routes.map((route, index) => {
         const descriptor = descriptors[route.key];
@@ -70,7 +82,7 @@ export function BottomTabBar({
           >
             {options.tabBarIcon?.({
               focused,
-              color: focused ? activeColor : palette.tabInactive,
+              color: focused ? activeColor : inactiveColor,
               size: ICON_SIZE,
             })}
           </Pressable>

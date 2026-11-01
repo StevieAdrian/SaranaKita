@@ -11,6 +11,8 @@ export type ContributionStats = {
   readonly reportsCreated: number;
   readonly votesCount: number;
   readonly recommendationsCount: number;
+  readonly reportsRejected?: number;
+  readonly reportsVerified?: number;
   readonly 'Menunggu Verifikasi': number;
   readonly 'Dalam Pemeriksaan': number;
   readonly 'Dalam Perbaikan': number;
@@ -55,4 +57,12 @@ export type FullProfile = {
 export type ChangePasswordInput = {
   readonly currentPassword: string;
   readonly newPassword: string;
+};
+
+export type ChangePasswordResponse = {
+  readonly message: string;
+  readonly tokens?: {
+    readonly accessToken: string;
+    readonly refreshToken: string;
+  };
 };

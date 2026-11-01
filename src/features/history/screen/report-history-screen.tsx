@@ -1,6 +1,4 @@
 import React from 'react';
-import { ThemedText } from '@/shared/components/themed-text';
-import { ThemedView } from '@/shared/components/themed-view';
 import { useCurrentUser } from '@/features/home/hooks/use-current-user';
 import { StudentHistoryScreen } from './student-history-screen';
 import { TeacherHistoryScreen } from './teacher-history-screen';

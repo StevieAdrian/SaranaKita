@@ -13,7 +13,9 @@ import {
   type CardStudentTeacherContributionProps,
 } from './card-siswa-guru-contribution';
 
-export type CardContributionProps = CardStudentTeacherContributionProps;
+export type CardContributionProps = CardStudentTeacherContributionProps &
+  CardStaffContributionProps &
+  CardAdministratorStatisticsProps;
 
 export function CardContribution(props: CardContributionProps): React.JSX.Element {
   const { currentRole } = useRole();
