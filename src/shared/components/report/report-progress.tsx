@@ -8,6 +8,7 @@ import { PROGRESS_STEPS, REPORT_PROGRESS } from './report-progress-meta';
 
 export type ReportProgressProps = {
   status: ReportStatus;
+  showPercent?: boolean;
 };
 
 const CHECK_TINT = { tintColor: palette.white } as const;
@@ -15,9 +16,10 @@ const HIDDEN_LINE = { backgroundColor: 'transparent' } as const;
 
 export function ReportProgress({
   status,
+  showPercent = false,
 }: ReportProgressProps): React.JSX.Element {
   const { theme } = useRole();
-  const { completedSteps, color } = REPORT_PROGRESS[status];
+  const { completedSteps, color, percent } = REPORT_PROGRESS[status];
   const activeFill = { backgroundColor: color };
   const activeText = { color };
   const inactiveFill = { backgroundColor: theme.borderSubtle };
@@ -26,7 +28,7 @@ export function ReportProgress({
   const lineStyle = (visible: boolean, active: boolean) =>
     !visible ? HIDDEN_LINE : active ? activeFill : inactiveFill;
 
-  return (
+  const steps = (
     <View
       accessible
       accessibilityRole="progressbar"
@@ -85,6 +87,26 @@ export function ReportProgress({
           </View>
         );
       })}
+    </View>
+  );
+
+  if (!showPercent) {
+    return steps;
+  }
+
+  return (
+    <View className="gap-2">
+      <View className="flex-row items-start justify-end">
+        <View className="items-end">
+          <Text className="text-base font-bold" style={activeText}>
+            {percent}%
+          </Text>
+          <Text className="text-[11px]" style={{ color: theme.textMuted }}>
+            progres
+          </Text>
+        </View>
+      </View>
+      {steps}
     </View>
   );
 }

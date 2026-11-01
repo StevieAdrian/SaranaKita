@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -29,7 +30,7 @@ import {
   ReportProgress,
   REPORT_PROGRESS,
 } from '@/shared/components/report';
-import { BottomSheet, Toast } from '@/shared/components/ui';
+import { BottomSheet, ModalSuccess } from '@/shared/components/ui';
 import { getThemeColors, palette } from '@/shared/theme';
 import { useRole } from '@/shared/context/theme-context';
 import { NotFoundScreen } from '@/features/auth/screens/transitions';
@@ -119,15 +120,10 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
     useState(false);
   const [rejectionConfirmationOpen, setRejectionConfirmationOpen] =
     useState(false);
-  const [toast, setToast] = useState<{
-    visible: boolean;
+  const [successModal, setSuccessModal] = useState<{
+    title: string;
     message: string;
-    type: 'success' | 'error' | 'info';
-  }>({
-    visible: false,
-    message: '',
-    type: 'error',
-  });
+  } | null>(null);
   const {
     report,
     loading,
@@ -146,18 +142,24 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
     setStatusSheetOpen(false);
     const message = await changeStatus({ statusName });
     if (message) {
-      setToast({
-        visible: true,
-        message,
-        type: 'error',
-      });
-    } else {
-      setToast({
-        visible: true,
-        message: 'Status laporan berhasil diperbarui.',
-        type: 'success',
-      });
+      Alert.alert('Gagal mengubah status', message);
+      return;
     }
+
+    const isVerification = statusName === REPORT_STATUS_NAME.IN_REVIEW;
+    const isRejection = statusName === REPORT_STATUS_NAME.REJECTED;
+    const successTitle = isVerification
+      ? 'Verifikasi Berhasil'
+      : isRejection
+        ? 'Laporan Ditolak'
+        : 'Status Berhasil Diperbarui';
+    const successMessage = isVerification
+      ? 'Laporan berhasil diverifikasi.'
+      : isRejection
+        ? 'Laporan berhasil ditolak.'
+        : `Status laporan berhasil diubah menjadi ${statusName}.`;
+
+    setSuccessModal({ title: successTitle, message: successMessage });
   };
 
   const handleReject = () => {
@@ -591,11 +593,16 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
         })}
       </BottomSheet>
 
-      <Toast
-        visible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        onDismiss={() => setToast(prev => ({ ...prev, visible: false }))}
+      <ModalSuccess
+        visible={successModal !== null}
+        title={successModal?.title ?? ''}
+        message={successModal?.message ?? ''}
+        buttonLabel="Kembali ke Beranda"
+        buttonColor={primaryColor}
+        onConfirm={() => {
+          setSuccessModal(null);
+          navigation.navigate('Main', { screen: 'Home' });
+        }}
       />
     </View>
   );

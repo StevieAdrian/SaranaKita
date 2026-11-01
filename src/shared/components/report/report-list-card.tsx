@@ -49,6 +49,7 @@ export type ReportListCardProps = {
   remainingTime?: string;
   showFinalizedTime?: boolean;
   showProgress?: boolean;
+  showProgressPercent?: boolean;
 };
 
 export function ReportListCard({
@@ -76,6 +77,7 @@ export function ReportListCard({
   finalTime,
   remainingTime = '00:00',
   showProgress = false,
+  showProgressPercent = false,
 }: ReportListCardProps): React.JSX.Element {
   const { theme, scheme } = useRole();
   const isDark = scheme === 'dark';
@@ -148,7 +150,11 @@ export function ReportListCard({
           </Text>
         </View>
       </Pressable>
-      {showProgress && <ReportProgress status={status} />}
+      {showProgress && (
+        <View className="px-4 pb-1 pt-1">
+          <ReportProgress status={status} showPercent={showProgressPercent} />
+        </View>
+      )}
 
       <View
         style={{ borderTopColor: theme.borderSubtle }}
