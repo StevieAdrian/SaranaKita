@@ -1,9 +1,16 @@
-import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  type ListRenderItem,
+  Text,
+  View,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { USER_ROLE, type UserRole } from '@/services/auth';
+import type { FeedReport } from '@/services/report';
 import type { RootStackParamList } from '@/navigation/types';
 import { MonitoringReportCard } from '@/shared/components/report';
 import { ChipTabs } from '@/shared/components/ui';
@@ -17,14 +24,19 @@ type MonitoringFilter = 'all' | 'mine' | 'supported' | 'recommended';
 type MonitoringReportsProps = {
   role: UserRole;
   currentUserId?: string;
+  ListHeaderComponent?: React.ReactElement;
 };
+
+const LIST_CONTENT = { paddingBottom: 24 } as const;
 
 export function MonitoringReports({
   role,
   currentUserId,
+  ListHeaderComponent,
 }: MonitoringReportsProps): React.JSX.Element {
   const [filter, setFilter] = useState<MonitoringFilter>('all');
-  const { reports, loading, error, refresh } = useAllReports();
+  const { reports, loading, loadingMore, error, hasMore, refresh, loadMore } =
+    useAllReports();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -42,10 +54,7 @@ export function MonitoringReports({
     }
 
     if (role === USER_ROLE.GURU) {
-      result.push({
-        label: 'Direkomendasi',
-        value: 'recommended',
-      });
+      result.push({ label: 'Direkomendasi', value: 'recommended' });
     }
 
     return result;
@@ -55,36 +64,66 @@ export function MonitoringReports({
     switch (filter) {
       case 'mine':
         return reports.filter(report => report.reporter_id === currentUserId);
-
       case 'supported':
         return reports.filter(report => report.votedByMe);
-
       case 'recommended':
         return reports.filter(report => report.recommendedByMe);
-
       default:
         return reports;
     }
   }, [reports, filter, currentUserId]);
 
-  return (
-    <View className="gap-4 px-5 pb-6">
-      <SectionHeader title="Daftar Monitoring Laporan" />
+  const renderItem: ListRenderItem<FeedReport> = useCallback(
+    ({ item }) => (
+      <View className="px-5">
+        <MonitoringReportCard
+          title={item.title}
+          location={item.location}
+          status={item.status}
+          imageUrl={item.imageUrl}
+          reporterName={item.reporterName}
+          date={toDisplayDate(item.createdAt)}
+          votes={item.votes}
+          comments={item.comments}
+          onPress={() =>
+            navigation.navigate('ReportDetail', { reportId: item.id })
+          }
+        />
+      </View>
+    ),
+    [navigation],
+  );
 
-      <ChipTabs
-        options={options}
-        value={filter}
-        onChange={setFilter}
-        accessibilityLabel="Filter monitoring laporan"
-      />
+  const header = (
+    <View className="gap-4">
+      {ListHeaderComponent}
+      <View className="gap-4 px-5 pt-2">
+        <SectionHeader title="Daftar Monitoring Laporan" />
+        <ChipTabs
+          options={options}
+          value={filter}
+          onChange={setFilter}
+          accessibilityLabel="Filter monitoring laporan"
+        />
+      </View>
+    </View>
+  );
 
-      {loading ? (
+  const renderEmpty = () => {
+    if (loading) {
+      return (
         <View className="py-8">
           <ActivityIndicator />
         </View>
-      ) : error ? (
-        <View className="items-center gap-2 py-5">
-          <Text className="text-center text-sm" style={{ color: palette.danger }}>
+      );
+    }
+    if (error) {
+      return (
+        <View className="items-center gap-2 px-5 py-5">
+          <Text
+            className="text-center text-sm"
+            style={{ color: palette.danger }}
+          >
             {error}
           </Text>
           <Text
@@ -95,33 +134,47 @@ export function MonitoringReports({
             Coba lagi
           </Text>
         </View>
-      ) : filteredReports.length > 0 ? (
-        <View className="gap-3">
-          {filteredReports.map(report => (
-            <MonitoringReportCard
-              key={report.id}
-              title={report.title}
-              location={report.location}
-              status={report.status}
-              imageUrl={report.imageUrl}
-              reporterName={report.reporterName}
-              date={toDisplayDate(report.createdAt)}
-              votes={report.votes}
-              comments={report.comments}
-              onPress={() =>
-                navigation.navigate('ReportDetail', { reportId: report.id })
-              }
-            />
-          ))}
-        </View>
-      ) : (
-        <Text
-          className="py-5 text-center text-sm"
-          style={{ color: palette.gray500 }}
-        >
-          Tidak ada laporan untuk filter ini.
-        </Text>
-      )}
-    </View>
+      );
+    }
+    return (
+      <Text
+        className="px-5 py-5 text-center text-sm"
+        style={{ color: palette.gray500 }}
+      >
+        Tidak ada laporan untuk filter ini.
+      </Text>
+    );
+  };
+
+  return (
+    <FlatList
+      data={loading ? [] : filteredReports}
+      keyExtractor={item => item.id}
+      renderItem={renderItem}
+      ListHeaderComponent={header}
+      ItemSeparatorComponent={ItemSeparator}
+      ListEmptyComponent={renderEmpty}
+      ListFooterComponent={
+        loadingMore ? (
+          <View className="items-center py-4">
+            <ActivityIndicator color={palette.primary} />
+          </View>
+        ) : undefined
+      }
+      onEndReached={() => {
+        // Infinite scroll hanya untuk tab "Semua"; tab lain difilter
+        // client-side sehingga tidak perlu memuat halaman tambahan.
+        if (filter === 'all' && hasMore) {
+          loadMore();
+        }
+      }}
+      onEndReachedThreshold={0.5}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={LIST_CONTENT}
+    />
   );
+}
+
+function ItemSeparator(): React.JSX.Element {
+  return <View className="h-3" />;
 }
