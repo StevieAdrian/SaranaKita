@@ -1,28 +1,32 @@
 import React, { useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { USER_ROLE, type UserRole } from '@/services/auth';
-import type { FeedReport } from '@/services/report';
-import { ReportListCard } from '@/shared/components/report';
+import type { RootStackParamList } from '@/navigation/types';
+import { MonitoringReportCard } from '@/shared/components/report';
 import { ChipTabs } from '@/shared/components/ui';
 import { SectionHeader } from '@/shared/components/ui';
 import { palette } from '@/shared/theme';
 import { toDisplayDate } from '@/features/home/utils/feed';
+import { useAllReports } from '@/features/statistic/hooks/use-all-reports';
 
 type MonitoringFilter = 'all' | 'mine' | 'supported' | 'recommended';
 
 type MonitoringReportsProps = {
-  reports: readonly FeedReport[];
   role: UserRole;
   currentUserId?: string;
 };
 
 export function MonitoringReports({
-  reports,
   role,
   currentUserId,
 }: MonitoringReportsProps): React.JSX.Element {
   const [filter, setFilter] = useState<MonitoringFilter>('all');
+  const { reports, loading, error, refresh } = useAllReports();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const options = useMemo(() => {
     const result: {
@@ -74,21 +78,39 @@ export function MonitoringReports({
         accessibilityLabel="Filter monitoring laporan"
       />
 
-      {filteredReports.length > 0 ? (
+      {loading ? (
+        <View className="py-8">
+          <ActivityIndicator />
+        </View>
+      ) : error ? (
+        <View className="items-center gap-2 py-5">
+          <Text className="text-center text-sm" style={{ color: palette.danger }}>
+            {error}
+          </Text>
+          <Text
+            className="text-sm font-semibold"
+            style={{ color: palette.primary }}
+            onPress={refresh}
+          >
+            Coba lagi
+          </Text>
+        </View>
+      ) : filteredReports.length > 0 ? (
         <View className="gap-3">
-          {filteredReports.slice(0, 3).map(report => (
-            <ReportListCard
+          {filteredReports.map(report => (
+            <MonitoringReportCard
               key={report.id}
               title={report.title}
-              description={report.description}
               location={report.location}
               status={report.status}
               imageUrl={report.imageUrl}
               reporterName={report.reporterName}
-              reporterClass={report.reporterClass}
               date={toDisplayDate(report.createdAt)}
               votes={report.votes}
               comments={report.comments}
+              onPress={() =>
+                navigation.navigate('ReportDetail', { reportId: report.id })
+              }
             />
           ))}
         </View>

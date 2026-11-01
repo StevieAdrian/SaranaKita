@@ -2,7 +2,6 @@ import { useRole } from '@/shared/context/theme-context';
 import React from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { USER_ROLE } from '@/services/auth';
-import { useHomeFeed } from '@/features/home/hooks/use-home-feed';
 import { StatisticHeader } from '../components/statistic-header';
 import { RecentActivities } from '../components/recent-activities';
 import { useReportMonitoring } from '../hooks/use-report-monitoring';
@@ -11,7 +10,6 @@ import { useCurrentUser } from '../hooks/use-current-user';
 
 export function StudentStatisticScreen(): React.JSX.Element {
   const { theme } = useRole();
-  const feed = useHomeFeed();
   const monitoring = useReportMonitoring();
   const user = useCurrentUser();
 
@@ -69,7 +67,6 @@ export function StudentStatisticScreen(): React.JSX.Element {
       <RecentActivities role={USER_ROLE.SISWA} activities={activities} />
 
       <MonitoringReports
-        reports={feed.reports}
         role={USER_ROLE.SISWA}
         currentUserId={user?.id}
       />
