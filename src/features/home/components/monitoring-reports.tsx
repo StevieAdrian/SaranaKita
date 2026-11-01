@@ -92,6 +92,9 @@ export function MonitoringReports({
     }
   }, [reports, filter, currentUserId]);
 
+  const canManage =
+    role === USER_ROLE.STAFF || role === USER_ROLE.ADMINISTRATOR;
+
   const renderItem: ListRenderItem<FeedReport> = useCallback(
     ({ item }) => {
       const isOwner = item.reporter_id === currentUserId;
@@ -115,14 +118,20 @@ export function MonitoringReports({
             onEditPress={() =>
               navigation.navigate('EditReport', { reportId: item.id })
             }
+            detailLabel={canManage ? 'Perbarui Status' : 'Lihat Detail'}
+            detailTone={canManage ? 'dark' : 'primary'}
             onPress={() =>
-              navigation.navigate('ReportDetail', { reportId: item.id })
+              canManage
+                ? navigation.navigate('ManagementReportDetail', {
+                    reportId: item.id,
+                  })
+                : navigation.navigate('ReportDetail', { reportId: item.id })
             }
           />
         </View>
       );
     },
-    [navigation, currentUserId, now],
+    [navigation, currentUserId, now, canManage],
   );
 
   const header = (

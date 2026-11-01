@@ -19,6 +19,7 @@ export type MonitoringReportCardProps = {
   comments: number;
   onPress?: () => void;
   detailLabel?: string;
+  detailTone?: 'primary' | 'dark';
   isOwner?: boolean;
   canStillEdit?: boolean;
   remainingTime?: string;
@@ -36,6 +37,7 @@ export function MonitoringReportCard({
   comments,
   onPress,
   detailLabel = 'Lihat Detail',
+  detailTone = 'primary',
   isOwner = false,
   canStillEdit = false,
   remainingTime = '00:00:00',
@@ -44,6 +46,7 @@ export function MonitoringReportCard({
   const { theme } = useRole();
   const { percent, color } = REPORT_PROGRESS[status];
   const showEdit = isOwner && canStillEdit;
+  const detailColor = detailTone === 'dark' ? palette.black : theme.primary;
 
   return (
     <View
@@ -146,7 +149,7 @@ export function MonitoringReportCard({
             onPress={onPress}
             accessibilityRole="button"
             accessibilityLabel={`${detailLabel} ${title}, ${location}`}
-            style={{ backgroundColor: theme.primary }}
+            style={{ backgroundColor: detailColor }}
             className="min-h-[44px] justify-center rounded-lg px-6 active:opacity-70"
           >
             <Text style={{ color: '#FFFFFF' }} className="font-semibold">
