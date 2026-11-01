@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useRole } from '@/shared/context/theme-context';
+import { palette } from '@/shared/theme';
 import { ReportThumbnail } from './report-thumbnail';
 import { StatusBadge } from './status-badge';
 import { ReportProgress } from './report-progress';
@@ -18,6 +19,11 @@ export type MonitoringReportCardProps = {
   comments: number;
   onPress?: () => void;
   detailLabel?: string;
+  detailTone?: 'primary' | 'dark';
+  isOwner?: boolean;
+  canStillEdit?: boolean;
+  remainingTime?: string;
+  onEditPress?: () => void;
 };
 
 export function MonitoringReportCard({
@@ -31,9 +37,16 @@ export function MonitoringReportCard({
   comments,
   onPress,
   detailLabel = 'Lihat Detail',
+  detailTone = 'primary',
+  isOwner = false,
+  canStillEdit = false,
+  remainingTime = '00:00:00',
+  onEditPress,
 }: MonitoringReportCardProps): React.JSX.Element {
   const { theme } = useRole();
   const { percent, color } = REPORT_PROGRESS[status];
+  const showEdit = isOwner && canStillEdit;
+  const detailColor = detailTone === 'dark' ? palette.black : theme.primary;
 
   return (
     <View
@@ -44,6 +57,17 @@ export function MonitoringReportCard({
         <View className="flex-row gap-3">
           <ReportThumbnail uri={imageUrl} className="h-24 w-24 rounded-md" />
           <View className="flex-1 gap-1.5">
+            {isOwner ? (
+              <View
+                style={{ backgroundColor: palette.black }}
+                className="flex-row items-center gap-2 self-start rounded-full px-3 py-1"
+              >
+                <View className="h-1.5 w-1.5 rounded-full bg-white" />
+                <Text className="text-xs font-semibold text-white">
+                  Laporan Dibuat
+                </Text>
+              </View>
+            ) : null}
             <View className="flex-row items-start gap-2">
               <Text
                 numberOfLines={2}
@@ -78,6 +102,20 @@ export function MonitoringReportCard({
         <ReportProgress status={status} />
       </View>
 
+      {showEdit ? (
+        <View
+          style={{ borderTopColor: theme.borderSubtle }}
+          className="flex-row items-center justify-between border-t px-4 py-3"
+        >
+          <Text style={{ color: theme.textMuted }} className="flex-1 text-xs">
+            Waktu Tersisa Untuk Mengubah Laporan:
+          </Text>
+          <Text style={{ color: theme.textMuted }} className="text-xs">
+            {remainingTime}
+          </Text>
+        </View>
+      ) : null}
+
       <View
         style={{ borderTopColor: theme.borderSubtle }}
         className="flex-row items-center justify-between border-t px-4 py-3"
@@ -94,12 +132,24 @@ export function MonitoringReportCard({
           Komentar
         </Text>
 
-        {onPress ? (
+        {showEdit && onEditPress ? (
+          <Pressable
+            onPress={onEditPress}
+            accessibilityRole="button"
+            accessibilityLabel={`Ubah laporan ${title}`}
+            style={{ backgroundColor: palette.black }}
+            className="min-h-[44px] justify-center rounded-lg px-6 active:opacity-70"
+          >
+            <Text style={{ color: '#FFFFFF' }} className="font-semibold">
+              Ubah Laporan
+            </Text>
+          </Pressable>
+        ) : onPress ? (
           <Pressable
             onPress={onPress}
             accessibilityRole="button"
             accessibilityLabel={`${detailLabel} ${title}, ${location}`}
-            style={{ backgroundColor: theme.primary }}
+            style={{ backgroundColor: detailColor }}
             className="min-h-[44px] justify-center rounded-lg px-6 active:opacity-70"
           >
             <Text style={{ color: '#FFFFFF' }} className="font-semibold">

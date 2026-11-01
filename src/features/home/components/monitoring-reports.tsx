@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -29,16 +29,35 @@ type MonitoringReportsProps = {
 
 const LIST_CONTENT = { paddingBottom: 24 } as const;
 
+const EDIT_WINDOW_MS = 15 * 60 * 1000;
+
+function formatRemaining(ms: number): string {
+  const totalSeconds = Math.floor(Math.max(0, ms) / 1000);
+  return [
+    Math.floor(totalSeconds / 3600),
+    Math.floor((totalSeconds % 3600) / 60),
+    totalSeconds % 60,
+  ]
+    .map(value => String(value).padStart(2, '0'))
+    .join(':');
+}
+
 export function MonitoringReports({
   role,
   currentUserId,
   ListHeaderComponent,
 }: MonitoringReportsProps): React.JSX.Element {
   const [filter, setFilter] = useState<MonitoringFilter>('all');
+  const [now, setNow] = useState(() => Date.now());
   const { reports, loading, loadingMore, error, hasMore, refresh, loadMore } =
     useAllReports();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const options = useMemo(() => {
     const result: {
@@ -73,25 +92,46 @@ export function MonitoringReports({
     }
   }, [reports, filter, currentUserId]);
 
+  const canManage =
+    role === USER_ROLE.STAFF || role === USER_ROLE.ADMINISTRATOR;
+
   const renderItem: ListRenderItem<FeedReport> = useCallback(
-    ({ item }) => (
-      <View className="px-5">
-        <MonitoringReportCard
-          title={item.title}
-          location={item.location}
-          status={item.status}
-          imageUrl={item.imageUrl}
-          reporterName={item.reporterName}
-          date={toDisplayDate(item.createdAt)}
-          votes={item.votes}
-          comments={item.comments}
-          onPress={() =>
-            navigation.navigate('ReportDetail', { reportId: item.id })
-          }
-        />
-      </View>
-    ),
-    [navigation],
+    ({ item }) => {
+      const isOwner = item.reporter_id === currentUserId;
+      const editDeadline = new Date(item.createdAt).getTime() + EDIT_WINDOW_MS;
+      const canStillEdit = isOwner && now < editDeadline;
+
+      return (
+        <View className="px-5">
+          <MonitoringReportCard
+            title={item.title}
+            location={item.location}
+            status={item.status}
+            imageUrl={item.imageUrl}
+            reporterName={item.reporterName}
+            date={toDisplayDate(item.createdAt)}
+            votes={item.votes}
+            comments={item.comments}
+            isOwner={isOwner}
+            canStillEdit={canStillEdit}
+            remainingTime={formatRemaining(editDeadline - now)}
+            onEditPress={() =>
+              navigation.navigate('EditReport', { reportId: item.id })
+            }
+            detailLabel={canManage ? 'Perbarui Status' : 'Lihat Detail'}
+            detailTone={canManage ? 'dark' : 'primary'}
+            onPress={() =>
+              canManage
+                ? navigation.navigate('ManagementReportDetail', {
+                    reportId: item.id,
+                  })
+                : navigation.navigate('ReportDetail', { reportId: item.id })
+            }
+          />
+        </View>
+      );
+    },
+    [navigation, currentUserId, now, canManage],
   );
 
   const header = (

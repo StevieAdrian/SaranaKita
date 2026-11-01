@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -52,12 +52,17 @@ export function EditReportScreen(): React.JSX.Element {
     loadError,
     confirmVisible,
     submitting,
+    confirmDeleteVisible,
+    deleting,
     existingImageUrl,
     removeExistingImage,
     setField,
     requestSubmit,
     cancelSubmit,
     confirmSubmit,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
     retryLoad,
   } = useEditReportForm(reportId);
 
@@ -97,6 +102,32 @@ export function EditReportScreen(): React.JSX.Element {
     setToast({
       visible: true,
       message: 'Perubahan laporan berhasil disimpan.',
+      type: 'success',
+    });
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+    }
+    redirectTimerRef.current = setTimeout(() => {
+      navigation.goBack();
+    }, 1200);
+  };
+
+  const handleDelete = async () => {
+    const result = await confirmDelete();
+
+    if (!result.ok) {
+      cancelDelete();
+      setToast({
+        visible: true,
+        message: result.message || 'Gagal menghapus laporan.',
+        type: 'error',
+      });
+      return;
+    }
+
+    setToast({
+      visible: true,
+      message: 'Laporan berhasil dihapus.',
       type: 'success',
     });
     if (redirectTimerRef.current) {
@@ -247,7 +278,22 @@ export function EditReportScreen(): React.JSX.Element {
                 />
               </FormField>
 
-              <View className="mt-4">
+              <View className="mt-4 gap-3">
+                <Pressable
+                  onPress={requestDelete}
+                  accessibilityRole="button"
+                  accessibilityLabel="Hapus laporan"
+                  style={{ backgroundColor: theme.dangerSurface, minHeight: 52 }}
+                  className="items-center justify-center rounded-xl active:opacity-70"
+                >
+                  <Text
+                    style={{ color: theme.danger }}
+                    className="text-base font-bold"
+                  >
+                    Hapus Laporan
+                  </Text>
+                </Pressable>
+
                 <Button
                   title="Simpan Perubahan"
                   onPress={requestSubmit}
@@ -267,6 +313,17 @@ export function EditReportScreen(): React.JSX.Element {
         loading={submitting}
         onConfirm={handleConfirm}
         onCancel={cancelSubmit}
+      />
+
+      <ConfirmSheet
+        visible={confirmDeleteVisible}
+        title="Hapus Laporan?"
+        message="Laporan yang dihapus tidak dapat dikembalikan. Yakin ingin menghapus?"
+        confirmLabel="Ya, Hapus"
+        confirmTone="danger"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={cancelDelete}
       />
 
       <Toast

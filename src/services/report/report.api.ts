@@ -43,3 +43,9 @@ export function updateReport(
 ): Promise<Report> {
   return apiClient.put<Report>(`/reports/${reportId}`, input);
 }
+
+export function deleteReport(
+  reportId: string,
+): Promise<{ message: string }> {
+  return apiClient.delete<{ message: string }>(`/reports/${reportId}`);
+}
