@@ -39,13 +39,12 @@ describe('auth validation', () => {
       phone: '',
       dateOfBirth: new Date(),
       classGrade: '',
-      gender: 'Male',
+      gender: 'Laki-Laki',
     };
 
     const errors = validateRegisterForm(emptyForm);
     expect(errors.username).toBeDefined();
     expect(errors.firstName).toBeDefined();
-    expect(errors.lastName).toBeDefined();
     expect(errors.email).toBeDefined();
     expect(errors.password).toBeDefined();
     expect(errors.phone).toBeDefined();
@@ -62,10 +61,16 @@ describe('auth validation', () => {
       phone: '08123456789',
       dateOfBirth: new Date(2005, 0, 1),
       classGrade: '10-A',
-      gender: 'Male',
+      gender: 'Laki-Laki',
     };
 
     expect(hasErrors(validateRegisterForm(validForm))).toBe(false);
+
+    const formWithoutLastName: RegisterFormState = {
+      ...validForm,
+      lastName: '',
+    };
+    expect(hasErrors(validateRegisterForm(formWithoutLastName))).toBe(false);
   });
 
   it('requires gender to be explicitly selected', () => {
@@ -83,7 +88,30 @@ describe('auth validation', () => {
     };
 
     const errors = validateRegisterForm(formWithoutGender);
-    expect(errors.gender).toBe('Gender is required.');
+    expect(errors.gender).toBe('Jenis kelamin wajib dipilih.');
     expect(hasErrors(errors)).toBe(true);
+  });
+});
+
+describe('auth error message translation', () => {
+  it('translates common Supabase Auth errors into Indonesian', () => {
+    const { translateApiMessage, toUserMessage } = require('../src/services/api');
+
+    expect(translateApiMessage('Token has expired or is invalid')).toBe(
+      'Kode OTP telah kedaluwarsa. Silakan minta kode baru.',
+    );
+    expect(translateApiMessage('Token is invalid')).toBe(
+      'Kode OTP tidak valid. Silakan periksa kembali kode Anda.',
+    );
+    expect(
+      translateApiMessage('For security purposes, you can only request this once every 60 seconds'),
+    ).toBe('Terlalu banyak permintaan. Silakan tunggu beberapa saat sebelum mencoba lagi.');
+
+    expect(toUserMessage(new Error('Network request failed'))).toBe(
+      'Koneksi internet bermasalah. Silakan periksa jaringan Anda.',
+    );
+    expect(toUserMessage({ message: 'Token has expired or is invalid' })).toBe(
+      'Kode OTP telah kedaluwarsa. Silakan minta kode baru.',
+    );
   });
 });

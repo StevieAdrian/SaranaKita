@@ -1,22 +1,50 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { ScreenHeader } from '@/shared/components/ui';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useRole } from '@/shared/context/theme-context';
 import { FormUser, type UserFormData } from '../components/form-user';
+import { DEFAULT_USER_PASSWORD } from '../utils/constants';
+import { UserFormHeader } from '../components/user-form-header';
 import { useUserManagement } from '../hooks/use-user-management';
+import { isRoleAdminOrStaff } from '../utils/permissions';
 
 export function AddUserScreen(): React.JSX.Element {
-  const navigation = useNavigation();
-  const { theme } = useRole();
+  const navigation = useNavigation<any>();
+  const { theme, currentRole } = useRole();
   const { createUser } = useUserManagement();
   const [submitting, setSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (!isRoleAdminOrStaff(currentRole)) {
+      navigation.goBack();
+    }
+  }, [currentRole, navigation]);
 
   const handleSubmit = async (data: UserFormData) => {
     setSubmitting(true);
     try {
-      await createUser(data);
-      navigation.goBack();
+      const cleanData = { ...data };
+      delete cleanData.confirmPassword;
+      await createUser({
+        ...cleanData,
+        password: data.password || DEFAULT_USER_PASSWORD,
+        isActive: data.isActive !== undefined ? data.isActive : data.status === 'active',
+      });
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            { name: 'Main' },
+            {
+              name: 'UserManagement',
+              params: {
+                toastMessage: 'Pengguna berhasil ditambahkan.',
+                toastType: 'success',
+              },
+            },
+          ],
+        }),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -24,9 +52,9 @@ export function AddUserScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <ScreenHeader
+      <UserFormHeader
         title="Tambah Pengguna"
-        onBack={() => navigation.goBack()}
+        onBack={() => navigation.navigate('UserManagement')}
       />
 
       <View style={styles.content}>

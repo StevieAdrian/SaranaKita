@@ -1,16 +1,6 @@
-import React from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -22,13 +12,16 @@ import {
   PhotoPicker,
   ScreenHeader,
   Select,
+  Toast,
 } from '@/shared/components/ui';
 import { palette } from '@/shared/theme';
+import { useRole } from '@/shared/context/theme-context';
 import {
   CLASS_OPTIONS,
   DESCRIPTION_MAX_LENGTH,
   TITLE_MAX_LENGTH,
 } from '../constants';
+import { NotFoundScreen } from '@/features/auth/screens/transitions';
 import { useCategories } from '../hooks/use-categories';
 import { useEditReportForm } from '../hooks/use-edit-report-form';
 
@@ -49,6 +42,7 @@ export function EditReportScreen(): React.JSX.Element {
   const navigation = useNavigation();
   const route = useRoute<EditRoute>();
   const insets = useSafeAreaInsets();
+  const { theme } = useRole();
   const reportId = route.params.reportId;
 
   const {
@@ -58,44 +52,115 @@ export function EditReportScreen(): React.JSX.Element {
     loadError,
     confirmVisible,
     submitting,
+    confirmDeleteVisible,
+    deleting,
     existingImageUrl,
     removeExistingImage,
     setField,
     requestSubmit,
     cancelSubmit,
     confirmSubmit,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
     retryLoad,
   } = useEditReportForm(reportId);
 
   const categories = useCategories();
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    visible: false,
+    message: '',
+    type: 'success',
+  });
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleConfirm = async () => {
     const result = await confirmSubmit();
 
     if (!result.ok) {
-      Alert.alert('Gagal mengedit laporan', result.message);
+      cancelSubmit();
+      setToast({
+        visible: true,
+        message: result.message || 'Gagal mengedit laporan.',
+        type: 'error',
+      });
       return;
     }
 
-    Alert.alert('Laporan diperbarui', 'Perubahan laporan berhasil disimpan.', [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ]);
+    setToast({
+      visible: true,
+      message: 'Perubahan laporan berhasil disimpan.',
+      type: 'success',
+    });
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+    }
+    redirectTimerRef.current = setTimeout(() => {
+      navigation.goBack();
+    }, 1200);
   };
 
+  const handleDelete = async () => {
+    const result = await confirmDelete();
+
+    if (!result.ok) {
+      cancelDelete();
+      setToast({
+        visible: true,
+        message: result.message || 'Gagal menghapus laporan.',
+        type: 'error',
+      });
+      return;
+    }
+
+    setToast({
+      visible: true,
+      message: 'Laporan berhasil dihapus.',
+      type: 'success',
+    });
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+    }
+    redirectTimerRef.current = setTimeout(() => {
+      navigation.goBack();
+    }, 1200);
+  };
+
+  if (!loading && (loadError?.toLowerCase().includes('tidak ditemukan') || loadError?.toLowerCase().includes('not found'))) {
+    return (
+      <NotFoundScreen
+        navigation={navigation}
+        message="Laporan tidak ditemukan."
+      />
+    );
+  }
+
   return (
-    <View className="flex-1 bg-page">
+    <View className="flex-1" style={{ backgroundColor: theme.background }}>
       <ScreenHeader title="Edit Laporan" onBack={navigation.goBack} />
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" />
-          <Text className="mt-3 text-sm text-gray-600">
+          <Text style={{ color: theme.textSecondary }} className="mt-3 text-sm">
             Memuat data laporan...
           </Text>
         </View>
       ) : loadError ? (
         <View className="flex-1 items-center justify-center px-5">
-          <Text className="mb-4 text-center text-base text-gray-700">
+          <Text style={{ color: theme.textSecondary }} className="mb-4 text-center text-base">
             {loadError}
           </Text>
           <Button title="Coba Lagi" onPress={retryLoad} />
@@ -111,8 +176,8 @@ export function EditReportScreen(): React.JSX.Element {
             keyboardShouldPersistTaps="handled"
           >
             <View
-              className="flex-grow gap-4 rounded-t-2xl bg-white px-5 pt-6"
-              style={{ paddingBottom: insets.bottom + 24 }}
+              className="flex-grow gap-4 rounded-t-2xl px-5 pt-6"
+              style={{ backgroundColor: theme.surface, paddingBottom: insets.bottom + 24 }}
             >
               {existingImageUrl && !removeExistingImage && !values.photo ? (
                 <FormField label="Foto Laporan Saat Ini">
@@ -128,7 +193,6 @@ export function EditReportScreen(): React.JSX.Element {
                         title="Hapus Foto Lama"
                         onPress={() => {
                           setField('photo', null);
-                          // Penghapusan foto lama perlu ditangani secara eksplisit.
                         }}
                       />
                     </View>
@@ -140,6 +204,9 @@ export function EditReportScreen(): React.JSX.Element {
                 <PhotoPicker
                   value={values.photo}
                   onChange={photo => setField('photo', photo)}
+                  onError={message =>
+                    setToast({ visible: true, message, type: 'error' })
+                  }
                 />
                 <Text className="mt-1 text-xs text-gray-500">
                   Jika tidak memilih foto baru, foto lama akan tetap digunakan.
@@ -211,7 +278,22 @@ export function EditReportScreen(): React.JSX.Element {
                 />
               </FormField>
 
-              <View className="mt-4">
+              <View className="mt-4 gap-3">
+                <Pressable
+                  onPress={requestDelete}
+                  accessibilityRole="button"
+                  accessibilityLabel="Hapus laporan"
+                  style={{ backgroundColor: theme.dangerSurface, minHeight: 52 }}
+                  className="items-center justify-center rounded-xl active:opacity-70"
+                >
+                  <Text
+                    style={{ color: theme.danger }}
+                    className="text-base font-bold"
+                  >
+                    Hapus Laporan
+                  </Text>
+                </Pressable>
+
                 <Button
                   title="Simpan Perubahan"
                   onPress={requestSubmit}
@@ -231,6 +313,31 @@ export function EditReportScreen(): React.JSX.Element {
         loading={submitting}
         onConfirm={handleConfirm}
         onCancel={cancelSubmit}
+      />
+
+      <ConfirmSheet
+        visible={confirmDeleteVisible}
+        title="Hapus Laporan?"
+        message="Laporan yang dihapus tidak dapat dikembalikan. Yakin ingin menghapus?"
+        confirmLabel="Ya, Hapus"
+        confirmTone="danger"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={cancelDelete}
+      />
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onDismiss={() => {
+          setToast(prev => ({ ...prev, visible: false }));
+          if (toast.type === 'success' && redirectTimerRef.current) {
+            clearTimeout(redirectTimerRef.current);
+            redirectTimerRef.current = null;
+            navigation.goBack();
+          }
+        }}
       />
     </View>
   );

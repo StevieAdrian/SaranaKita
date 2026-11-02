@@ -11,11 +11,13 @@ export type ContributionStats = {
   readonly reportsCreated: number;
   readonly votesCount: number;
   readonly recommendationsCount: number;
-  readonly pendingConfirmation: number;
-  readonly inReview: number;
-  readonly inRepair: number;
-  readonly rejected: number;
-  readonly resolved: number;
+  readonly reportsRejected?: number;
+  readonly reportsVerified?: number;
+  readonly 'Menunggu Verifikasi': number;
+  readonly 'Dalam Pemeriksaan': number;
+  readonly 'Dalam Perbaikan': number;
+  readonly 'Selesai': number;
+  readonly 'Ditolak': number;
 };
 
 export type Profile = {
@@ -26,7 +28,9 @@ export type Profile = {
 };
 
 export type UpdateProfileInput = {
-  readonly displayName?: string;
+  readonly fullName?: string;
+  readonly firstName?: string;
+  readonly lastName?: string;
   readonly avatarUrl?: string | null;
   readonly phone?: string;
   readonly birthDate?: string;
@@ -38,6 +42,8 @@ export type FullProfile = {
   readonly id: string;
   readonly email: string;
   readonly fullName: string;
+  readonly firstName?: string;
+  readonly lastName?: string;
   readonly role: string | null;
   readonly phone: string;
   readonly birthDate: string;
@@ -51,4 +57,12 @@ export type FullProfile = {
 export type ChangePasswordInput = {
   readonly currentPassword: string;
   readonly newPassword: string;
+};
+
+export type ChangePasswordResponse = {
+  readonly message: string;
+  readonly tokens?: {
+    readonly accessToken: string;
+    readonly refreshToken: string;
+  };
 };

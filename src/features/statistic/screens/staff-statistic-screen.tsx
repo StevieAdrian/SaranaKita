@@ -1,40 +1,54 @@
+import { useRole } from '@/shared/context/theme-context';
 import React from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { USER_ROLE } from '@/services/auth';
 import { StatisticHeader } from '../components/statistic-header';
 import { RecentActivities } from '../components/recent-activities';
-import { AllReports } from '@/features/home/components/all-reports';
-import { useHomeFeed } from '@/features/home/hooks/use-home-feed';
 import { useReportMonitoring } from '../hooks/use-report-monitoring';
+import { MonitoringReports } from '@/features/home/components/monitoring-reports';
+import { useCurrentUser } from '../hooks/use-current-user';
 
 export function StaffStatisticScreen(): React.JSX.Element {
-  const feed = useHomeFeed();
+  const { theme } = useRole();
   const monitoring = useReportMonitoring();
+  const user = useCurrentUser();
 
   if (monitoring.loading && !monitoring.data) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#EAF2FF]">
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: theme.background }}
+      >
         <ActivityIndicator size="large" />
-        <Text>Memuat statistik laporan...</Text>
+        <Text className="mt-3 text-sm" style={{ color: theme.textSecondary }}>
+          Memuat statistik laporan...
+        </Text>
       </View>
     );
   }
 
   if (monitoring.error && !monitoring.data) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#EAF2FF] p-4">
-        <Text>{monitoring.error}</Text>
+      <View
+        className="flex-1 items-center justify-center px-5"
+        style={{ backgroundColor: theme.background }}
+      >
+        <Text className="text-center text-red-600">{monitoring.error}</Text>
+        <Text
+          className="mt-3 font-semibold text-blue-600"
+          onPress={() => void monitoring.refresh()}
+        >
+          Coba lagi
+        </Text>
       </View>
     );
   }
 
   const statistics = monitoring.data?.statistics;
+  const activities = monitoring.data?.activities ?? [];
 
-  return (
-    <ScrollView
-      className="flex-1 bg-[#EAF2FF]"
-      showsVerticalScrollIndicator={false}
-    >
+  const header = (
+    <View>
       <StatisticHeader
         role={USER_ROLE.STAFF}
         completed={statistics?.completed ?? 0}
@@ -43,13 +57,17 @@ export function StaffStatisticScreen(): React.JSX.Element {
         inInspection={statistics?.inInspection ?? 0}
         inRepair={statistics?.inRepair ?? 0}
       />
+      <RecentActivities role={USER_ROLE.STAFF} activities={activities} />
+    </View>
+  );
 
-      <RecentActivities
+  return (
+    <View className="flex-1" style={{ backgroundColor: theme.background }}>
+      <MonitoringReports
         role={USER_ROLE.STAFF}
-        activities={monitoring.data?.activities ?? []}
+        currentUserId={user?.id}
+        ListHeaderComponent={header}
       />
-
-      <AllReports reports={feed.reports} />
-    </ScrollView>
+    </View>
   );
 }

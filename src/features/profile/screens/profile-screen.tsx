@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useRole } from '@/shared/context/theme-context';
 import { ButtonManageProfile } from '../components/button-manage-profile';
@@ -10,11 +10,18 @@ import { HeaderCardProfile } from '../components/header-card-profile';
 import { LogoutCard } from '../components/logout-card';
 import { ProfileSummaryCard } from '../components/profile-summary-card';
 import { useProfileScreen } from '../hooks/use-profile-screen';
+import { formatRoleTitle, profileColors } from '../utils/constants';
 
 export function ProfileScreen(): React.JSX.Element {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { theme, currentRole } = useRole();
   const { profile, loading, reload } = useProfileScreen();
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload]),
+  );
 
   const handleEditProfile = () => {
     navigation.navigate('ProfileSettings');
@@ -24,17 +31,12 @@ export function ProfileScreen(): React.JSX.Element {
     navigation.navigate('UserManagement');
   };
 
-  const isGuru = currentRole === 'guru';
-  const subtitle = isGuru
-    ? `${profile.classOrPosition || 'Guru Matematika'} · ${profile.schoolInfo.name}`
-    : currentRole === 'staff'
-      ? `Staff · ${profile.schoolInfo.name}`
-      : currentRole === 'administrator'
-        ? `Administrator · ${profile.schoolInfo.name}`
-        : `Kelas ${profile.classOrPosition || 'XII-B'} · ${profile.schoolInfo.name}`;
+  const roleTitle = formatRoleTitle(currentRole, profile.classOrPosition);
+  const schoolText = profile.schoolInfo.name ? ` · ${profile.schoolInfo.name}` : '';
+  const subtitle = `${roleTitle}${schoolText}`;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.backgroundSubtle || profileColors.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -47,35 +49,47 @@ export function ProfileScreen(): React.JSX.Element {
         }
       >
         {/* Header */}
-        <HeaderCardProfile schoolName={profile.schoolInfo.name} />
-
-        {/* Header Card Profile */}
-        <ProfileSummaryCard
-          name={profile.fullName}
-          subtitle={subtitle}
+        <HeaderCardProfile
+          schoolName={profile.schoolInfo.name}
           role={currentRole}
-          avatarUrl={profile.avatarUrl}
         />
 
-        {/* Button Profile & User Management*/}
+        {/* Header Card Profile - Siswa, Guru, Staff */}
+        {currentRole !== 'administrator' && (
+          <ProfileSummaryCard
+            name={profile.fullName}
+            subtitle={subtitle}
+            role={currentRole}
+            avatarUrl={profile.avatarUrl}
+            gender={profile.gender}
+          />
+        )}
+
+        {/* Button Profile & User Management */}
         <ButtonManageProfile
+          role={currentRole}
           onPressEditProfile={handleEditProfile}
           onPressUserManagement={handleUserManagement}
         />
 
         {/* Card Kontribusi */}
         <CardContribution
+          role={currentRole}
           reportsCreated={profile.stats.reportsCreated}
           votesOrRecommendations={
-            isGuru
+            currentRole === 'guru'
               ? profile.stats.recommendationsCount
               : profile.stats.votesCount
           }
-          pendingConfirmation={profile.stats.pendingConfirmation}
-          inReview={profile.stats.inReview}
-          inRepair={profile.stats.inRepair}
-          rejected={profile.stats.rejected}
-          resolved={profile.stats.resolved}
+          reportsRejected={profile.stats.reportsRejected}
+          reportsVerified={profile.stats.reportsVerified}
+          {...{
+            'Menunggu Verifikasi': profile.stats['Menunggu Verifikasi'],
+            'Dalam Pemeriksaan': profile.stats['Dalam Pemeriksaan'],
+            'Dalam Perbaikan': profile.stats['Dalam Perbaikan'],
+            'Selesai': profile.stats['Selesai'],
+            'Ditolak': profile.stats['Ditolak'],
+          }}
         />
 
         {/* Card Informasi Sekolah */}

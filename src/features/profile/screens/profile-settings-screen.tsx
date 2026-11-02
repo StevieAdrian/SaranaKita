@@ -1,47 +1,62 @@
-import React, { useState } from 'react';
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Image, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import leftArrow from '@/assets/images/left-arrow.png';
-import {
-  changePassword,
-  updateFullProfile,
-} from '@/services/profile';
+import { authClient } from '@/services/auth';
+import { changePassword, updateFullProfile } from '@/services/profile';
 import { useRole } from '@/shared/context/theme-context';
 import { hitSlop, spacing } from '@/shared/theme';
 import { FormDataSekolah } from '../components/form-data-sekolah';
 import { FormPassword } from '../components/form-password';
 import { FormProfile, type ProfileFormData } from '../components/form-profile';
 import { ProfileTabBar } from '../components/profile-tab-bar';
-import { useProfileScreen } from '../hooks/use-profile-screen';
-import type { ProfileTab } from '../utils/constants';
+import { notifyProfileUpdated, useProfileScreen } from '../hooks/use-profile-screen';
+import { profileFonts, type ProfileTab } from '../utils/constants';
 
 export function ProfileSettingsScreen(): React.JSX.Element {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { theme } = useRole();
-  const { profile, reload } = useProfileScreen();
-
-  const [activeTab, setActiveTab] = useState<ProfileTab>('Ubah Profile');
+  const { profile, setProfile } = useProfileScreen();
+  const [activeTab, setActiveTab] = useState<ProfileTab>('Ubah Profil');
   const [submitting, setSubmitting] = useState(false);
+
+  const initialProfileData = useMemo<Partial<ProfileFormData>>(() => ({
+    fullName: profile.fullName,
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    email: profile.email,
+    phone: profile.phone,
+    birthDate: profile.birthDate,
+    gender: profile.gender,
+    avatarUrl: profile.avatarUrl,
+  }), [
+    profile.fullName,
+    profile.firstName,
+    profile.lastName,
+    profile.email,
+    profile.phone,
+    profile.birthDate,
+    profile.gender,
+    profile.avatarUrl,
+  ]);
 
   const handleUpdateProfile = async (data: ProfileFormData) => {
     setSubmitting(true);
     try {
-      await updateFullProfile({
-        displayName: data.fullName,
+      const updated = await updateFullProfile({
+        fullName: data.fullName,
+        firstName: data.firstName,
+        lastName: data.lastName,
         phone: data.phone,
         birthDate: data.birthDate,
         gender: data.gender,
         avatarUrl: data.avatarUrl,
       });
-      await reload();
+      setProfile(updated);
+      notifyProfileUpdated(updated);
+      await authClient.restore().catch(() => { });
     } finally {
       setSubmitting(false);
     }
@@ -50,10 +65,12 @@ export function ProfileSettingsScreen(): React.JSX.Element {
   const handleUpdateSchool = async (data: { classOrPosition: string }) => {
     setSubmitting(true);
     try {
-      await updateFullProfile({
+      const updated = await updateFullProfile({
         classOrPosition: data.classOrPosition,
       });
-      await reload();
+      setProfile(updated);
+      notifyProfileUpdated(updated);
+      await authClient.restore().catch(() => { });
     } finally {
       setSubmitting(false);
     }
@@ -62,10 +79,13 @@ export function ProfileSettingsScreen(): React.JSX.Element {
   const handleChangePassword = async (currentPass: string, newPass: string) => {
     setSubmitting(true);
     try {
-      await changePassword({
+      const res = await changePassword({
         currentPassword: currentPass,
         newPassword: newPass,
       });
+      if (res.tokens) {
+        await authClient.updateTokens(res.tokens);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -102,7 +122,7 @@ export function ProfileSettingsScreen(): React.JSX.Element {
             accessibilityRole="header"
             style={[styles.headerTitle, { color: theme.onPrimary }]}
           >
-            Pengaturan Profile
+            Pengaturan Profil
           </Text>
         </View>
 
@@ -113,17 +133,13 @@ export function ProfileSettingsScreen(): React.JSX.Element {
         />
       </View>
 
-      <View style={styles.content}>
-        {activeTab === 'Ubah Profile' ? (
+      <KeyboardAvoidingView
+        style={styles.content}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        {activeTab === 'Ubah Profil' ? (
           <FormProfile
-            initialData={{
-              fullName: profile.fullName,
-              email: profile.email,
-              phone: profile.phone,
-              birthDate: profile.birthDate,
-              gender: profile.gender,
-              avatarUrl: profile.avatarUrl,
-            }}
+            initialData={initialProfileData}
             onSubmit={handleUpdateProfile}
             loading={submitting}
           />
@@ -140,7 +156,7 @@ export function ProfileSettingsScreen(): React.JSX.Element {
             loading={submitting}
           />
         )}
-      </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -157,7 +173,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   titleRow: {
-    minHeight: 44,
+    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -169,15 +185,18 @@ const styles = StyleSheet.create({
     left: spacing.md,
     height: 40,
     width: 40,
+    alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 10,
   },
   backIcon: {
-    width: 22,
-    height: 22,
+    width: 20,
+    height: 20,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontFamily: profileFonts.semiBold,
+    fontSize: 20,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
     textAlign: 'center',
   },
   content: {

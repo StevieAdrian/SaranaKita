@@ -1,6 +1,7 @@
 import { apiClient } from '@/services/api';
 import type {
   ChangePasswordInput,
+  ChangePasswordResponse,
   FullProfile,
   Profile,
   UpdateProfileInput,
@@ -26,8 +27,8 @@ export function updateFullProfile(
 
 export function changePassword(
   input: ChangePasswordInput,
-): Promise<{ message: string }> {
-  return apiClient.post<{ message: string }>(
+): Promise<ChangePasswordResponse> {
+  return apiClient.post<ChangePasswordResponse>(
     '/profile/change-password',
     input,
   );

@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  type TextInputProps,
-} from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
 import verifiedCheckmark from '@/assets/images/verified-checkmark.png';
 import unverifiedCrossmark from '@/assets/images/unverified-crossmark.png';
 import { authConstants } from '../constants/auth-constants';
@@ -18,6 +10,9 @@ export type UsernameInputProps = Omit<TextInputProps, 'style'> & {
   required?: boolean;
   status?: UsernameStatus;
   errorText?: string;
+  hideLabel?: boolean;
+  labelStyle?: StyleProp<TextStyle>;
+  wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 export function UsernameInput({
@@ -27,25 +22,30 @@ export function UsernameInput({
   errorText,
   value,
   onChangeText,
+  hideLabel = false,
+  labelStyle,
+  wrapperStyle,
   ...rest
 }: UsernameInputProps): React.JSX.Element {
   const hasError = Boolean(errorText) || status === 'taken' || status === 'invalid';
   const isSuccess = status === 'available';
 
-  const borderColor = hasError
+  const defaultBorderColor = hasError
     ? authConstants.colors.text.error
     : isSuccess
       ? authConstants.colors.text.success
-      : authConstants.colors.ui.inputBorder;
+      : authConstants.colors.ui.inputBorderLight;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
-        {label}
-        {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
-      </Text>
+      {!hideLabel ? (
+        <Text style={[styles.label, labelStyle]}>
+          {label}
+          {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
+        </Text>
+      ) : null}
 
-      <View style={[styles.inputWrapper, { borderColor }]}>
+      <View style={[styles.inputWrapper, wrapperStyle, { borderColor: defaultBorderColor }]}>
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -54,7 +54,7 @@ export function UsernameInput({
           autoCapitalize="none"
           autoCorrect={false}
           style={styles.input}
-          accessibilityLabel={required ? `${label}, required` : label}
+          accessibilityLabel={required ? `${label}, wajib` : label}
           accessibilityHint={hasError ? errorText : undefined}
           {...rest}
         />

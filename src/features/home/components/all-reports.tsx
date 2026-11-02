@@ -3,7 +3,6 @@ import { Pressable, Text, View } from 'react-native';
 import { SectionHeader } from '@/shared/components/ui';
 import { palette } from '@/shared/theme';
 import { FeedReport } from '@/services/report';
-import { useHomeFeed } from '../hooks/use-home-feed';
 import { ReportListCard } from '@/shared/components/report';
 import { toDisplayDate } from '../utils/feed';
 

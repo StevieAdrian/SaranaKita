@@ -1,9 +1,7 @@
+import { useRole } from '@/shared/context/theme-context';
 import React from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
-
+import { ActivityIndicator, Text, View } from 'react-native';
 import { USER_ROLE } from '@/services/auth';
-import { useHomeFeed } from '@/features/home/hooks/use-home-feed';
-
 import { StatisticHeader } from '../components/statistic-header';
 import { RecentActivities } from '../components/recent-activities';
 import { useReportMonitoring } from '../hooks/use-report-monitoring';
@@ -11,15 +9,18 @@ import { MonitoringReports } from '@/features/home/components/monitoring-reports
 import { useCurrentUser } from '../hooks/use-current-user';
 
 export function StudentStatisticScreen(): React.JSX.Element {
-  const user = useCurrentUser();
-  const feed = useHomeFeed();
+  const { theme } = useRole();
   const monitoring = useReportMonitoring();
+  const user = useCurrentUser();
 
   if (monitoring.loading && !monitoring.data) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#EAF2FF]">
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: theme.background }}
+      >
         <ActivityIndicator size="large" />
-        <Text className="mt-3 text-sm text-gray-500">
+        <Text className="mt-3 text-sm" style={{ color: theme.textSecondary }}>
           Memuat monitoring laporan...
         </Text>
       </View>
@@ -28,9 +29,11 @@ export function StudentStatisticScreen(): React.JSX.Element {
 
   if (monitoring.error && !monitoring.data) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#EAF2FF] px-5">
+      <View
+        className="flex-1 items-center justify-center px-5"
+        style={{ backgroundColor: theme.background }}
+      >
         <Text className="text-center text-red-600">{monitoring.error}</Text>
-
         <Text
           className="mt-3 font-semibold text-blue-600"
           onPress={() => void monitoring.refresh()}
@@ -44,11 +47,8 @@ export function StudentStatisticScreen(): React.JSX.Element {
   const statistics = monitoring.data?.statistics;
   const activities = monitoring.data?.activities ?? [];
 
-  return (
-    <ScrollView
-      className="flex-1 bg-[#EAF2FF]"
-      showsVerticalScrollIndicator={false}
-    >
+  const header = (
+    <View>
       <StatisticHeader
         role={USER_ROLE.SISWA}
         completed={statistics?.completed ?? 0}
@@ -57,14 +57,17 @@ export function StudentStatisticScreen(): React.JSX.Element {
         inInspection={statistics?.inInspection ?? 0}
         inRepair={statistics?.inRepair ?? 0}
       />
-
       <RecentActivities role={USER_ROLE.SISWA} activities={activities} />
+    </View>
+  );
 
+  return (
+    <View className="flex-1" style={{ backgroundColor: theme.background }}>
       <MonitoringReports
-        reports={feed.reports}
         role={USER_ROLE.SISWA}
         currentUserId={user?.id}
+        ListHeaderComponent={header}
       />
-    </ScrollView>
+    </View>
   );
 }

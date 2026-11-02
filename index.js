@@ -2,6 +2,8 @@
  * @format
  */
 
+import 'react-native-url-polyfill/auto';
+
 // Must be the first import for react-native-gesture-handler / reanimated.
 import 'react-native-gesture-handler';
 

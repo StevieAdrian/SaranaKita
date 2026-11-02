@@ -2,7 +2,8 @@ import React, { useEffect, useSyncExternalStore, type PropsWithChildren } from '
 import { StatusBar, StyleSheet, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { authClient, type UserRole } from '@/services/auth';
+import { authClient, supabase, type UserRole } from '@/services/auth';
+import { checkUserProfileComplete } from '@/features/auth/services/google-auth';
 import { AccessibilityProvider } from '@/shared/accessibility/accessibility-context';
 import { ThemeProvider } from '@/shared/context/theme-context';
 
@@ -16,6 +17,21 @@ export function AppProviders({ children }: PropsWithChildren): React.JSX.Element
 
   useEffect(() => {
     authClient.restore().catch(() => { });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'TOKEN_REFRESHED' && session?.user) {
+        try {
+          const { isComplete, userData } = await checkUserProfileComplete(session.user.id, session.access_token);
+          if (isComplete) {
+            await authClient.applySupabaseSession(session, userData);
+          }
+        } catch { }
+      }
+    });
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
   }, []);
 
   return (

@@ -1,10 +1,10 @@
 import React from 'react';
-import { USER_ROLE, UserRole } from '@/services/auth';
+import type { UserRole } from '@/services/auth';
 import { getThemeColors, palette } from '@/shared/theme';
-import { Pressable, Text, View } from 'react-native';
+import { useRole } from '@/shared/context/theme-context';
+import { Text, View } from 'react-native';
 import notificationIcon from '@/assets/images/notification.png';
 import { NotificationButton } from '@/shared/components/ui/notification';
-import { opacity } from 'react-native-reanimated/lib/typescript/Colors';
 
 type StatisticHeaderProps = {
   role: UserRole;
@@ -26,6 +26,7 @@ export function StatisticHeader({
   onNotificationPress,
   unreadNotifications,
 }: StatisticHeaderProps): React.JSX.Element {
+  const { theme } = useRole();
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
   const getTheme = getThemeColors(role);
   const getColor = palette;
@@ -107,7 +108,7 @@ export function StatisticHeader({
         {statistics.map(item => (
           <View
             key={item.label}
-            className="min-h-[70px] flex-1 items-center justify-center rounded-md bg-white px-1 py-2"
+            style={{ backgroundColor: theme.surface }} className="min-h-[70px] flex-1 items-center justify-center rounded-md px-1 py-2"
           >
             <Text
               className="text-xl font-semibold"

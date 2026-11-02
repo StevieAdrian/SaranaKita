@@ -1,18 +1,8 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type ImageSourcePropType,
-} from 'react-native';
+import { ActivityIndicator, Image, Modal, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, type ImageSourcePropType } from 'react-native';
+import { useRole } from '@/shared/context/theme-context';
 import defaultAddIcon from '@/assets/images/vector-popup-addpengguna.png';
 import defaultDeleteIcon from '@/assets/images/vector-deletepopup.png';
-import { useRole } from '@/shared/context/theme-context';
-import { radius, spacing } from '@/shared/theme';
 
 export type ConfirmationModalProps = {
   visible: boolean;
@@ -21,11 +11,18 @@ export type ConfirmationModalProps = {
   confirmLabel: string;
   cancelLabel?: string;
   tone?: 'primary' | 'danger';
+  confirmColor?: string;
   iconSource?: ImageSourcePropType;
   loading?: boolean;
+  variant?: 'bottomSheet' | 'dialog';
+  buttonBorderRadius?: number;
   onConfirm: () => void;
   onCancel: () => void;
 };
+
+const fontBold = 'Poppins-Bold';
+const fontSemiBold = 'Poppins-SemiBold';
+const fontRegular = 'Poppins-Regular';
 
 export function ConfirmationModal({
   visible,
@@ -34,108 +31,164 @@ export function ConfirmationModal({
   confirmLabel,
   cancelLabel = 'Batal',
   tone = 'primary',
+  confirmColor,
   iconSource,
   loading = false,
+  variant = 'bottomSheet',
+  buttonBorderRadius,
   onConfirm,
   onCancel,
 }: ConfirmationModalProps): React.JSX.Element {
-  const { theme } = useRole();
+  const { theme, scheme } = useRole();
+  const isDark = scheme === 'dark';
   const isDanger = tone === 'danger';
+  const isBottomSheet = variant === 'bottomSheet';
+  const btnRadius = buttonBorderRadius ?? (isDanger ? 12 : 5);
 
   const defaultIcon = isDanger ? defaultDeleteIcon : defaultAddIcon;
   const icon = iconSource ?? defaultIcon;
 
-  const iconBgColor = isDanger ? theme.dangerSurface : theme.backgroundSubtle;
-  const confirmBtnBg = isDanger ? theme.danger : theme.primary;
-  const confirmTextColor = theme.onPrimary;
+  const iconBgColor = isDanger
+    ? (isDark ? theme.dangerSurface : '#FEE2E2')
+    : isBottomSheet
+      ? (isDark ? theme.primarySoft : '#EDE9FE')
+      : (confirmColor ? `${confirmColor}1A` : `${theme.primary}1A`);
+  const confirmBtnBg = isDanger ? theme.danger : (confirmColor ?? theme.primary);
+  const confirmTextColor = '#FFFFFF';
+  const iconTintColor = isDanger ? theme.danger : (confirmColor ?? theme.primary);
+
+  const canDismissRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (visible) {
+      canDismissRef.current = false;
+      const timer = setTimeout(() => {
+        canDismissRef.current = true;
+      }, 250);
+      return () => clearTimeout(timer);
+    } else {
+      canDismissRef.current = false;
+    }
+  }, [visible]);
+
+  const handleBackdropPress = () => {
+    if (!loading && canDismissRef.current) {
+      onCancel();
+    }
+  };
 
   return (
-    // PopUp
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType={isBottomSheet ? 'slide' : 'fade'}
       statusBarTranslucent
       navigationBarTranslucent
       onRequestClose={loading ? () => { } : onCancel}
     >
-      <View style={styles.overlay}>
-        <Pressable
-          style={styles.backdrop}
-          onPress={loading ? undefined : onCancel}
-          accessibilityRole="button"
-          accessibilityLabel="Tutup dialog"
-        />
+      <View style={[styles.overlay, isBottomSheet && styles.overlayBottomSheet]}>
+        <TouchableWithoutFeedback onPress={handleBackdropPress}>
+          <View style={styles.backdrop} />
+        </TouchableWithoutFeedback>
 
         <View
           style={[
-            styles.card,
+            isBottomSheet ? styles.bottomSheetCard : styles.card,
             {
               backgroundColor: theme.surface,
-              borderColor: theme.borderSubtle,
               shadowColor: theme.shadowColor,
             },
           ]}
         >
+          {isBottomSheet ? <View style={[styles.handleBar, { backgroundColor: theme.borderControl }]} /> : null}
 
-          <View style={[styles.iconCircle, { backgroundColor: iconBgColor }]}>
-            <Image source={icon} resizeMode="contain" style={styles.iconImage} />
+          <View
+            style={[
+              isBottomSheet ? styles.sheetIconCircle : styles.iconCircle,
+              { backgroundColor: iconBgColor },
+            ]}
+          >
+            <Image
+              source={icon}
+              resizeMode="contain"
+              style={[
+                isBottomSheet ? styles.sheetIconImage : styles.iconImage,
+                { tintColor: iconTintColor },
+              ]}
+            />
           </View>
 
           <Text
             accessibilityRole="header"
-            style={[styles.title, { color: theme.textHeading }]}
+            style={[
+              isBottomSheet ? styles.sheetTitle : styles.title,
+              { color: theme.textHeading },
+            ]}
           >
             {title}
           </Text>
-          <Text style={[styles.message, { color: theme.textSecondary }]}>
+          <Text
+            style={[
+              isBottomSheet ? styles.sheetMessage : styles.message,
+              { color: theme.textSecondary },
+            ]}
+          >
             {message}
           </Text>
 
-          {/* Button */}
-          <View style={styles.buttonGroup}>
-            <Pressable
+          {/* Action Buttons */}
+          <View style={[styles.buttonGroup, isBottomSheet && styles.sheetButtonGroup]}>
+            <TouchableOpacity
+              activeOpacity={0.8}
               onPress={onConfirm}
               disabled={loading}
               accessibilityRole="button"
               accessibilityLabel={confirmLabel}
               accessibilityState={{ busy: loading }}
-              style={({ pressed }) => [
-                styles.button,
+              style={[
+                isBottomSheet ? styles.sheetConfirmButton : styles.button,
                 { backgroundColor: confirmBtnBg },
-                pressed && styles.pressed,
+                isBottomSheet && { borderRadius: btnRadius },
                 loading && styles.disabled,
               ]}
             >
               {loading ? (
                 <ActivityIndicator color={confirmTextColor} size="small" />
               ) : (
-                <Text style={[styles.buttonText, { color: confirmTextColor }]}>
+                <Text
+                  style={[
+                    isBottomSheet ? styles.sheetConfirmButtonText : styles.buttonText,
+                    { color: confirmTextColor },
+                  ]}
+                >
                   {confirmLabel}
                 </Text>
               )}
-            </Pressable>
+            </TouchableOpacity>
 
-            <Pressable
+            <TouchableOpacity
+              activeOpacity={0.8}
               onPress={onCancel}
               disabled={loading}
               accessibilityRole="button"
               accessibilityLabel={cancelLabel}
-              style={({ pressed }) => [
-                styles.button,
+              style={[
+                isBottomSheet ? styles.sheetCancelButton : styles.button,
                 styles.cancelButton,
-                {
-                  backgroundColor: theme.surfaceInput,
-                  borderColor: theme.borderInput,
-                },
-                pressed && styles.pressed,
+                { backgroundColor: isDark ? theme.surfaceInput : '#F1F5F9' },
+                isBottomSheet && { borderRadius: btnRadius },
                 loading && styles.disabled,
               ]}
             >
-              <Text style={[styles.buttonText, { color: theme.textSecondary }]}>
+              <Text
+                style={[
+                  isBottomSheet ? styles.sheetCancelButtonText : styles.cancelButtonText,
+                  { color: theme.textSecondary },
+                ]}
+              >
                 {cancelLabel}
               </Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -148,20 +201,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: 24,
     backgroundColor: 'rgba(0, 0, 0, 0.45)',
+  },
+  overlayBottomSheet: {
+    justifyContent: 'flex-end',
+    paddingHorizontal: 0,
   },
   backdrop: {
     ...StyleSheet.absoluteFill,
   },
   card: {
     width: '100%',
-    maxWidth: 340,
-    borderRadius: 20,
-    borderWidth: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.lg,
+    maxWidth: 320,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 22,
     alignItems: 'center',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
@@ -169,50 +225,135 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.md,
+    marginBottom: 14,
   },
   iconImage: {
-    width: 36,
-    height: 36,
+    width: 24,
+    height: 24,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontFamily: fontBold,
+    fontSize: 16,
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
     textAlign: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: 6,
   },
   message: {
-    fontSize: 14,
+    fontFamily: fontRegular,
+    fontSize: 12.5,
+    fontWeight: Platform.OS === 'ios' ? '400' : undefined,
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: spacing.lg,
-    paddingHorizontal: spacing.sm,
+    lineHeight: 18,
+    marginBottom: 20,
+    paddingHorizontal: 6,
   },
   buttonGroup: {
     width: '100%',
-    gap: spacing.sm,
+    gap: 10,
   },
   button: {
-    minHeight: 46,
-    borderRadius: radius.md,
+    height: 44,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-  },
-  cancelButton: {
-    borderWidth: 1,
+    paddingHorizontal: 16,
+    width: '100%',
   },
   buttonText: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontFamily: fontBold,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
   },
-  pressed: {
-    opacity: 0.8,
+  bottomSheetCard: {
+    width: '100%',
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 32,
+    alignItems: 'center',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  handleBar: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    marginBottom: 16,
+  },
+  sheetIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  sheetIconImage: {
+    width: 28,
+    height: 28,
+  },
+  sheetTitle: {
+    fontFamily: fontBold,
+    fontSize: 18,
+    lineHeight: 27,
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  sheetMessage: {
+    fontFamily: fontRegular,
+    fontSize: 13,
+    lineHeight: 20,
+    fontWeight: Platform.OS === 'ios' ? '400' : undefined,
+    textAlign: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 12,
+  },
+  sheetButtonGroup: {
+    width: '100%',
+    gap: 8,
+  },
+  sheetConfirmButton: {
+    height: 48,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    width: '100%',
+  },
+  sheetConfirmButtonText: {
+    fontFamily: fontSemiBold,
+    fontSize: 15,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+  },
+  sheetCancelButton: {
+    height: 44,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    width: '100%',
+  },
+  sheetCancelButtonText: {
+    fontFamily: fontSemiBold,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
+  },
+  cancelButton: {
+    backgroundColor: '#F1F5F9',
+  },
+  cancelButtonText: {
+    fontFamily: fontSemiBold,
+    fontSize: 14,
+    fontWeight: Platform.OS === 'ios' ? '600' : undefined,
   },
   disabled: {
     opacity: 0.6,

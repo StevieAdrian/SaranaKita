@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import maleDefault from '@/assets/images/male-default.png';
 import vectorEdit from '@/assets/images/vector-edit.png';
 import womanDefault from '@/assets/images/woman-default.png';
+import { Toast } from '@/shared/components/ui';
 import { authConstants } from '../constants/auth-constants';
 import type { Gender } from '../types';
 
@@ -30,9 +31,18 @@ export function AvatarPicker({
   disabled = false,
 }: AvatarPickerProps): React.JSX.Element {
   const [picking, setPicking] = useState(false);
+  const [toast, setToast] = useState<{ visible: boolean; message: string }>({
+    visible: false,
+    message: '',
+  });
+
+  const isFemale =
+    gender === 'Female' || gender === 'Perempuan' ||
+    (typeof gender === 'string' &&
+      (gender.toLowerCase() === 'female' || gender.toLowerCase() === 'perempuan'));
 
   const defaultAvatarSource =
-    gender === 'Female' ? womanDefault : maleDefault;
+    isFemale ? womanDefault : maleDefault;
 
   const handlePick = async () => {
     if (disabled || picking) return;
@@ -50,10 +60,10 @@ export function AvatarPicker({
       }
 
       if (result.errorCode) {
-        Alert.alert(
-          'Gagal Memilih Foto',
-          result.errorMessage ?? 'Silakan coba lagi.',
-        );
+        setToast({
+          visible: true,
+          message: result.errorMessage ?? 'Gagal memilih foto. Silakan coba lagi.',
+        });
         return;
       }
 
@@ -63,7 +73,10 @@ export function AvatarPicker({
       }
 
       if (asset.fileSize && asset.fileSize > MAX_PHOTO_SIZE_BYTES) {
-        Alert.alert('Foto Terlalu Besar', 'Ukuran foto maksimal adalah 5 MB.');
+        setToast({
+          visible: true,
+          message: 'Ukuran foto maksimal adalah 5 MB.',
+        });
         return;
       }
 
@@ -74,7 +87,10 @@ export function AvatarPicker({
         fileSize: asset.fileSize,
       });
     } catch {
-      Alert.alert('Gagal Memilih Foto', 'Terjadi kesalahan saat membuka galeri.');
+      setToast({
+        visible: true,
+        message: 'Terjadi kesalahan saat membuka galeri.',
+      });
     } finally {
       setPicking(false);
     }
@@ -89,7 +105,7 @@ export function AvatarPicker({
             style={styles.avatarImage}
             resizeMode="cover"
             accessibilityRole="image"
-            accessibilityLabel="Profile Avatar"
+            accessibilityLabel="Foto Profil"
           />
         ) : (
           <Image
@@ -97,7 +113,7 @@ export function AvatarPicker({
             style={styles.defaultAvatarImage}
             resizeMode="contain"
             accessibilityRole="image"
-            accessibilityLabel="Profile Avatar"
+            accessibilityLabel="Foto Profil"
           />
         )}
       </View>
@@ -121,6 +137,13 @@ export function AvatarPicker({
           />
         )}
       </TouchableOpacity>
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type="error"
+        onDismiss={() => setToast({ visible: false, message: '' })}
+      />
     </View>
   );
 }

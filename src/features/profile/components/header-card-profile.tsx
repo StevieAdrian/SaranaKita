@@ -1,47 +1,45 @@
 import React from 'react';
-import {
-  ImageBackground,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ImageBackground, Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import schoolBanner from '@/assets/images/sekolah.png';
 import { useRole } from '@/shared/context/theme-context';
 import { spacing } from '@/shared/theme';
+import { profileFonts } from '../utils/constants';
 
 export type HeaderCardProfileProps = {
   schoolName?: string | null;
+  role?: string | null;
 };
 
 export function HeaderCardProfile({
-  schoolName = 'Jakarta',
+  schoolName,
+  role,
 }: HeaderCardProfileProps): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const { theme, currentRole } = useRole();
-
-  const isAdmin = currentRole === 'administrator';
-  const overlayColor = isAdmin
-    ? theme.primary
-    : 'rgba(30, 64, 175, 0.82)';
+  const effectiveRole = role ?? currentRole;
+  const displaySchoolName = schoolName?.trim() || 'Belum Terhubung Sekolah';
+  const caption = effectiveRole === 'administrator' ? 'Administrator' : 'Profil Sekolah';
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.primary }]}>
       <ImageBackground
         source={schoolBanner}
         resizeMode="cover"
+        style={styles.bannerImage}
+      />
+
+      <View
         style={[
-          styles.banner,
+          styles.textContainer,
           { paddingTop: insets.top + spacing.lg },
         ]}
       >
-        <View style={[styles.overlay, { backgroundColor: overlayColor }]}>
-          <Text style={styles.caption}>Profil Sekolah</Text>
-          <Text accessibilityRole="header" style={styles.schoolName}>
-            {schoolName || 'Jakarta'}
-          </Text>
-        </View>
-      </ImageBackground>
+        <Text style={styles.caption}>{caption}</Text>
+        <Text accessibilityRole="header" numberOfLines={1} style={styles.schoolName}>
+          {displaySchoolName}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -49,27 +47,33 @@ export function HeaderCardProfile({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
+    minHeight: 220,
     overflow: 'hidden',
+    position: 'relative',
   },
-  banner: {
-    width: '100%',
-    minHeight: 180,
-  },
-  overlay: {
+  bannerImage: {
     ...StyleSheet.absoluteFill,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingTop: 36,
+    opacity: 0.3,
+  },
+  textContainer: {
+    paddingHorizontal: 22,
+    paddingBottom: 68,
+    minHeight: 220,
+    justifyContent: 'flex-end',
   },
   caption: {
+    fontFamily: profileFonts.regular,
     fontSize: 12,
-    color: '#E0E7FF',
-    fontWeight: '500',
+    color: '#FFFFFF',
+    opacity: 0.9,
+    fontWeight: Platform.OS === 'ios' ? '400' : undefined,
     marginBottom: 2,
   },
   schoolName: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontFamily: profileFonts.bold,
+    fontSize: 24,
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
     color: '#FFFFFF',
+    lineHeight: 34,
   },
 });

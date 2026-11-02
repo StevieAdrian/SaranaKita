@@ -1,0 +1,161 @@
+import React, { useEffect, useRef } from 'react';
+import { Animated, Image, Platform, StatusBar, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import checkIcon from '@/assets/images/verified-checkmark.png';
+import crossIcon from '@/assets/images/unverified-crossmark.png';
+import infoIcon from '@/assets/images/info-circle.png';
+
+export type ToastProps = {
+  visible: boolean;
+  message: string;
+  type?: 'success' | 'error' | 'info';
+  duration?: number;
+  topOffset?: number;
+  onDismiss?: () => void;
+};
+
+const fontMedium = 'Poppins-Medium';
+
+export function Toast({
+  visible,
+  message,
+  type = 'success',
+  duration = 3000,
+  topOffset,
+  onDismiss,
+}: ToastProps): React.JSX.Element | null {
+  const insets = useSafeAreaInsets();
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(-20)).current;
+
+  const resolvedTop =
+    topOffset ??
+    Math.max(
+      insets.top,
+      Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 20,
+    ) + 10;
+
+  useEffect(() => {
+    let hideTimer: ReturnType<typeof setTimeout> | null = null;
+
+    if (visible) {
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      if (duration > 0 && onDismiss) {
+        hideTimer = setTimeout(() => {
+          Animated.parallel([
+            Animated.timing(opacity, {
+              toValue: 0,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            Animated.timing(translateY, {
+              toValue: -20,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+          ]).start(() => {
+            onDismiss();
+          });
+        }, duration);
+      }
+    } else {
+      opacity.setValue(0);
+      translateY.setValue(-20);
+    }
+
+    return () => {
+      if (hideTimer) clearTimeout(hideTimer);
+    };
+  }, [visible, duration, onDismiss, opacity, translateY]);
+
+  if (!visible && message === '') {
+    return null;
+  }
+
+  const bgColor =
+    type === 'success' ? '#10B981' : type === 'info' ? '#2563EB' : '#EF4444';
+  const iconSource =
+    type === 'error' ? crossIcon : type === 'info' ? infoIcon : checkIcon;
+
+  return (
+    <Animated.View
+      pointerEvents={visible ? 'auto' : 'none'}
+      style={[
+        styles.container,
+        {
+          top: resolvedTop,
+          opacity,
+          transform: [{ translateY }],
+        },
+      ]}
+    >
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={onDismiss}
+        style={[styles.toastCard, { backgroundColor: bgColor }]}
+        accessibilityRole="alert"
+        accessibilityLabel={message}
+      >
+        <Image
+          source={iconSource}
+          style={styles.iconDirect}
+          resizeMode="contain"
+        />
+        <Text style={styles.messageText} numberOfLines={2}>
+          {message}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    zIndex: 9999,
+    alignItems: 'center',
+  },
+  toastCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 6,
+    gap: 12,
+  },
+  iconDirect: {
+    width: 20,
+    height: 20,
+    tintColor: '#FFFFFF',
+  },
+  messageText: {
+    flex: 1,
+    fontFamily: fontMedium,
+    fontSize: 13.5,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+    fontWeight: Platform.OS === 'ios' ? '500' : undefined,
+    color: '#FFFFFF',
+  },
+});

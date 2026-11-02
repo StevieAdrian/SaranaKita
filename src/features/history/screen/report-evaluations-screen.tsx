@@ -1,3 +1,4 @@
+import { useRole } from '@/shared/context/theme-context';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { getReportEvaluasi } from '@/services/report/feed.api';
@@ -15,6 +16,7 @@ type ReportEvaluationsScreenProps = {
 export function ReportEvaluationsScreen({
   route,
 }: ReportEvaluationsScreenProps): React.JSX.Element {
+  const { theme } = useRole();
   const { reportId, reportTitle } = route.params;
 
   const [evaluations, setEvaluations] = useState<ReportEvaluasi[]>([]);
@@ -56,7 +58,7 @@ export function ReportEvaluationsScreen({
   }, [reportId]);
 
   return (
-    <View className="flex-1 bg-[#EAF2FF] px-5 pt-5">
+    <View className="flex-1  px-5 pt-5" style={{ backgroundColor: theme.background }}>
       <Text className="text-xl font-bold text-gray-900">Semua Evaluasi</Text>
 
       <Text className="mb-5 mt-1 text-sm text-gray-500">{reportTitle}</Text>

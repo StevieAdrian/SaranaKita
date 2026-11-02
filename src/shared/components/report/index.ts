@@ -7,6 +7,10 @@ export {
   type ReportListCardAction,
   type ReportListCardProps,
 } from './report-list-card';
+export {
+  MonitoringReportCard,
+  type MonitoringReportCardProps,
+} from './monitoring-report-card';
 export { ReportThumbnail, type ReportThumbnailProps } from './report-thumbnail';
 export { ReportProgress, type ReportProgressProps } from './report-progress';
 export { PROGRESS_STEPS, REPORT_PROGRESS } from './report-progress-meta';

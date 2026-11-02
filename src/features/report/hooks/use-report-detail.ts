@@ -21,6 +21,7 @@ export type UseReportDetail = {
   readonly report: ReportDetail | null;
   readonly loading: boolean;
   readonly error: string | null;
+  readonly isNotFound: boolean;
   readonly voting: boolean;
   readonly recommending: boolean;
   readonly rejecting: boolean;
@@ -42,6 +43,7 @@ export function useReportDetail(reportId: string): UseReportDetail {
   const [report, setReport] = useState<ReportDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isNotFound, setIsNotFound] = useState(false);
   const [voting, setVoting] = useState(false);
   const [recommending, setRecommending] = useState(false);
   const [rejecting, setRejecting] = useState(false);
@@ -56,6 +58,7 @@ export function useReportDetail(reportId: string): UseReportDetail {
     const id = ++requestId.current;
     setLoading(true);
     setError(null);
+    setIsNotFound(false);
     getReportDetail(reportId)
       .then(detail => {
         if (id === requestId.current) {
@@ -64,7 +67,16 @@ export function useReportDetail(reportId: string): UseReportDetail {
       })
       .catch(err => {
         if (id === requestId.current) {
-          setError(toUserMessage(err));
+          const userMsg = toUserMessage(err);
+          setError(userMsg);
+          const status = (err as any)?.status ?? (err as any)?.response?.status;
+          if (
+            status === 404 ||
+            userMsg.toLowerCase().includes('tidak ditemukan') ||
+            userMsg.toLowerCase().includes('not found')
+          ) {
+            setIsNotFound(true);
+          }
         }
       })
       .finally(() => {
@@ -140,10 +152,10 @@ export function useReportDetail(reportId: string): UseReportDetail {
         setReport(current =>
           current
             ? {
-                ...current,
-                recommendations: result.recommendations,
-                recommendedByMe: result.recommendedByMe,
-              }
+              ...current,
+              recommendations: result.recommendations,
+              recommendedByMe: result.recommendedByMe,
+            }
             : current,
         );
         return null;
@@ -230,6 +242,7 @@ export function useReportDetail(reportId: string): UseReportDetail {
     report,
     loading,
     error,
+    isNotFound,
     voting,
     recommending,
     rejecting,

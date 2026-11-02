@@ -1,4 +1,4 @@
-﻿export const THEME_ROLES = ['siswa', 'guru', 'staff', 'administrator'] as const;
+export const THEME_ROLES = ['siswa', 'guru', 'staff', 'administrator'] as const;
 
 export interface ThemeColors {
   primary: string;
@@ -218,8 +218,8 @@ export const staffTheme: ThemeColors = {
   ...lightNeutrals,
   primary: '#112D71',
   primaryStrong: '#112D71',
-  primarySoft: '#94A3B8',
-  textInactiveOnPrimary: '#94A3B8',
+  primarySoft: '#8598B8',
+  textInactiveOnPrimary: '#8598B8',
   iconActive: '#112D71',
   ...LIGHT_SUCCESS_BADGE,
   ...LIGHT_BLUE_BANNER,
@@ -241,8 +241,8 @@ export const adminTheme: ThemeColors = {
   ...lightNeutrals,
   primary: '#360707',
   primaryStrong: '#360707',
-  primarySoft: '#94A3B8',
-  textInactiveOnPrimary: '#94A3B8',
+  primarySoft: '#9E6B6B',
+  textInactiveOnPrimary: '#9E6B6B',
   iconActive: '#360707',
   ...LIGHT_SUCCESS_BADGE,
   headerGradientStart: '#360707',
@@ -301,4 +301,21 @@ export const palette = {
   brown: '#713F12',
   greenStatus: '#713F12',
   blueStatus: '#DBEAFE',
+  pureBlack: '#000000',
+  errorRed: '#EF4444',
+  successGreen: '#34C759',
+  emerald: '#10B981',
+  inputDark: '#1E1E1E',
+  slate: {
+    50: '#F8FAFC',
+    100: '#F1F5F9',
+    200: '#E2E8F0',
+    300: '#CBD5E1',
+    400: '#94A3B8',
+    500: '#64748B',
+    600: '#475569',
+    700: '#334155',
+    800: '#1E293B',
+    900: '#0F172A',
+  },
 } as const;

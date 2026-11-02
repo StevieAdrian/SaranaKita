@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Keyboard, Platform, StyleSheet, Text, TouchableOpacity, View, type StyleProp, type TextStyle } from 'react-native';
 import DateTimePicker, {
   DateTimePickerAndroid,
 } from '@react-native-community/datetimepicker';
 import calendarSignupLogo from '@/assets/images/calender-signup-logo.png';
 import { BottomSheet } from '@/shared/components/ui/bottom-sheet';
 import { Button } from '@/shared/components/ui/button';
-import { formatDisplayDate } from '@/shared/utils/date';
+import { KEYBOARD_DISMISS_DELAY_MS } from '@/shared/constants';
+import { formatDisplayDate, getDefaultDateOfBirth } from '@/shared/utils/date';
 import { authConstants } from '../constants/auth-constants';
 
 export type DateOfBirthFieldProps = {
@@ -14,6 +15,9 @@ export type DateOfBirthFieldProps = {
   onChange: (date: Date) => void;
   errorText?: string;
   required?: boolean;
+  label?: string;
+  hideLabel?: boolean;
+  labelStyle?: StyleProp<TextStyle>;
 };
 
 export function DateOfBirthField({
@@ -21,6 +25,9 @@ export function DateOfBirthField({
   onChange,
   errorText,
   required = true,
+  label = 'Tanggal Lahir',
+  hideLabel = false,
+  labelStyle,
 }: DateOfBirthFieldProps): React.JSX.Element {
   const [iosOpen, setIosOpen] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -28,23 +35,40 @@ export function DateOfBirthField({
   const display = formatDisplayDate(value);
 
   const openPicker = () => {
-    if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({
-        value,
-        mode: 'date',
-        maximumDate: new Date(),
-        positiveButton: { label: 'OK', textColor: authConstants.colors.brand },
-        negativeButton: { label: 'Batal', textColor: authConstants.colors.brand },
-        onChange: (_event, date) => {
-          if (date) {
-            onChange(date);
-          }
-        },
-      });
-      return;
-    }
-    setDraft(value);
-    setIosOpen(true);
+    Keyboard.dismiss();
+    setTimeout(() => {
+      const safeDate =
+        value instanceof Date && !isNaN(value.getTime())
+          ? value
+          : getDefaultDateOfBirth();
+
+      if (Platform.OS === 'android') {
+        try {
+          DateTimePickerAndroid.open({
+            value: safeDate,
+            mode: 'date',
+            maximumDate: new Date(),
+            positiveButton: { label: 'OK', textColor: authConstants.colors.brand },
+            negativeButton: { label: 'Batal', textColor: authConstants.colors.brand },
+            onValueChange: (_event, date) => {
+              if (date) {
+                onChange(date);
+              }
+            },
+            onChange: (_event, date) => {
+              if (date) {
+                onChange(date);
+              }
+            },
+          });
+        } catch (err) {
+          console.warn('Gagal membuka component date picker:', err);
+        }
+        return;
+      }
+      setDraft(safeDate);
+      setIosOpen(true);
+    }, KEYBOARD_DISMISS_DELAY_MS);
   };
 
   const confirmIos = () => {
@@ -54,10 +78,12 @@ export function DateOfBirthField({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
-        Date of Birth
-        {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
-      </Text>
+      {!hideLabel ? (
+        <Text style={[styles.label, labelStyle]}>
+          {label}
+          {required ? <Text style={styles.requiredAsterisk}> *</Text> : null}
+        </Text>
+      ) : null}
 
       <TouchableOpacity
         activeOpacity={0.8}
@@ -67,7 +93,7 @@ export function DateOfBirthField({
           hasError && styles.inputError,
         ]}
         accessibilityRole="button"
-        accessibilityLabel="Date of Birth"
+        accessibilityLabel="Tanggal Lahir"
         accessibilityValue={{ text: display }}
       >
         <Text style={styles.inputText}>{display}</Text>

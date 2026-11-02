@@ -1,5 +1,9 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { useRole } from '@/shared/context/theme-context';
+
+const fontMedium = 'Poppins-Medium';
+const fontRegular = 'Poppins-Regular';
 
 export type FormFieldProps = {
   label: string;
@@ -14,18 +18,41 @@ export function FormField({
   error,
   children,
 }: FormFieldProps): React.JSX.Element {
+  const { theme } = useRole();
+
   return (
-    <View className="gap-2">
-      <Text className="text-base font-medium text-gray-900">
+    <View style={styles.container} className="gap-2">
+      <Text style={[styles.label, { color: theme.textHeading }]} className="text-base">
         {label}
-        {required ? <Text className="text-red-500"> *</Text> : null}
+        {required ? <Text style={[styles.asterisk, { color: theme.danger }]}> *</Text> : null}
       </Text>
       {children}
       {error ? (
-        <Text accessibilityLiveRegion="polite" className="text-sm text-red-500">
+        <Text accessibilityLiveRegion="polite" style={[styles.error, { color: theme.danger }]} className="text-sm">
           {error}
         </Text>
       ) : null}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    gap: 6,
+  },
+  label: {
+    fontFamily: fontMedium,
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  asterisk: {
+    fontFamily: fontMedium,
+    fontSize: 16,
+  },
+  error: {
+    fontFamily: fontRegular,
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: 2,
+  },
+});

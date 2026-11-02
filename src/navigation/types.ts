@@ -1,14 +1,22 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
-import type { RegisterProfileRouteParams } from '@/features/auth';
+import type { RegisterProfileRouteParams, RegisterRouteParams } from '@/features/auth/types';
 import type { ManageUser } from '@/services/users';
 
 export type AuthStackParamList = {
   Splash: undefined;
   Login: undefined;
-  Register: undefined;
+  Register?: RegisterRouteParams;
+  SignUp?: RegisterRouteParams;
   RegisterProfile?: RegisterProfileRouteParams;
+  OtpVerification: {
+    email: string;
+    mode?: 'signup' | 'reset-password';
+    from?: 'register' | 'login' | 'forgot-password';
+  };
+  ForgotPassword: undefined;
+  ResetPassword: { email: string };
   Loading?: { message?: string };
-  NotFound?: undefined;
+  NotFound?: { title?: string; message?: string };
 };
 
 export type TabParamList = {
@@ -27,10 +35,10 @@ export type RootStackParamList = {
   ManagementReportDetail: { reportId: string };
   EditReport: { reportId: string };
   ProfileSettings: undefined;
-  UserManagement: undefined;
+  UserManagement: { toastMessage?: string; toastType?: 'success' | 'error' } | undefined;
   AddUser: undefined;
   EditUser: { user: ManageUser };
-  NotFound: undefined;
+  NotFound?: { title?: string; message?: string };
   EvaluationReport: {
     reportId: string;
     reportTitle: string;
@@ -39,6 +47,6 @@ export type RootStackParamList = {
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends RootStackParamList { }
   }
 }

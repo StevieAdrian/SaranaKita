@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import leftArrow from '@/assets/images/left-arrow.png';
@@ -7,6 +7,7 @@ import logo from '@/assets/images/logo-saranakita.png';
 import { toUserMessage } from '@/services/api';
 import { authClient } from '@/services/auth';
 import { uploadAvatarImage } from '@/services/upload';
+import { Toast } from '@/shared/components/ui';
 import { AvatarPicker, type PickedPhoto } from '../components';
 import { authConstants } from '../constants/auth-constants';
 import type { RegisterProfileRouteParams } from '../types';
@@ -27,6 +28,11 @@ export function RegisterProfileScreen(): React.JSX.Element {
   const [pickedPhoto, setPickedPhoto] = useState<PickedPhoto | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({ visible: false, message: '', type: 'error' });
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -36,17 +42,20 @@ export function RegisterProfileScreen(): React.JSX.Element {
     };
   }, []);
 
+  const isGoogleAuth = Boolean(params?.isGoogleAuth);
+
   const fullName =
     [params?.firstName, params?.lastName].filter(Boolean).join(' ').trim() ||
     params?.username ||
-    'User Profile';
+    'Profil Pengguna';
 
   const handleRegister = async () => {
     if (!params || !params.username || !params.email || !params.password) {
-      Alert.alert(
-        'Error',
-        'Data pendaftaran tidak lengkap. Silakan isi form registrasi kembali.',
-      );
+      setToast({
+        visible: true,
+        message: 'Data pendaftaran tidak lengkap. Silakan isi form registrasi kembali.',
+        type: 'error',
+      });
       return;
     }
 
@@ -64,29 +73,92 @@ export function RegisterProfileScreen(): React.JSX.Element {
         }
       }
 
-      await authClient.register({
-        username: params.username,
-        email: params.email,
-        password: params.password,
-        firstName: params.firstName,
-        lastName: params.lastName,
-        phone: params.phone,
-        dateOfBirth: params.dateOfBirth,
-        class: params.classGrade,
-        gender: params.gender,
-        avatarUrl,
-      });
+      if (isGoogleAuth) {
+        await authClient.completeGoogleProfile({
+          username: params.username.trim().toLowerCase(),
+          password: params.password,
+          firstName: (params.firstName || '').trim(),
+          lastName: (params.lastName || '').trim() || undefined,
+          phone: (params.phone || '').trim(),
+          dateOfBirth: params.dateOfBirth,
+          class: params.classGrade,
+          gender: params.gender || 'Laki-Laki',
+          avatarUrl,
+        });
+        return;
+      }
+
+      try {
+        await authClient.register({
+          username: params.username,
+          email: params.email,
+          password: params.password,
+          firstName: params.firstName,
+          lastName: params.lastName,
+          phone: params.phone,
+          dateOfBirth: params.dateOfBirth,
+          class: params.classGrade,
+          gender: params.gender,
+          avatarUrl,
+        });
+        navigation.navigate('OtpVerification', {
+          email: params.email.trim().toLowerCase(),
+          mode: 'signup',
+          from: 'register',
+        });
+      } catch (regErr: any) {
+        const bodyCode =
+          regErr?.body?.code ||
+          regErr?.body?.error?.code ||
+          regErr?.body?.error;
+        const msg = (regErr?.message || '').toLowerCase();
+        const bodyMsg = (
+          typeof regErr?.body?.error?.message === 'string'
+            ? regErr.body.error.message
+            : typeof regErr?.body?.message === 'string'
+              ? regErr.body.message
+              : ''
+        ).toLowerCase();
+
+        const isUnverified =
+          bodyCode === 'EMAIL_NOT_VERIFIED' ||
+          msg.includes('belum diverifikasi') ||
+          msg.includes('email not confirmed') ||
+          bodyMsg.includes('belum diverifikasi') ||
+          bodyMsg.includes('email not confirmed');
+
+        if (isUnverified) {
+          navigation.navigate('OtpVerification', {
+            email: params.email.trim().toLowerCase(),
+            mode: 'signup',
+            from: 'register',
+          });
+          return;
+        }
+        throw regErr;
+      }
     } catch (err: any) {
       const message =
         toUserMessage(err) ||
-        err?.message ||
         'Terjadi kesalahan saat memproses pendaftaran.';
       setErrorMessage(message);
-      Alert.alert('Pendaftaran Gagal', message);
+      setToast({
+        visible: true,
+        message,
+        type: 'error',
+      });
     } finally {
       if (isMountedRef.current) {
         setSubmitting(false);
       }
+    }
+  };
+
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Register');
     }
   };
 
@@ -105,7 +177,7 @@ export function RegisterProfileScreen(): React.JSX.Element {
           {/* Header */}
           <View style={styles.headerBar}>
             <TouchableOpacity
-              onPress={() => navigation.goBack()}
+              onPress={handleBack}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               activeOpacity={0.7}
               style={styles.backButton}
@@ -165,7 +237,7 @@ export function RegisterProfileScreen(): React.JSX.Element {
               disabled={submitting}
               activeOpacity={0.8}
               accessibilityRole="button"
-              accessibilityLabel="Register Account"
+              accessibilityLabel="Daftar Akun"
               style={[
                 styles.registerButton,
                 submitting && styles.buttonDisabled,
@@ -174,12 +246,21 @@ export function RegisterProfileScreen(): React.JSX.Element {
               {submitting ? (
                 <ActivityIndicator color={authConstants.colors.text.light} size="small" />
               ) : (
-                <Text style={styles.registerButtonText}>Register Account</Text>
+                <Text style={styles.registerButtonText}>
+                  Daftar Akun
+                </Text>
               )}
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onDismiss={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 }
@@ -283,7 +364,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.99 }],
   },
   buttonDisabled: {
-    opacity: 0.6,
+    backgroundColor: authConstants.colors.ui.buttonDisabled,
   },
   registerButtonText: {
     fontFamily: authConstants.typography.buttonText.fontFamily,

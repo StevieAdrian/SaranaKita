@@ -1,0 +1,129 @@
+import React from 'react';
+import { Platform, StyleSheet, Text, View } from 'react-native';
+import { BaseCard } from '@/shared/components/ui/base-card';
+import { useRole } from '@/shared/context/theme-context';
+import { profileColors, profileFonts } from '../utils/constants';
+
+export type CardStaffContributionProps = {
+  'Menunggu Verifikasi'?: number;
+  'Selesai'?: number;
+  'Ditolak'?: number;
+  reportsRejected?: number;
+  reportsVerified?: number;
+};
+
+export function CardStaffContribution(
+  props: CardStaffContributionProps,
+): React.JSX.Element {
+  const { theme } = useRole();
+
+  const rejectedCount = props.reportsRejected ?? props['Ditolak'] ?? 0;
+  const verifiedCount = props.reportsVerified ?? props['Selesai'] ?? 0;
+  const pendingCount = props['Menunggu Verifikasi'] ?? 0;
+
+  return (
+    <BaseCard style={styles.card}>
+      <Text
+        accessibilityRole="header"
+        style={[styles.title, { color: theme.textEmphasis || profileColors.text.primary }]}
+      >
+        Kontribusi Saya
+      </Text>
+
+      <View style={styles.staffRow}>
+        {/* Laporan Ditolak */}
+        <View style={styles.miniCard}>
+          <Text style={[styles.miniNumber, { color: profileColors.stats.rejected }]}>
+            {rejectedCount}
+          </Text>
+          <Text style={styles.miniLabel} numberOfLines={2}>
+            Laporan{'\n'}Ditolak
+          </Text>
+        </View>
+
+        {/* Laporan Diverifikasi */}
+        <View style={styles.miniCard}>
+          <Text style={[styles.miniNumber, { color: profileColors.stats.pending }]}>
+            {verifiedCount}
+          </Text>
+          <Text style={styles.miniLabel} numberOfLines={2}>
+            Laporan{'\n'}Diverifikasi
+          </Text>
+        </View>
+
+        {/* Menunggu Verifikasi */}
+        <View style={styles.miniCard}>
+          <Text style={[styles.miniNumber, { color: profileColors.stats.inReview }]}>
+            {pendingCount}
+          </Text>
+          <Text style={styles.miniLabel} numberOfLines={2}>
+            Menunggu{'\n'}Verifikasi
+          </Text>
+        </View>
+      </View>
+    </BaseCard>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    marginHorizontal: 20,
+    marginTop: 10,
+    padding: 16,
+    borderRadius: 6,
+    backgroundColor: '#FFFFFF',
+    elevation: 2,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+  },
+  title: {
+    fontFamily: profileFonts.bold,
+    fontSize: 16,
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
+    lineHeight: 23,
+    marginBottom: 12,
+  },
+  staffRow: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'stretch',
+  },
+  miniCard: {
+    flex: 1,
+    minHeight: 80,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    elevation: 2,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  miniNumber: {
+    fontFamily: profileFonts.bold,
+    fontSize: 22,
+    fontWeight: Platform.OS === 'ios' ? '700' : undefined,
+    lineHeight: 26,
+    textAlign: 'center',
+    includeFontPadding: false,
+    marginBottom: 4,
+  },
+  miniLabel: {
+    fontFamily: profileFonts.medium,
+    fontSize: 11,
+    fontWeight: Platform.OS === 'ios' ? '500' : undefined,
+    color: '#1E1E1E',
+    opacity: 0.5,
+    textAlign: 'center',
+    lineHeight: 14,
+    includeFontPadding: false,
+  },
+});

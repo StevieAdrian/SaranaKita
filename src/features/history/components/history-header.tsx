@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { USER_ROLE, type UserRole } from '@/services/auth';
 import { getThemeColors } from '@/shared/theme';
 import { Text, View } from 'react-native';
@@ -35,30 +35,30 @@ export function HistoryHeader({
     role === USER_ROLE.GURU
       ? 'teacher'
       : role === USER_ROLE.STAFF
-      ? 'staff'
-      : role === USER_ROLE.ADMINISTRATOR
-      ? 'admin'
-      : 'primary';
+        ? 'staff'
+        : role === USER_ROLE.ADMINISTRATOR
+          ? 'admin'
+          : 'primary';
 
   const reportFilterOptions: readonly ChipTabOption<HistoryFilter>[] =
     role === USER_ROLE.SISWA
       ? [
-          { value: 'all', label: 'Semua' },
-          { value: 'mine', label: 'Laporan Saya' },
-          { value: 'supported', label: 'Didukung' },
-        ]
+        { value: 'all', label: 'Semua' },
+        { value: 'mine', label: 'Laporan Saya' },
+        { value: 'supported', label: 'Didukung' },
+      ]
       : role === USER_ROLE.GURU
-      ? [
+        ? [
           { value: 'all', label: 'Semua' },
           { value: 'mine', label: 'Laporan Saya' },
           { value: 'recommended', label: 'Direkomendasi' },
         ]
-      : role === USER_ROLE.STAFF
-      ? [
-          { value: 'all', label: 'Semua' },
-          { value: 'mine', label: 'Laporan Saya' },
-        ]
-      : [];
+        : role === USER_ROLE.STAFF
+          ? [
+            { value: 'all', label: 'Semua' },
+            { value: 'mine', label: 'Laporan Saya' },
+          ]
+          : [];
 
   return (
     <View

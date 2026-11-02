@@ -1,5 +1,4 @@
 import { apiClient } from '@/services/api';
-import { ReportDetail } from './detail.api';
 
 export type CreateReportInput = {
   readonly title: string;
@@ -43,4 +42,10 @@ export function updateReport(
   input: UpdateReportInput,
 ): Promise<Report> {
   return apiClient.put<Report>(`/reports/${reportId}`, input);
+}
+
+export function deleteReport(
+  reportId: string,
+): Promise<{ message: string }> {
+  return apiClient.delete<{ message: string }>(`/reports/${reportId}`);
 }
