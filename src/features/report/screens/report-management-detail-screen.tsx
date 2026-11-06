@@ -16,7 +16,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import checkIcon from '@/assets/images/check.png';
 import leftArrow from '@/assets/images/left-arrow.png';
-import { USER_ROLE } from '@/services/auth';
 import { useSession } from '@/features/auth/hooks/use-session';
 import {
   REPORT_STATUS_BY_NAME,
@@ -31,7 +30,7 @@ import {
   REPORT_PROGRESS,
 } from '@/shared/components/report';
 import { BottomSheet, ModalSuccess } from '@/shared/components/ui';
-import { getThemeColors, palette } from '@/shared/theme';
+import { palette } from '@/shared/theme';
 import { useRole } from '@/shared/context/theme-context';
 import { NotFoundScreen } from '@/features/auth/screens/transitions';
 import { ReportGallery } from '../components/report-gallery';
@@ -93,13 +92,17 @@ function SummaryRow({
   value: number;
 }): React.JSX.Element {
   return (
-    <View className="min-h-[38px] flex-row items-center px-3">
-      <Text className="flex-1 text-xs text-[#475569]">{label}</Text>
-      <Text className="w-10 text-center text-xs font-bold text-gray-900">
+    <View
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel={`${value} ${label}`}
+      className="min-h-[88px] flex-1 items-center justify-center gap-1 px-2"
+    >
+      <Text className="text-xl font-bold text-white">
         {value}
       </Text>
-      <Text className="w-20 text-right text-xs text-gray-700 underline">
-        Lihat Detail
+      <Text className="text-sm text-white">
+        {label}
       </Text>
     </View>
   );
@@ -111,10 +114,7 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const { user } = useSession();
   const { theme } = useRole();
-  const primaryColor =
-    user?.role === USER_ROLE.STAFF
-      ? getThemeColors(USER_ROLE.STAFF).primary
-      : getThemeColors(USER_ROLE.ADMINISTRATOR).primary;
+  const primaryColor = theme.primary;
   const [statusSheetOpen, setStatusSheetOpen] = useState(false);
   const [verificationConfirmationOpen, setVerificationConfirmationOpen] =
     useState(false);
@@ -282,13 +282,20 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
             </Text>
           </View>
 
-          <View className="gap-1 rounded-lg bg-[#F1F5F9] py-1">
-            <SummaryRow label="Jumlah Dukungan" value={report.votes} />
-            <SummaryRow
-              label="Jumlah Rekomendasi"
-              value={report.recommendations}
-            />
-            <SummaryRow label="Jumlah Komentar" value={report.comments} />
+          <View
+            className="flex-row overflow-hidden rounded-xl"
+            style={{ backgroundColor: primaryColor }}
+          >
+            <View className="flex-1 border-r border-white/60">
+              <SummaryRow label="Votes" value={report.votes} />
+            </View>
+            <View className="flex-1 border-r border-white/60">
+              <SummaryRow
+                label="Rekomendasi"
+                value={report.recommendations}
+              />
+            </View>
+            <SummaryRow label="Komentar" value={report.comments} />
           </View>
 
           <ReporterCard
