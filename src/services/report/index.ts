@@ -33,10 +33,13 @@ export {
 export {
   getReportDetail,
   getReportComments,
+  getReportVotes,
+  getReportRecommendations,
   createReportComment,
   rejectReport,
   updateReportStatus,
   type ReportComment,
+  type ReportEngagementPerson,
   type ReportDetail,
   type RejectReportResult,
   type ReportTimelineEvent,

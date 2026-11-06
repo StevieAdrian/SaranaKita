@@ -19,6 +19,23 @@ export type ReportComment = {
   readonly createdAt: string;
 };
 
+export type ReportEngagementPerson = {
+  readonly id: string;
+  readonly name: string;
+  readonly avatarUrl: string | null;
+  readonly reason?: string | null;
+};
+
+export function getReportVotes(id: string): Promise<ReportEngagementPerson[]> {
+  return apiClient.get(`/reports/${encodeURIComponent(id)}/votes`);
+}
+
+export function getReportRecommendations(
+  id: string,
+): Promise<ReportEngagementPerson[]> {
+  return apiClient.get(`/reports/${encodeURIComponent(id)}/recommendations`);
+}
+
 export type ReportDetail = {
   readonly id: string;
   readonly title: string;
