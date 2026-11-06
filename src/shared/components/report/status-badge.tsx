@@ -6,6 +6,7 @@ import { REPORT_STATUS_META, type ReportStatus } from './report-status';
 export type StatusBadgeProps = {
   status: ReportStatus;
   size?: 'sm' | 'md';
+  align?: 'start' | 'center';
 };
 
 const DARK_STATUS_STYLE: Record<ReportStatus, { bg: string; text: string; dot: string }> = {
@@ -19,6 +20,7 @@ const DARK_STATUS_STYLE: Record<ReportStatus, { bg: string; text: string; dot: s
 export function StatusBadge({
   status,
   size = 'md',
+  align = 'start',
 }: StatusBadgeProps): React.JSX.Element {
   const { scheme } = useRole();
   const isDark = scheme === 'dark';
@@ -31,7 +33,7 @@ export function StatusBadge({
       accessible
       accessibilityLabel={`Status: ${meta.label}`}
       style={darkTheme ? { backgroundColor: darkTheme.bg } : undefined}
-      className={`flex-row items-center self-start rounded-md ${!isDark ? meta.container : ''
+      className={`flex-row items-center ${align === 'center' ? 'self-center' : 'self-start'} rounded-md ${!isDark ? meta.container : ''
         } ${isSmall ? 'gap-1 px-2 py-0.5' : 'gap-2 px-3 py-1'}`}
     >
       <View
