@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
+  Modal,
   Pressable,
   ScrollView,
   Text,
@@ -15,7 +17,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import checkIcon from '@/assets/images/check.png';
 import leftArrow from '@/assets/images/left-arrow.png';
-import { USER_ROLE } from '@/services/auth';
 import { useSession } from '@/features/auth/hooks/use-session';
 import {
   REPORT_STATUS_BY_NAME,
@@ -24,13 +25,16 @@ import {
   REPORT_STATUS_NAME,
   REPORT_STATUS_NAMES,
   type UpdateReportStatusName,
+  getReportComments,
+  getReportRecommendations,
+  getReportVotes,
 } from '@/services/report';
 import {
   ReportProgress,
   REPORT_PROGRESS,
 } from '@/shared/components/report';
-import { BottomSheet, Toast } from '@/shared/components/ui';
-import { getThemeColors, palette } from '@/shared/theme';
+import { Avatar, BottomSheet, ModalSuccess } from '@/shared/components/ui';
+import { palette } from '@/shared/theme';
 import { useRole } from '@/shared/context/theme-context';
 import { NotFoundScreen } from '@/features/auth/screens/transitions';
 import { ReportGallery } from '../components/report-gallery';
@@ -87,20 +91,26 @@ function DetailHeader({
 function SummaryRow({
   label,
   value,
+  onPress,
 }: {
   label: string;
   value: number;
+  onPress: () => void;
 }): React.JSX.Element {
   return (
-    <View className="min-h-[38px] flex-row items-center px-3">
-      <Text className="flex-1 text-xs text-[#475569]">{label}</Text>
-      <Text className="w-10 text-center text-xs font-bold text-gray-900">
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${value} ${label}`}
+      className="min-h-[88px] flex-1 items-center justify-center gap-1 px-2"
+    >
+      <Text className="text-xl font-bold text-white">
         {value}
       </Text>
-      <Text className="w-20 text-right text-xs text-gray-700 underline">
-        Lihat Detail
+      <Text className="text-sm text-white">
+        {label}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -110,24 +120,26 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const { user } = useSession();
   const { theme } = useRole();
-  const primaryColor =
-    user?.role === USER_ROLE.STAFF
-      ? getThemeColors(USER_ROLE.STAFF).primary
-      : getThemeColors(USER_ROLE.ADMINISTRATOR).primary;
+  const primaryColor = theme.primary;
   const [statusSheetOpen, setStatusSheetOpen] = useState(false);
+  const [engagementOpen, setEngagementOpen] = useState(false);
+  const [engagementTitle, setEngagementTitle] = useState('');
+  const [engagementItems, setEngagementItems] = useState<{
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    detail?: string;
+  }[]>([]);
+  const [engagementLoading, setEngagementLoading] = useState(false);
+  const [engagementError, setEngagementError] = useState<string | null>(null);
   const [verificationConfirmationOpen, setVerificationConfirmationOpen] =
     useState(false);
   const [rejectionConfirmationOpen, setRejectionConfirmationOpen] =
     useState(false);
-  const [toast, setToast] = useState<{
-    visible: boolean;
+  const [successModal, setSuccessModal] = useState<{
+    title: string;
     message: string;
-    type: 'success' | 'error' | 'info';
-  }>({
-    visible: false,
-    message: '',
-    type: 'error',
-  });
+  } | null>(null);
   const {
     report,
     loading,
@@ -140,24 +152,56 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
     changeStatus,
   } = useReportDetail(route.params.reportId);
 
+  const openEngagement = async (
+    kind: 'votes' | 'recommendations' | 'comments',
+  ) => {
+    if (!report) return;
+    setEngagementTitle({ votes: 'Votes', recommendations: 'Rekomendasi', comments: 'Komentar' }[kind]);
+    setEngagementOpen(true);
+    setEngagementLoading(true);
+    setEngagementError(null);
+    try {
+      if (kind === 'votes') {
+        const rows = await getReportVotes(report.id);
+        setEngagementItems(rows.map(row => ({ id: row.id, name: row.name, avatarUrl: row.avatarUrl })));
+      } else if (kind === 'recommendations') {
+        const rows = await getReportRecommendations(report.id);
+        setEngagementItems(rows.map(row => ({ id: row.id, name: row.name, avatarUrl: row.avatarUrl, detail: row.reason ?? undefined })));
+      } else {
+        const rows = await getReportComments(report.id);
+        setEngagementItems(rows.map(row => ({ id: row.id, name: row.authorName, avatarUrl: row.avatarUrl, detail: row.commentText })));
+      }
+    } catch {
+      setEngagementError('Gagal memuat daftar. Coba lagi.');
+    } finally {
+      setEngagementLoading(false);
+    }
+  };
+
   const updateStatus = async (
     statusName: UpdateReportStatusName,
   ) => {
     setStatusSheetOpen(false);
     const message = await changeStatus({ statusName });
     if (message) {
-      setToast({
-        visible: true,
-        message,
-        type: 'error',
-      });
-    } else {
-      setToast({
-        visible: true,
-        message: 'Status laporan berhasil diperbarui.',
-        type: 'success',
-      });
+      Alert.alert('Gagal mengubah status', message);
+      return;
     }
+
+    const isVerification = statusName === REPORT_STATUS_NAME.IN_REVIEW;
+    const isRejection = statusName === REPORT_STATUS_NAME.REJECTED;
+    const successTitle = isVerification
+      ? 'Verifikasi Berhasil'
+      : isRejection
+        ? 'Laporan Ditolak'
+        : 'Status Berhasil Diperbarui';
+    const successMessage = isVerification
+      ? 'Laporan berhasil diverifikasi.'
+      : isRejection
+        ? 'Laporan berhasil ditolak.'
+        : `Status laporan berhasil diubah menjadi ${statusName}.`;
+
+    setSuccessModal({ title: successTitle, message: successMessage });
   };
 
   const handleReject = () => {
@@ -280,13 +324,21 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
             </Text>
           </View>
 
-          <View className="gap-1 rounded-lg bg-[#F1F5F9] py-1">
-            <SummaryRow label="Jumlah Dukungan" value={report.votes} />
-            <SummaryRow
-              label="Jumlah Rekomendasi"
-              value={report.recommendations}
-            />
-            <SummaryRow label="Jumlah Komentar" value={report.comments} />
+          <View
+            className="flex-row overflow-hidden rounded-xl"
+            style={{ backgroundColor: primaryColor }}
+          >
+            <View className="flex-1 border-r border-white/60">
+              <SummaryRow label="Votes" value={report.votes} onPress={() => openEngagement('votes').catch(() => {})} />
+            </View>
+            <View className="flex-1 border-r border-white/60">
+              <SummaryRow
+                label="Rekomendasi"
+                value={report.recommendations}
+                onPress={() => openEngagement('recommendations').catch(() => {})}
+              />
+            </View>
+            <SummaryRow label="Komentar" value={report.comments} onPress={() => openEngagement('comments').catch(() => {})} />
           </View>
 
           <ReporterCard
@@ -591,11 +643,78 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
         })}
       </BottomSheet>
 
-      <Toast
-        visible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        onDismiss={() => setToast(prev => ({ ...prev, visible: false }))}
+      <Modal
+        visible={engagementOpen}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setEngagementOpen(false)}
+      >
+        <View className="flex-1 items-center justify-center px-6" style={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}>
+          <Pressable
+            onPress={() => setEngagementOpen(false)}
+            accessibilityRole="button"
+            accessibilityLabel="Tutup daftar"
+            className="absolute inset-0"
+          />
+          <View
+            className="w-full overflow-hidden rounded-2xl p-5"
+            style={{ backgroundColor: theme.surface, maxWidth: 420, maxHeight: '70%' }}
+          >
+            <View
+              className="mb-3 min-h-9 flex-row items-center justify-center border-b pb-3"
+              style={{ borderColor: theme.borderInput }}
+            >
+              <Pressable
+                onPress={() => setEngagementOpen(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Tutup popup"
+                hitSlop={8}
+                className="absolute left-0 h-9 w-9 items-center justify-center rounded-full active:opacity-60"
+              >
+                <Text style={{ color: theme.textHeading }} className="text-2xl leading-7">
+                  ×
+                </Text>
+              </Pressable>
+              <Text accessibilityRole="header" className="text-lg font-bold" style={{ color: theme.textHeading }}>
+                {engagementTitle}
+              </Text>
+            </View>
+            {engagementLoading ? (
+              <View className="py-8"><ActivityIndicator color={primaryColor} /></View>
+            ) : engagementError ? (
+              <Text style={{ color: theme.danger }}>{engagementError}</Text>
+            ) : engagementItems.length === 0 ? (
+              <Text style={{ color: theme.textSecondary }} className="py-4 text-center">
+                Belum ada {engagementTitle.toLowerCase()}.
+              </Text>
+            ) : (
+              <ScrollView>
+                {engagementItems.map(item => (
+                  <View key={item.id} className="min-h-[64px] flex-row items-center gap-3 border-b py-3" style={{ borderColor: theme.borderSubtle }}>
+                    <Avatar uri={item.avatarUrl} name={item.name} size="sm" />
+                    <View className="flex-1">
+                      <Text className="font-semibold" style={{ color: theme.textHeading }}>{item.name}</Text>
+                      {item.detail ? <Text className="mt-1 text-sm" style={{ color: theme.textSecondary }}>{item.detail}</Text> : null}
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      <ModalSuccess
+        visible={successModal !== null}
+        title={successModal?.title ?? ''}
+        message={successModal?.message ?? ''}
+        buttonLabel="Kembali ke Beranda"
+        buttonColor={primaryColor}
+        onConfirm={() => {
+          setSuccessModal(null);
+          navigation.navigate('Main', { screen: 'Home' });
+        }}
       />
     </View>
   );

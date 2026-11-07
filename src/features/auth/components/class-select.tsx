@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FlatList, Image, Keyboard, Platform, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Keyboard, Platform, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
 import leftArrow from '@/assets/images/left-arrow.png';
 import { BottomSheet } from '@/shared/components/ui/bottom-sheet';
 import { KEYBOARD_DISMISS_DELAY_MS } from '@/shared/constants';
@@ -8,6 +8,7 @@ import { authConstants } from '../constants/auth-constants';
 import { CLASS_OPTIONS } from '../utils/constants';
 
 export type ClassSelectFieldProps = {
+  options?: readonly { readonly value: string; readonly label: string }[];
   value: string | null;
   onChange: (value: string) => void;
   errorText?: string;
@@ -24,6 +25,11 @@ export type ClassSelectFieldProps = {
   inputTextStyle?: StyleProp<TextStyle>;
   activeBadgeText?: string;
   labelStyle?: StyleProp<TextStyle>;
+  loading?: boolean;
+  loadError?: string | null;
+  onRetry?: () => void;
+  emptyText?: string;
+  hasError?: boolean;
 };
 
 export function ClassSelectField({
@@ -43,20 +49,26 @@ export function ClassSelectField({
   inputTextStyle,
   activeBadgeText = 'Saat ini',
   labelStyle,
+  options = CLASS_OPTIONS,
+  loading = false,
+  loadError = null,
+  onRetry,
+  emptyText = 'Belum ada pilihan.',
+  hasError = Boolean(errorText),
 }: ClassSelectFieldProps): React.JSX.Element {
   const [open, setOpen] = useState(false);
-  const hasError = Boolean(errorText);
 
   const activeBg = highlightBgColor ?? primarySoftColor ?? '#FEF3C7';
   const activeBorder = highlightBorderColor ?? '#F59E0B';
   const radioColor = primaryColor ?? authConstants.colors.brand;
+  const selectedOption = options.find((option) => option.value === value);
 
   const handleSelect = (next: string) => {
     onChange(next);
     setOpen(false);
   };
 
-  const cleanValue = (value ?? '').trim().replace(/^kelas\s+/i, '');
+  const cleanValue = selectedOption?.label ?? (value ?? '').trim().replace(/^kelas\s+/i, '');
 
   const handleOpen = () => {
     Keyboard.dismiss();
@@ -108,8 +120,26 @@ export function ClassSelectField({
         onClose={() => setOpen(false)}
         title={sheetTitle}
       >
+        {loading ? (
+          <View style={styles.statusContainer}>
+            <ActivityIndicator color={radioColor} />
+          </View>
+        ) : loadError ? (
+          <View style={styles.statusContainer}>
+            <Text style={styles.errorText}>{loadError}</Text>
+            {onRetry ? (
+              <TouchableOpacity onPress={onRetry} accessibilityRole="button">
+                <Text style={[styles.retryText, { color: radioColor }]}>Coba lagi</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        ) : options.length === 0 ? (
+          <View style={styles.statusContainer}>
+            <Text style={styles.emptyText}>{emptyText}</Text>
+          </View>
+        ) : (
         <FlatList
-          data={CLASS_OPTIONS}
+          data={options}
           keyExtractor={(item) => item.value}
           style={styles.listContainer}
           contentContainerStyle={styles.listContent}
@@ -176,6 +206,7 @@ export function ClassSelectField({
             );
           }}
         />
+        )}
       </BottomSheet>
 
       {errorText ? (
@@ -309,5 +340,19 @@ const styles = StyleSheet.create({
     color: authConstants.colors.text.error,
     fontSize: 12,
     marginTop: 2,
+  },
+  statusContainer: {
+    minHeight: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  emptyText: {
+    color: authConstants.colors.text.muted,
+    fontSize: 14,
+  },
+  retryText: {
+    fontFamily: fontFamilies.semiBold,
+    fontSize: 14,
   },
 });

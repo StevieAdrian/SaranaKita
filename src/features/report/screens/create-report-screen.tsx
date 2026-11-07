@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ClassSelectField } from '@/features/auth/components';
 import {
   Button,
   ConfirmSheet,
@@ -16,7 +17,6 @@ import {
   Input,
   PhotoPicker,
   ScreenHeader,
-  Select,
   Toast,
 } from '@/shared/components/ui';
 import { palette } from '@/shared/theme';
@@ -150,13 +150,14 @@ export function CreateReportScreen(): React.JSX.Element {
             </FormField>
 
             <FormField label="Kategori" required error={errors.categoryId}>
-              <Select
+              <ClassSelectField
                 value={values.categoryId}
                 options={categories.options}
                 onChange={value => setField('categoryId', value)}
+                label="Kategori"
+                hideLabel
                 placeholder="Pilih Kategori"
                 sheetTitle="Pilih Kategori"
-                accessibilityLabel="Kategori, wajib"
                 hasError={Boolean(errors.categoryId)}
                 loading={categories.loading}
                 loadError={categories.error}
@@ -166,13 +167,14 @@ export function CreateReportScreen(): React.JSX.Element {
             </FormField>
 
             <FormField label="Kelas / Lokasi" required error={errors.location}>
-              <Select
+              <ClassSelectField
                 value={values.location || null}
                 options={CLASS_OPTIONS}
                 onChange={value => setField('location', value)}
+                label="Kelas / Lokasi"
+                hideLabel
                 placeholder="Pilih Kelas"
                 sheetTitle="Pilih Kelas"
-                accessibilityLabel="Kelas atau Lokasi, wajib"
                 hasError={Boolean(errors.location)}
               />
             </FormField>

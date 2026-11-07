@@ -7,7 +7,7 @@ import type { ReportDetail } from '@/services/report';
 import type { ReportFormErrors, ReportFormValues } from '../types';
 import { hasErrors, validateReportForm } from '../utils/validation';
 import type { SubmitResult } from './use-create-report-form';
-import { updateReport } from '@/services/report/report.api';
+import { updateReport, deleteReport } from '@/services/report/report.api';
 
 type EditValues = ReportFormValues;
 
@@ -36,12 +36,17 @@ export type UseEditReportForm = {
   readonly loadError: string | null;
   readonly confirmVisible: boolean;
   readonly submitting: boolean;
+  readonly confirmDeleteVisible: boolean;
+  readonly deleting: boolean;
   readonly existingImageUrl: string | null;
   readonly removeExistingImage: boolean;
   setField: <K extends keyof EditValues>(key: K, value: EditValues[K]) => void;
   requestSubmit: () => void;
   cancelSubmit: () => void;
   confirmSubmit: () => Promise<SubmitResult>;
+  requestDelete: () => void;
+  cancelDelete: () => void;
+  confirmDelete: () => Promise<SubmitResult>;
   retryLoad: () => void;
 };
 
@@ -61,6 +66,8 @@ export function useEditReportForm(reportId: string): UseEditReportForm {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [removeExistingImage, setRemoveExistingImage] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -181,6 +188,30 @@ export function useEditReportForm(reportId: string): UseEditReportForm {
     setReloadKey(previous => previous + 1);
   }, []);
 
+  const requestDelete = useCallback(() => {
+    setConfirmDeleteVisible(true);
+  }, []);
+
+  const cancelDelete = useCallback(() => {
+    setConfirmDeleteVisible(false);
+  }, []);
+
+  const confirmDelete = useCallback(async (): Promise<SubmitResult> => {
+    setDeleting(true);
+    try {
+      await deleteReport(reportId);
+      setConfirmDeleteVisible(false);
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        message: getServerMessage(error) ?? toUserMessage(error),
+      };
+    } finally {
+      setDeleting(false);
+    }
+  }, [reportId]);
+
   return {
     values,
     errors,
@@ -188,12 +219,17 @@ export function useEditReportForm(reportId: string): UseEditReportForm {
     loadError,
     confirmVisible,
     submitting,
+    confirmDeleteVisible,
+    deleting,
     existingImageUrl,
     removeExistingImage,
     setField,
     requestSubmit,
     cancelSubmit,
     confirmSubmit,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
     retryLoad,
   };
 }

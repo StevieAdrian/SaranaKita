@@ -10,6 +10,7 @@ export type ConfirmSheetProps = {
   message: React.ReactNode;
   confirmLabel: string;
   cancelLabel?: string;
+  confirmTone?: 'primary' | 'danger';
   loading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -24,11 +25,13 @@ export function ConfirmSheet({
   message,
   confirmLabel,
   cancelLabel = 'Batal',
+  confirmTone = 'primary',
   loading = false,
   onConfirm,
   onCancel,
 }: ConfirmSheetProps): React.JSX.Element {
   const { theme } = useRole();
+  const confirmColor = confirmTone === 'danger' ? theme.danger : theme.primary;
 
   return (
     <BottomSheet visible={visible} onClose={loading ? () => { } : onCancel}>
@@ -47,7 +50,7 @@ export function ConfirmSheet({
           title={confirmLabel}
           loading={loading}
           onPress={onConfirm}
-          style={[CONFIRM_BUTTON, { backgroundColor: theme.primary }]}
+          style={[CONFIRM_BUTTON, { backgroundColor: confirmColor }]}
         />
         <Button
           title={cancelLabel}

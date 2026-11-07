@@ -88,7 +88,7 @@ export function ReportFilterSheet({
                   selected ? 'border-primary' : 'border-gray-200'
                 }`}
               >
-                <StatusBadge status={status} />
+                <StatusBadge status={status} align="center" />
                 <Indicator selected={selected} />
               </Pressable>
             );
