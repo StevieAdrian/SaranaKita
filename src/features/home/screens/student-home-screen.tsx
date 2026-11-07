@@ -265,7 +265,7 @@ function ReportHomeScreen({ role }: { role: HomeRole }): React.JSX.Element {
             remainingTime={remainingTime}
             finalTime={finalTime}
             action={
-              isOwner
+              isOwner || item.status !== 'waiting_verification'
                 ? undefined
                 : isTeacher
                   ? {

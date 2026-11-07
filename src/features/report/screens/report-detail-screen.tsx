@@ -78,8 +78,9 @@ export function ReportDetailScreen(): React.JSX.Element {
   const [showRejectConfirm, setShowRejectConfirm] = useState(false);
 
   const isTeacher = user?.role === USER_ROLE.GURU;
-  const canVote = user?.role === USER_ROLE.SISWA;
-  const canComment = canVote;
+  const isStudent = user?.role === USER_ROLE.SISWA;
+  const canVote = isStudent && report?.status === REPORT_STATUS.WAITING_VERIFICATION;
+  const canComment = isStudent;
 
   const handleCommentSubmit = async (text: string): Promise<boolean> => {
     const message = await submitComment(text);
@@ -167,7 +168,7 @@ export function ReportDetailScreen(): React.JSX.Element {
 
     const progress = REPORT_PROGRESS[report.status];
     const hasTeacherBar =
-      isTeacher && report.status !== REPORT_STATUS.REJECTED;
+      isTeacher && report.status === REPORT_STATUS.WAITING_VERIFICATION;
     const scrollContent = {
       paddingBottom: canVote || hasTeacherBar ? 24 : insets.bottom + 24,
     };
