@@ -44,6 +44,7 @@ export function ReportEvaluationsScreen({ route }: ReportEvaluationsScreenProps)
   const { reportId } = route.params;
   const [evaluations, setEvaluations] = useState<ReportEvaluasi[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadedReportId, setLoadedReportId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadEvaluations = useCallback(async () => {
@@ -55,6 +56,7 @@ export function ReportEvaluationsScreen({ route }: ReportEvaluationsScreenProps)
       setError(err instanceof Error ? err.message : 'Gagal memuat evaluasi laporan.');
     } finally {
       setLoading(false);
+      setLoadedReportId(reportId);
     }
   }, [reportId]);
 
@@ -62,6 +64,8 @@ export function ReportEvaluationsScreen({ route }: ReportEvaluationsScreenProps)
     let active = true;
     async function loadInitialEvaluations() {
       setLoading(true);
+      setLoadedReportId(null);
+      setEvaluations([]);
       setError(null);
       try {
         const result = await getReportEvaluasi(reportId);
@@ -69,12 +73,17 @@ export function ReportEvaluationsScreen({ route }: ReportEvaluationsScreenProps)
       } catch (err) {
         if (active) setError(err instanceof Error ? err.message : 'Gagal memuat evaluasi laporan.');
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+          setLoadedReportId(reportId);
+        }
       }
     }
     void loadInitialEvaluations();
     return () => { active = false; };
   }, [reportId]);
+
+  const isLoading = loading || loadedReportId !== reportId;
 
   const renderEvaluation = ({ item, index }: { item: ReportEvaluasi; index: number }) => {
     const rating = item.rate ?? 0;
@@ -142,8 +151,12 @@ export function ReportEvaluationsScreen({ route }: ReportEvaluationsScreenProps)
         </View>
       </View>
 
-      {loading ? (
-        <View className="flex-1 items-center justify-center gap-3 px-5">
+      {isLoading ? (
+        <View
+          accessibilityRole="progressbar"
+          accessibilityLabel="Memuat evaluasi"
+          className="flex-1 items-center justify-center gap-3 px-5"
+        >
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={{ color: theme.textSecondary }} className="text-sm">Memuat evaluasi…</Text>
         </View>
