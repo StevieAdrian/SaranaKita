@@ -132,7 +132,7 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
   }[]>([]);
   const [engagementLoading, setEngagementLoading] = useState(false);
   const [engagementError, setEngagementError] = useState<string | null>(null);
-  const [verificationConfirmationOpen, setVerificationConfirmationOpen] =
+  const [progressConfirmationOpen, setProgressConfirmationOpen] =
     useState(false);
   const [rejectionConfirmationOpen, setRejectionConfirmationOpen] =
     useState(false);
@@ -209,12 +209,17 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
   };
 
   const handleVerify = () => {
-    setVerificationConfirmationOpen(true);
+    setProgressConfirmationOpen(true);
   };
 
   const confirmVerification = () => {
-    setVerificationConfirmationOpen(false);
-    updateStatus(REPORT_STATUS_NAME.IN_REVIEW).catch(() => { });
+    setProgressConfirmationOpen(false);
+    const nextStatus = report?.status === REPORT_STATUS.IN_REVIEW
+      ? REPORT_STATUS_NAME.IN_REPAIR
+      : report?.status === REPORT_STATUS.IN_REPAIR
+        ? REPORT_STATUS_NAME.DONE
+        : REPORT_STATUS_NAME.IN_REVIEW;
+    updateStatus(nextStatus).catch(() => { });
   };
 
   const confirmRejection = () => {
@@ -273,9 +278,27 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
 
   const progress = REPORT_PROGRESS[report.status];
   const selectedStatus = REPORT_STATUS_NAME_BY_STATUS[report.status];
+  const progressAction = report.status === REPORT_STATUS.IN_REVIEW
+    ? {
+      label: 'Mulai Perbaikan',
+      question: 'Mulai Perbaikan Laporan?',
+      description: 'Laporan akan dipindahkan ke tahap Dalam Perbaikan.',
+    }
+    : report.status === REPORT_STATUS.IN_REPAIR
+      ? {
+        label: 'Tandai Selesai',
+        question: 'Selesaikan Laporan?',
+        description: 'Laporan akan ditandai selesai.',
+      }
+      : {
+        label: 'Verifikasi Laporan',
+        question: 'Verifikasi Laporan?',
+        description: 'Laporan akan diverifikasi dan dipindahkan ke status Dalam Pemeriksaan.',
+      };
   const showVerify =
     report.status !== REPORT_STATUS.REJECTED &&
     report.status !== REPORT_STATUS.DONE;
+  const showReject = report.status === REPORT_STATUS.WAITING_VERIFICATION;
 
   return (
     <View className="flex-1 bg-white">
@@ -466,27 +489,29 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
             paddingBottom: insets.bottom + 16,
           }}
         >
-          <Pressable
-            onPress={handleReject}
-            disabled={changingStatus}
-            accessibilityRole="button"
-            className="min-h-[48px] flex-1 flex-row items-center justify-center gap-2 rounded-md border border-white"
-          >
-            {changingStatus ? (
-              <ActivityIndicator color={palette.white} />
-            ) : (
-              <>
-                <Text className="text-base text-white">×</Text>
-                <Text className="text-sm font-semibold text-white">Tolak</Text>
-              </>
-            )}
-          </Pressable>
+          {showReject ? (
+            <Pressable
+              onPress={handleReject}
+              disabled={changingStatus}
+              accessibilityRole="button"
+              className="min-h-[48px] flex-1 flex-row items-center justify-center gap-2 rounded-md border border-white"
+            >
+              {changingStatus ? (
+                <ActivityIndicator color={palette.white} />
+              ) : (
+                <>
+                  <Text className="text-base text-white">×</Text>
+                  <Text className="text-sm font-semibold text-white">Tolak</Text>
+                </>
+              )}
+            </Pressable>
+          ) : null}
           <Pressable
             onPress={handleVerify}
             disabled={changingStatus}
             accessibilityRole="button"
-            accessibilityLabel="Verifikasi laporan"
-            className="min-h-[48px] flex-1 flex-row items-center justify-center gap-2 rounded-md bg-white"
+            accessibilityLabel={progressAction.label}
+            className={`min-h-[48px] ${showReject ? 'flex-1' : 'w-full'} flex-row items-center justify-center gap-2 rounded-md bg-white`}
           >
             {changingStatus ? (
               <ActivityIndicator color={primaryColor} />
@@ -502,7 +527,7 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
                   className="text-sm font-semibold"
                   style={{ color: primaryColor }}
                 >
-                  Verifikasi Laporan
+                  {progressAction.label}
                 </Text>
               </>
             )}
@@ -511,8 +536,8 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
       ) : null}
 
       <BottomSheet
-        visible={verificationConfirmationOpen}
-        onClose={() => setVerificationConfirmationOpen(false)}
+        visible={progressConfirmationOpen}
+        onClose={() => setProgressConfirmationOpen(false)}
       >
         <View className="items-center px-2 pb-3 pt-4">
           <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-[#EEF0FF]">
@@ -527,27 +552,26 @@ export function ReportManagementDetailScreen(): React.JSX.Element {
             accessibilityRole="header"
             className="mb-4 text-center text-xl font-bold text-[#172033]"
           >
-            Verifikasi Laporan?
+            {progressAction.question}
           </Text>
           <Text className="mb-7 text-center text-base leading-6 text-[#64748B]">
-            Laporan akan diverifikasi dan dipindahkan ke status Dalam
-            Pemeriksaan.
+            {progressAction.description}
           </Text>
           <View className="w-full gap-3">
             <Pressable
               onPress={confirmVerification}
               disabled={changingStatus}
               accessibilityRole="button"
-              accessibilityLabel="Konfirmasi verifikasi laporan"
+              accessibilityLabel={`Konfirmasi ${progressAction.label.toLowerCase()}`}
               className="min-h-[52px] items-center justify-center rounded-lg"
               style={{ backgroundColor: primaryColor }}
             >
               <Text className="text-base font-semibold text-white">
-                Verifikasi Laporan
+                {progressAction.label}
               </Text>
             </Pressable>
             <Pressable
-              onPress={() => setVerificationConfirmationOpen(false)}
+              onPress={() => setProgressConfirmationOpen(false)}
               disabled={changingStatus}
               accessibilityRole="button"
               className="min-h-[52px] items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC]"
