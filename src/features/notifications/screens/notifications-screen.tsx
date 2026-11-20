@@ -75,28 +75,28 @@ export function NotificationsScreen(): React.JSX.Element {
         accessibilityLabel={`${
           item.readAt ? '' : 'Belum dibaca. '
         }${reportTitle(item)}`}
-        className="min-h-[87px] flex-row items-start px-6 py-5 active:opacity-70"
+        className="min-h-[64px] flex-row items-start px-4 py-3 active:opacity-70"
         style={{ backgroundColor: theme.surface }}
       >
         <View
-          className="mr-4 mt-2 h-3 w-3 rounded-full"
+          className="mr-3 mt-1.5 h-3 w-3 rounded-full"
           style={{
             backgroundColor: item.readAt ? '#22C55E' : theme.primary,
           }}
         />
-        <View className="flex-1 gap-1 pr-3">
+        <View className="flex-1 gap-0.5 pr-2">
           <Text
             numberOfLines={1}
             style={{ color: theme.textHeading }}
-            className="text-base font-bold"
+            className="text-[15px] font-bold"
           >
             {reportTitle(item)}
           </Text>
-          <Text style={{ color: theme.textSecondary }} className="text-base">
+          <Text style={{ color: theme.textSecondary }} className="text-[15px]">
             {notificationLabel(item)}
           </Text>
         </View>
-        <Text style={{ color: theme.textMuted }} className="pt-0.5 text-sm">
+        <Text style={{ color: theme.textMuted }} className="pt-0.5 text-xs">
           {formatDate(item.createdAt)}
         </Text>
       </Pressable>
@@ -107,9 +107,9 @@ export function NotificationsScreen(): React.JSX.Element {
   return (
     <View className="flex-1" style={{ backgroundColor: '#EDF4FF' }}>
       <View
-        className="items-center justify-end pb-9"
+        className="items-center justify-end pb-5"
         style={{
-          height: insets.top + 158,
+          height: insets.top + 104,
           backgroundColor: theme.primary,
         }}
       >
@@ -118,13 +118,13 @@ export function NotificationsScreen(): React.JSX.Element {
           accessibilityRole="button"
           accessibilityLabel="Kembali"
           hitSlop={12}
-          className="absolute bottom-8 left-8 h-11 w-11 items-center justify-center active:opacity-70"
+          className="absolute bottom-4 left-6 h-11 w-11 items-center justify-center active:opacity-70"
         >
-          <Text className="text-5xl font-light leading-[44px] text-white">
+          <Text className="text-4xl font-light leading-[38px] text-white">
             ‹
           </Text>
         </Pressable>
-        <Text className="text-4xl font-bold tracking-tight text-white">
+        <Text className="text-3xl font-bold tracking-tight text-white">
           Notifikasi
         </Text>
       </View>
@@ -133,7 +133,7 @@ export function NotificationsScreen(): React.JSX.Element {
         keyExtractor={item => item.id}
         renderItem={renderItem}
         ItemSeparatorComponent={() => (
-          <View className="ml-10 h-px" style={{ backgroundColor: '#E7EDF6' }} />
+          <View className="h-px" style={{ backgroundColor: '#E7EDF6' }} />
         )}
         refreshControl={
           <RefreshControl
@@ -143,7 +143,7 @@ export function NotificationsScreen(): React.JSX.Element {
         }
         contentContainerStyle={{
           marginHorizontal: 30,
-          marginTop: 18,
+          marginTop: 12,
           borderRadius: 8,
           overflow: 'hidden',
           backgroundColor: theme.surface,
