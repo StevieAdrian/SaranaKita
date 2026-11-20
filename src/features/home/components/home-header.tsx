@@ -13,7 +13,7 @@ export type HomeHeaderProps = {
 export function HomeHeader({
   name,
   schoolName,
-  unreadNotifications = 0,
+  unreadNotifications,
   onNotificationsPress,
 }: HomeHeaderProps): React.JSX.Element {
   return (

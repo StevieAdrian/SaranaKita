@@ -51,7 +51,7 @@ export function AdministratorStatisticScreen(): React.JSX.Element {
         activities={monitoring.data?.activities ?? []}
       />
 
-      <AllReports reports={feed.reports} />
+      <AllReports reports={feed.reports} role={USER_ROLE.ADMINISTRATOR} />
     </ScrollView>
   );
 }

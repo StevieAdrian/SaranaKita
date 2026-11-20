@@ -68,7 +68,7 @@ export function MonitoringReports({
       { label: 'Laporan Saya', value: 'mine' },
     ];
 
-    if (role === USER_ROLE.SISWA) {
+    if (role === USER_ROLE.SISWA || role === USER_ROLE.ADMINISTRATOR) {
       result.push({ label: 'Didukung', value: 'supported' });
     }
 
@@ -88,9 +88,13 @@ export function MonitoringReports({
       case 'recommended':
         return reports.filter(report => report.recommendedByMe);
       default:
-        return reports;
+        return role === USER_ROLE.SISWA ? reports.filter(report => report.reporter_id === currentUserId || report.votedByMe)
+          : role === USER_ROLE.GURU ? reports.filter(report => report.reporter_id === currentUserId || report.recommendedByMe)
+          : role === USER_ROLE.STAFF ? reports.filter(report => report.reporter_id === currentUserId) 
+          : role === USER_ROLE.ADMINISTRATOR ? reports.filter(report =>report.reporter_id === currentUserId || report.votedByMe)
+          : reports;
     }
-  }, [reports, filter, currentUserId]);
+  }, [reports, filter, currentUserId, role]);
 
   const canManage =
     role === USER_ROLE.STAFF || role === USER_ROLE.ADMINISTRATOR;
