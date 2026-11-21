@@ -11,7 +11,10 @@ import { AppRegistry } from 'react-native';
 import App from './App';
 import { name as appName } from './app.json';
 
-// Native side-effects that must run at startup (e.g. FCM background handler,
-// home-screen widget registration) belong here.
+import messaging from '@react-native-firebase/messaging';
+
+// This must be registered outside React so Android can handle data messages
+// while the app is in the background or terminated.
+messaging().setBackgroundMessageHandler(async () => {});
 
 AppRegistry.registerComponent(appName, () => App);

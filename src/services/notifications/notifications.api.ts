@@ -33,3 +33,13 @@ export function markNotificationRead(id: string): Promise<AppNotification> {
 export function markAllNotificationsRead(): Promise<{ updated: number }> {
   return apiClient.post<{ updated: number }>('/notifications/read-all');
 }
+
+export function registerFcmDeviceToken(token: string): Promise<void> {
+  return apiClient.post<void>('/notifications/devices/fcm-token', { token });
+}
+
+export function removeFcmDeviceToken(token: string): Promise<void> {
+  return apiClient.post<void>('/notifications/devices/fcm-token/remove', {
+    token,
+  });
+}
