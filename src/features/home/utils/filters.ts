@@ -13,6 +13,7 @@ export const STATUS_OPTIONS: readonly ReportStatus[] = REPORT_STATUSES;
 export const SORT_OPTIONS: readonly { value: ReportSort; label: string }[] = [
   { value: 'latest', label: 'Terbaru' },
   { value: 'oldest', label: 'Terlama' },
+  { value: 'highest_priority', label: 'Prioritas Tertinggi' },
   { value: 'most_votes', label: 'Votes Terbanyak' },
   { value: 'least_votes', label: 'Votes Tersedikit' },
   { value: 'most_recommendations', label: 'Rekomendasi Terbanyak' },

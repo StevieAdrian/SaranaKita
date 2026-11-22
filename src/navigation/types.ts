@@ -49,6 +49,7 @@ export type RootStackParamList = {
     reportTitle: string;
   };
   Notifications: undefined;
+  ActionRequiredReports: undefined;
 };
 
 declare global {

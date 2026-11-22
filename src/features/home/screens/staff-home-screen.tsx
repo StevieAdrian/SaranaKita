@@ -121,7 +121,8 @@ export function StaffHomeScreen(): React.JSX.Element {
     1,
     ...dashboard.categories.map(category => category.count),
   );
-  const openReportHistory = () => navigation.navigate('ReportHistory');
+  const openActionRequiredReports = () =>
+    navigation.navigate('ActionRequiredReports');
 
   return (
     <View style={{ backgroundColor: theme.background }} className="flex-1">
@@ -166,7 +167,7 @@ export function StaffHomeScreen(): React.JSX.Element {
           ) : null}
 
           <Pressable
-            onPress={openReportHistory}
+            onPress={openActionRequiredReports}
             accessibilityRole="button"
             className="min-h-[60px] flex-row items-center rounded-lg px-5 active:opacity-90"
             style={{ backgroundColor: ACTION_COLOR }}
@@ -196,7 +197,7 @@ export function StaffHomeScreen(): React.JSX.Element {
                 Perlu Tindakan Segera
               </Text>
               <Pressable
-                onPress={openReportHistory}
+                onPress={openActionRequiredReports}
                 accessibilityRole="button"
                 hitSlop={8}
               >
