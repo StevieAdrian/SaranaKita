@@ -1,5 +1,8 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
-import type { RegisterProfileRouteParams, RegisterRouteParams } from '@/features/auth/types';
+import type {
+  RegisterProfileRouteParams,
+  RegisterRouteParams,
+} from '@/features/auth/types';
 import type { ManageUser } from '@/services/users';
 
 export type AuthStackParamList = {
@@ -35,7 +38,9 @@ export type RootStackParamList = {
   ManagementReportDetail: { reportId: string };
   EditReport: { reportId: string };
   ProfileSettings: undefined;
-  UserManagement: { toastMessage?: string; toastType?: 'success' | 'error' } | undefined;
+  UserManagement:
+    | { toastMessage?: string; toastType?: 'success' | 'error' }
+    | undefined;
   AddUser: undefined;
   EditUser: { user: ManageUser };
   NotFound?: { title?: string; message?: string };
@@ -43,10 +48,12 @@ export type RootStackParamList = {
     reportId: string;
     reportTitle: string;
   };
+  Notifications: undefined;
+  ActionRequiredReports: undefined;
 };
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList { }
+    interface RootParamList extends RootStackParamList {}
   }
 }

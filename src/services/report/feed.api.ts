@@ -19,6 +19,7 @@ export type FeedReport = {
   readonly votes: number;
   readonly comments: number;
   readonly recommendations: number;
+  readonly priorityScore: number;
   readonly votedByMe: boolean;
   readonly recommendedByMe: boolean;
   readonly note: {
@@ -34,7 +35,8 @@ export type ReportSort =
   | 'oldest'
   | 'most_votes'
   | 'least_votes'
-  | 'most_recommendations';
+  | 'most_recommendations'
+  | 'highest_priority';
 
 export type Paginated<T> = {
   readonly items: readonly T[];
@@ -62,12 +64,14 @@ export type VoteResult = {
   readonly reportId: string;
   readonly votes: number;
   readonly votedByMe: boolean;
+  readonly priorityScore: number;
 };
 
 export type RecommendationResult = {
   readonly reportId: string;
   readonly recommendations: number;
   readonly recommendedByMe: boolean;
+  readonly priorityScore: number;
 };
 
 export type ReportNote = {

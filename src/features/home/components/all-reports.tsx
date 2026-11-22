@@ -5,11 +5,14 @@ import { palette } from '@/shared/theme';
 import { FeedReport } from '@/services/report';
 import { ReportListCard } from '@/shared/components/report';
 import { toDisplayDate } from '../utils/feed';
+import { USER_ROLE, type UserRole } from '@/services/auth';
+import { useCurrentUser } from '@/features/home/hooks/use-current-user';
 
 type ReportFilter = 'all' | 'mine' | 'supported';
 
 type AllReportsProps = {
   reports: readonly FeedReport[];
+  role: UserRole;
 };
 
 const FILTERS: { label: string; value: ReportFilter }[] = [
@@ -18,8 +21,21 @@ const FILTERS: { label: string; value: ReportFilter }[] = [
   { label: 'Didukung', value: 'supported' },
 ];
 
-export function AllReports({ reports }: AllReportsProps): React.JSX.Element {
+export function AllReports({ reports, role }: AllReportsProps): React.JSX.Element {
   const [filter, setFilter] = useState<ReportFilter>('all');
+  const currentUser = useCurrentUser();
+  const filteredReports = reports.filter(report => {
+    const isMine = report.reporter_id === currentUser?.id;
+    if (filter === 'mine') return isMine;
+    if (filter === 'supported') {
+      return role === USER_ROLE.GURU ? report.recommendedByMe : report.votedByMe;
+    }
+    if (role === USER_ROLE.GURU) return isMine || report.recommendedByMe;
+    if (role === USER_ROLE.SISWA || role === USER_ROLE.ADMINISTRATOR) {
+      return isMine || report.votedByMe;
+    }
+    return true;
+  });
 
   return (
     <View className="gap-4 px-5 pb-6">
@@ -55,10 +71,9 @@ export function AllReports({ reports }: AllReportsProps): React.JSX.Element {
         })}
       </View>
 
-      <Text className="text-sm text-gray-500">
-        {reports.length > 0 ? (
+      {filteredReports.length > 0 ? (
           <View className="w-full gap-3">
-            {reports.slice(0, 3).map(report => (
+            {filteredReports.slice(0, 3).map(report => (
               <ReportListCard
                 key={report.id}
                 title={report.title}
@@ -75,9 +90,8 @@ export function AllReports({ reports }: AllReportsProps): React.JSX.Element {
             ))}
           </View>
         ) : (
-          'Belum ada laporan.'
+          <Text className="text-sm text-gray-500">Belum ada laporan.</Text>
         )}
-      </Text>
     </View>
   );
 }

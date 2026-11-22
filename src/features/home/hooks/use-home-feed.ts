@@ -119,7 +119,10 @@ export function useHomeFeed(): UseHomeFeed {
         if (id !== requestId.current) {
           return;
         }
-        setReports(list.items);
+        const filteredItems = statuses.length > 0
+          ? list.items.filter(report => statuses.includes(report.status))
+          : list.items;
+        setReports(filteredItems);
         setPage(list.page);
         setTotalPages(list.totalPages);
         setPopular(top);

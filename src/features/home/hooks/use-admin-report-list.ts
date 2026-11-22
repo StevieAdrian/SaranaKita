@@ -4,6 +4,7 @@ import {
   listReports,
   REPORT_STATUS,
   type FeedReport,
+  type ReportSort,
   type ReportStatus,
 } from '@/services/report';
 
@@ -36,6 +37,7 @@ export type UseAdminReportList = {
 
 export function useAdminReportList(
   filter: AdminReportFilter,
+  sort: ReportSort = 'latest',
 ): UseAdminReportList {
   const [reports, setReports] = useState<readonly FeedReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,7 @@ export function useAdminReportList(
       const result = await listReports({
         page: 1,
         limit: PAGE_SIZE,
-        sort: 'latest',
+        sort,
         status: statuses,
       });
       if (activeRequest !== requestId.current) return;
@@ -74,7 +76,7 @@ export function useAdminReportList(
     } finally {
       if (activeRequest === requestId.current) setLoading(false);
     }
-  }, [statuses]);
+  }, [sort, statuses]);
 
   useEffect(() => {
     loadFirstPage().catch(() => {});
@@ -92,7 +94,7 @@ export function useAdminReportList(
     listReports({
       page: nextPage,
       limit: PAGE_SIZE,
-      sort: 'latest',
+      sort,
       status: statuses,
     })
       .then(result => {
@@ -107,7 +109,7 @@ export function useAdminReportList(
       .finally(() => {
         if (activeRequest === requestId.current) setLoadingMore(false);
       });
-  }, [loading, loadingMore, page, statuses, totalPages]);
+  }, [loading, loadingMore, page, sort, statuses, totalPages]);
 
   return {
     reports,

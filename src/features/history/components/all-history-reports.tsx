@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { useRole } from '@/shared/context/theme-context';
 import type { FeedReport } from '@/services/report';
 import { ReportListCard } from '@/shared/components/report';
 import { toDisplayDate } from '@/features/home/utils/feed';
@@ -9,6 +10,7 @@ import { useCurrentUser } from '@/features/home/hooks/use-current-user';
 
 type AllReportsHistoryProps = {
   reports: readonly FeedReport[];
+  loading: boolean;
   filter: HistoryFilter;
   query: string;
   role: UserRole;
@@ -19,6 +21,7 @@ type AllReportsHistoryProps = {
 
 export function AllReportsHistory({
   reports,
+  loading,
   filter,
   query,
   role,
@@ -26,6 +29,7 @@ export function AllReportsHistory({
   evaluatedReportIds,
   onViewEvaluations,
 }: AllReportsHistoryProps): React.JSX.Element {
+  const { theme } = useRole();
   const currentUser = useCurrentUser();
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -70,7 +74,14 @@ export function AllReportsHistory({
 
   return (
     <View className="mt-5 gap-4 px-5 pb-6">
-      {filteredReports.length > 0 ? (
+      {loading ? (
+        <View className="items-center justify-center gap-3 py-10">
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={{ color: theme.textSecondary }} className="text-sm">
+            Memuat laporan…
+          </Text>
+        </View>
+      ) : filteredReports.length > 0 ? (
         <View className="w-full gap-3">
           {filteredReports.map(report => (
             <ReportListCard

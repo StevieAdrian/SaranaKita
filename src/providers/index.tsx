@@ -1,45 +1,91 @@
-import React, { useEffect, useSyncExternalStore, type PropsWithChildren } from 'react';
+import React, {
+  useEffect,
+  useSyncExternalStore,
+  type PropsWithChildren,
+} from 'react';
 import { StatusBar, StyleSheet, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { authClient, supabase, type UserRole } from '@/services/auth';
-import { checkUserProfileComplete } from '@/features/auth/services/google-auth';
+import { checkUserProfileComplete } from '@/features/auth';
 import { AccessibilityProvider } from '@/shared/accessibility/accessibility-context';
 import { ThemeProvider } from '@/shared/context/theme-context';
+import { NotificationsProvider } from '@/shared/context/notifications-context';
+import {
+  requestPushNotificationsPermission,
+  startPushNotifications,
+} from '@/services/notifications/push';
 
 function selectRole(): UserRole | null {
   return authClient.getState().user?.role ?? null;
 }
 
-export function AppProviders({ children }: PropsWithChildren): React.JSX.Element {
+function selectUserId(): string | null {
+  return authClient.getState().user?.id ?? null;
+}
+
+export function AppProviders({
+  children,
+}: PropsWithChildren): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
   const role = useSyncExternalStore(authClient.subscribe, selectRole);
+  const userId = useSyncExternalStore(authClient.subscribe, selectUserId);
 
   useEffect(() => {
-    authClient.restore().catch(() => { });
+    authClient.restore().catch(() => {});
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'TOKEN_REFRESHED' && session?.user) {
-        try {
-          const { isComplete, userData } = await checkUserProfileComplete(session.user.id, session.access_token);
-          if (isComplete) {
-            await authClient.applySupabaseSession(session, userData);
-          }
-        } catch { }
-      }
-    });
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'TOKEN_REFRESHED' && session?.user) {
+          try {
+            const { isComplete, userData } = await checkUserProfileComplete(
+              session.user.id,
+              session.access_token,
+            );
+            if (isComplete) {
+              await authClient.applySupabaseSession(session, userData);
+            }
+          } catch {}
+        }
+      },
+    );
 
     return () => {
       authListener?.subscription?.unsubscribe();
     };
   }, []);
 
+  useEffect(() => {
+    if (!userId) return;
+
+    let active = true;
+    let stop = () => {};
+    const task = setTimeout(() => {
+      void (async () => {
+        const granted = await requestPushNotificationsPermission();
+        if (!granted || !active) return;
+
+        const unsubscribe = await startPushNotifications();
+        if (active) stop = unsubscribe;
+        else unsubscribe();
+      })().catch(() => undefined);
+    }, 1000);
+
+    return () => {
+      active = false;
+      clearTimeout(task);
+      stop();
+    };
+  }, [userId]);
+
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <ThemeProvider role={role}>
-          <AccessibilityProvider>{children}</AccessibilityProvider>
+          <NotificationsProvider>
+            <AccessibilityProvider>{children}</AccessibilityProvider>
+          </NotificationsProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

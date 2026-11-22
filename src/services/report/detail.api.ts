@@ -55,6 +55,7 @@ export type ReportDetail = {
   readonly votes: number;
   readonly comments: number;
   readonly recommendations: number;
+  readonly priorityScore: number;
   readonly votedByMe: boolean;
   readonly verifiedBy: string | null;
   readonly rejectedBy: string | null;

@@ -17,6 +17,7 @@ export type MonitoringReportCardProps = {
   location: string;
   votes: number;
   comments: number;
+  priorityScore?: number;
   onPress?: () => void;
   detailLabel?: string;
   detailTone?: 'primary' | 'dark';
@@ -35,6 +36,7 @@ export function MonitoringReportCard({
   location,
   votes,
   comments,
+  priorityScore,
   onPress,
   detailLabel = 'Lihat Detail',
   detailTone = 'primary',
@@ -95,7 +97,22 @@ export function MonitoringReportCard({
             >
               {reporterName} | {date}
             </Text>
-            <StatusBadge status={status} />
+            <View className="flex-row items-center gap-2">
+              <StatusBadge status={status} />
+              {priorityScore !== undefined ? (
+                <View
+                  className="rounded-full px-2 py-1"
+                  style={{ backgroundColor: theme.primarySoft }}
+                >
+                  <Text
+                    className="text-[11px] font-semibold"
+                    style={{ color: theme.primary }}
+                  >
+                    Skor {priorityScore}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </View>
         </View>
 

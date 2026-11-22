@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "404860088208",
+    "project_id": "saranakita-bed6e",
+    "storage_bucket": "saranakita-bed6e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:404860088208:android:19b80335fe232a240acd15",
+        "android_client_info": {
+          "package_name": "com.saranakita"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD9bTrzbBIdcfuClixFQ1IzEaRTdRoDxHg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -6,6 +6,10 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@/navigation/types';
+import { useNotifications } from '@/shared/context/notifications-context';
 
 type NotificationButtonProps = {
   notificationIcon: ImageSourcePropType;
@@ -16,22 +20,25 @@ type NotificationButtonProps = {
 
 export function NotificationButton({
   notificationIcon,
-  unreadNotifications = 0,
+  unreadNotifications,
   onNotificationsPress,
   hitSlop = 8,
 }: NotificationButtonProps): React.JSX.Element {
-  const badge = unreadNotifications > 99 ? '99+' : String(unreadNotifications);
+  const { unreadCount } = useNotifications();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const count = unreadNotifications ?? unreadCount;
+  const onPress =
+    onNotificationsPress ?? (() => navigation.navigate('Notifications'));
+  const badge = count > 99 ? '99+' : String(count);
 
   return (
     <Pressable
-      onPress={onNotificationsPress}
-      disabled={!onNotificationsPress}
+      onPress={onPress}
       hitSlop={hitSlop}
       accessibilityRole="button"
       accessibilityLabel={
-        unreadNotifications > 0
-          ? `Notifikasi, ${unreadNotifications} belum dibaca`
-          : 'Notifikasi'
+        count > 0 ? `Notifikasi, ${count} belum dibaca` : 'Notifikasi'
       }
       className="h-11 w-11 items-center justify-center rounded-full bg-white/20 active:opacity-70"
     >
@@ -41,7 +48,7 @@ export function NotificationButton({
         className="h-6 w-6"
       />
 
-      {unreadNotifications > 0 ? (
+      {count > 0 ? (
         <View className="absolute -right-1 -top-1 min-w-[20px] items-center rounded-full bg-red-500 px-1">
           <Text className="text-xs font-bold text-white">{badge}</Text>
         </View>

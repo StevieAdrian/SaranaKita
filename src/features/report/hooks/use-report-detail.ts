@@ -119,7 +119,12 @@ export function useReportDetail(reportId: string): UseReportDetail {
         : await voteReport(report.id);
       setReport(current =>
         current
-          ? { ...current, votes: result.votes, votedByMe: result.votedByMe }
+          ? {
+              ...current,
+              votes: result.votes,
+              votedByMe: result.votedByMe,
+              priorityScore: result.priorityScore,
+            }
           : current,
       );
       return null;
@@ -155,6 +160,7 @@ export function useReportDetail(reportId: string): UseReportDetail {
               ...current,
               recommendations: result.recommendations,
               recommendedByMe: result.recommendedByMe,
+              priorityScore: result.priorityScore,
             }
             : current,
         );

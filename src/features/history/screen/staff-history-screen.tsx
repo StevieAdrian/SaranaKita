@@ -17,7 +17,7 @@ import { getReportEvaluasi } from '@/services/report/feed.api';
 
 export function StaffHistoryScreen(): React.JSX.Element {
   const { theme } = useRole();
-  const { reports, refresh } = useHistoryReports();
+  const { reports, loading, refresh } = useHistoryReports();
   const [filterTab, setFilterTab] = useState<HistoryFilter>('all');
   const [query, setQuery] = useState('');
   const [selectedReport, setSelectedReport] = useState<FeedReport | null>(null);
@@ -112,6 +112,7 @@ export function StaffHistoryScreen(): React.JSX.Element {
 
       <AllReportsHistory
         reports={reports}
+        loading={loading}
         filter={filterTab}
         query={query}
         role={USER_ROLE.STAFF}
