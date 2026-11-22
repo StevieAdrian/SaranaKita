@@ -14,6 +14,10 @@ export function toggleVote(
           ...report,
           votedByMe: !report.votedByMe,
           votes: Math.max(0, report.votes + (report.votedByMe ? -1 : 1)),
+          priorityScore: Math.max(
+            0,
+            report.priorityScore + (report.votedByMe ? -1 : 1),
+          ),
         }
       : report,
   );
@@ -25,7 +29,12 @@ export function applyVoteResult(
 ): FeedReport[] {
   return reports.map(report =>
     report.id === result.reportId
-      ? { ...report, votes: result.votes, votedByMe: result.votedByMe }
+      ? {
+          ...report,
+          votes: result.votes,
+          votedByMe: result.votedByMe,
+          priorityScore: result.priorityScore,
+        }
       : report,
   );
 }
@@ -43,6 +52,10 @@ export function toggleRecommendation(
             0,
             report.recommendations + (report.recommendedByMe ? -1 : 1),
           ),
+          priorityScore: Math.max(
+            0,
+            report.priorityScore + (report.recommendedByMe ? -3 : 3),
+          ),
         }
       : report,
   );
@@ -58,6 +71,7 @@ export function applyRecommendationResult(
           ...report,
           recommendations: result.recommendations,
           recommendedByMe: result.recommendedByMe,
+          priorityScore: result.priorityScore,
         }
       : report,
   );

@@ -23,7 +23,10 @@ export function ActionRequiredReportsScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const reportList = useAdminReportList('action_required');
+  const reportList = useAdminReportList(
+    'action_required',
+    'highest_priority',
+  );
 
   const renderItem: ListRenderItem<FeedReport> = useCallback(
     ({ item }) => (
@@ -36,6 +39,7 @@ export function ActionRequiredReportsScreen(): React.JSX.Element {
         date={toDisplayDate(item.createdAt)}
         votes={item.votes}
         comments={item.comments}
+        priorityScore={item.priorityScore}
         detailLabel="Perbarui Status"
         detailTone="dark"
         onPress={() =>
