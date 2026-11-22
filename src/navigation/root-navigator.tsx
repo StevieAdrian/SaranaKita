@@ -25,6 +25,7 @@ import { TabNavigator } from './tab-navigator';
 import type { RootStackParamList } from './types';
 import { ReportEvaluationsScreen } from '@/features/history/screen/report-evaluations-screen';
 import { NotificationsScreen } from '@/features/notifications';
+import { ActionRequiredReportsScreen } from '@/features/home/screens/action-required-reports-screen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -80,6 +81,10 @@ export function RootNavigator(): React.JSX.Element {
             <Stack.Screen
               name="Notifications"
               component={NotificationsScreen}
+            />
+            <Stack.Screen
+              name="ActionRequiredReports"
+              component={ActionRequiredReportsScreen}
             />
           </Stack.Group>
         )}

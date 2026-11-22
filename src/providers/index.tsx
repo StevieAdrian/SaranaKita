@@ -11,7 +11,10 @@ import { checkUserProfileComplete } from '@/features/auth';
 import { AccessibilityProvider } from '@/shared/accessibility/accessibility-context';
 import { ThemeProvider } from '@/shared/context/theme-context';
 import { NotificationsProvider } from '@/shared/context/notifications-context';
-import { startPushNotifications } from '@/services/notifications/push';
+import {
+  requestPushNotificationsPermission,
+  startPushNotifications,
+} from '@/services/notifications/push';
 
 function selectRole(): UserRole | null {
   return authClient.getState().user?.role ?? null;
@@ -57,18 +60,20 @@ export function AppProviders({
 
     let active = true;
     let stop = () => {};
-    const task = requestIdleCallback(() => {
-      startPushNotifications()
-        .then(unsubscribe => {
-          if (active) stop = unsubscribe;
-          else unsubscribe();
-        })
-        .catch(() => undefined);
-    });
+    const task = setTimeout(() => {
+      void (async () => {
+        const granted = await requestPushNotificationsPermission();
+        if (!granted || !active) return;
+
+        const unsubscribe = await startPushNotifications();
+        if (active) stop = unsubscribe;
+        else unsubscribe();
+      })().catch(() => undefined);
+    }, 1000);
 
     return () => {
       active = false;
-      cancelIdleCallback(task);
+      clearTimeout(task);
       stop();
     };
   }, [userId]);
